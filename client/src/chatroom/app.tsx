@@ -23,6 +23,7 @@ const ChatApp = () => {
   const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (state.username === ''){
+      // this happens the first time the person visits the site
       dispatch({type: "username", payload: value})
       
       // configure websocket
