@@ -1,0 +1,1 @@
+export const WSURL = 'ws://localhost:5000/chat';
