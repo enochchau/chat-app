@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 import * as Store from './store';
 import ChatApp from './chatroom/app';
 
-const AppWrapper = () => {
+const App = () => {
   return(
     <Store.Provider>
       <ChatApp/>
@@ -11,4 +11,4 @@ const AppWrapper = () => {
   );
 }
 
-ReactDOM.render(<AppWrapper/>, document.getElementById("root"))
+ReactDOM.render(<App/>, document.getElementById("root"))
