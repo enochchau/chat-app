@@ -67,11 +67,9 @@ class User extends Sq.Model<UserAttributes, UserCreationAttributes> implements U
   public removeGroups!: Sq.BelongsToManyRemoveAssociationsMixin<Group, number>
   public setGroups!: Sq.BelongsToManySetAssociationsMixin<Group, number>
 
-  public readonly Friends?: User[];
   public readonly Groups?: Group[];
   
   public static associations:{
-    Friends: Sq.Association<User, User>;
     Groups: Sq.Association<User, Group>;
   };
 
