@@ -42,6 +42,12 @@ class User extends Sq.Model<UserAttributes, UserCreationAttributes> implements U
     users: Sq.Association<User, User>;
     groups: Sq.Association<User, Group>;
   };
+
+  public checkPassword(password:string, cb: (err:Error, result:boolean) => void){
+    bcrypt.compare(password, this.password, function(err, result){
+      cb(err, result);
+    });
+  }
 }
 
 User.init(
@@ -69,10 +75,10 @@ User.init(
   }
 )
 
-User.beforeCreate( (user, options) => {
-  bcrypt.hash(user.password, SALTROUNDS, function(err, hash){
-    user.password = hash;
-  })
+User.beforeCreate( async function(user, options){
+  if(!user.changed("password")) return;
+
+  user.password = await bcrypt.hash(user.password, SALTROUNDS);
 })
 
 export default User;

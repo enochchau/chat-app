@@ -4,9 +4,14 @@ import cors from 'cors';
 import helmet from 'helmet';
 import * as http from 'http';
 import * as WebSocket from 'ws';
+import passport from 'passport';
+import * as bodyParser from 'body-parser';
+
 import ChatRoom from './chatroom';
 import * as models from './models';
 import sequelize from './db';
+import * as routes from './routes';
+import * as auth from './auth';
 
 async function initDb(){
   try{
@@ -21,10 +26,17 @@ async function initDb(){
   }
 }
 
+// initialize the passport strategies
+auth.init();
 
 const app = express();
 app.use(cors());
 app.use(helmet());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(passport.initialize());
+app.use(passport.session());
+app.use('/', routes.auth);
 
 const server = http.createServer(app);
 
@@ -35,6 +47,11 @@ app.get("/", (req , res) => {
   res.json({message: "hello world"});
 })
 
+// error handler
+app.use((err: Error, req: express.Request, res: express.Response, next: any) => {
+  console.error(err.stack);
+  res.status(500).json({message: err.toString()});
+})
 
 initDb().
 then( () => {
