@@ -6,10 +6,11 @@
   "scripts": {
     "start": "tsc --build && node build/app.js",
     "test": "echo \"no test script\"",
-    "dev": "nodemon src/app.ts",
-    "dev2": "ts-node-dev --respawn src/app.ts",
+    "dev2": "nodemon src/app.ts",
+    "dev": "ts-node-dev --respawn src/app.ts",
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "db": "ts-node-dev --respawn src/models/index.ts"
   },
   "repository": {
     "type": "git",

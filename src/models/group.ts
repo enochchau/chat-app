@@ -1,5 +1,4 @@
 import * as Sq from "sequelize";
-import sequelize from '../db';
 import User from './user';
 
 interface GroupAttributes{
@@ -16,34 +15,42 @@ class Group extends Sq.Model<GroupAttributes, GroupCreationAttributes> implement
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
-  public getUsers!: Sq.HasManyGetAssociationsMixin<User>;
-  public addUser!: Sq.HasManyAddAssociationMixin<User, number>;
-  public hasUser!: Sq.HasManyHasAssociationMixin<User, number>;
-  public countUsers!: Sq.HasManyCountAssociationsMixin;
-  public createUser!: Sq.HasManyCreateAssociationMixin<User>;
+  public addUser!: Sq.BelongsToManyAddAssociationMixin<User, number>
+  public addUsers!: Sq.BelongsToManyAddAssociationsMixin<User, number>
+  public countUsers!: Sq.BelongsToManyCountAssociationsMixin
+  public createUser!: Sq.BelongsToManyCreateAssociationMixin<User>
+  public getUsers!: Sq.BelongsToManyGetAssociationsMixin<User>
+  public hasUser!: Sq.BelongsToManyHasAssociationMixin<User, number>
+  public hasUsers!: Sq.BelongsToManyHasAssociationsMixin<User, number>
+  public removeUser!: Sq.BelongsToManyRemoveAssociationMixin<User, number>
+  public removeUsers!: Sq.BelongsToManyRemoveAssociationsMixin<User, number>
+  public setUsers!: Sq.BelongsToManySetAssociationsMixin<User, number>
 
-  public readonly users?: User[];
+  public readonly Users?: User[];
   
   public static associations: {
-    users: Sq.Association<User, Group>;
+    Users: Sq.Association<User, Group>;
+  }
+
+  public static initialize(sequelize: Sq.Sequelize){
+    this.init(
+      {
+        id: {
+          type: Sq.DataTypes.INTEGER.UNSIGNED,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: {
+          type: new Sq.DataTypes.STRING(128),
+          allowNull: true,
+        }
+      },{
+        tableName: "Group",
+        sequelize
+      }
+    )
   }
 }
 
-Group.init(
-  {
-    id: {
-      type: Sq.DataTypes.INTEGER.UNSIGNED,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    name: {
-      type: new Sq.DataTypes.STRING(128),
-      allowNull: true,
-    }
-  },{
-    tableName: "group",
-    sequelize
-  }
-)
 
 export default Group;

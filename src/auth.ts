@@ -55,20 +55,19 @@ function init(){
     {secretOrKey: config.SECRETKEY, jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken()},
     async (token, done) => {
       try{
-        return done(null, token.user as Express.User);
+        let user = await models.User.findByPk(token.user.id);
+        if(!user){
+          const error = new Error("A JWT had no user associated with it.");
+          done(error);
+        }
+
+        return done(null, user);
       } catch (err) {
         return done(err);
       }
     }
   ));
+
 }
 
-declare global{
-  namespace Express {
-    export interface User{
-      id: number;
-      username: string;
-    }
-  }
-}
 export { init };

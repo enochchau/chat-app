@@ -1,36 +1,66 @@
 import express from 'express';
-import { User } from '../models/index';
-import passport from 'passport';
+import * as db from '../models/index';
 
 const router = express.Router();
 
 // add a friend
 router.post('/', async (req, res, next) => {
-  passport.authenticate('jwt', {session: false})
   if (!req?.user?.id || !req.body.friendId) return res.sendStatus(400);
   // can't add yourself
   if (req.user.id === req.body.friendId) return res.sendStatus(400);
 
   try {
 
-    let user = await User.findByPk(req.user.id);
+    const user = await db.User.findByPk(req.user.id, {
+      include: [db.User.associations.Friends]
+    });
     if (!user) return res.sendStatus(400);
 
-    let friend = await User.findByPk(req.body.friendId);
-    if (!friend) return res.sendStatus(400);
+    // const friendlist = user.getFriends();
+    // console.log(friendlist);
 
-    user.addUser(friend);
+    console.log(JSON.stringify(user, null,2));
+    res.json(user);
 
-    let result = await User.findOne({
-      where: {username: req.user.username},
-      include: User.associations.users
-    });
+    // const friend = await User.findByPk(req.body.friendId);
+    // if (!friend) return res.sendStatus(400);
 
-    res.json(result);
+    // await user.addFriend(friend.id);
+
+    // const updatedUser = await User.findByPk(req.user.id, {
+    //   include: User.associations.friends,
+    // });
+    // if (!updatedUser ) return res.sendStatus(400);
+    
+
+    // res.json(updatedUser);
 
   } catch(err) {
     next(err);
   }
 });
+
+// delete a friend
+router.delete('/', async (req, res, next) => {
+  if(!req?.user?.id || !req.body.friendId) return res.sendStatus(400);
+
+  try{
+    const user = await db.User.findByPk(req.user.id, {
+      include: db.User.associations.Friends,
+    });
+    if(!user) return res.sendStatus(400);
+
+
+    console.log(user.Friends);
+    res.json(user.Friends);
+
+    // let enemy = await User.findByPk(req.body.friendId);
+    // if(!enemy) return res.sendStatus(400);
+
+    // user.removeUser(enemy);
+  } catch(err) {
+    next(err);
+  }
+})
 
 export default router;

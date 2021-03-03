@@ -8,8 +8,7 @@ import passport from 'passport';
 import * as bodyParser from 'body-parser';
 
 import ChatRoom from './chatroom';
-import * as models from './models';
-import sequelize from './db';
+import { sequelize } from './models/index';
 import * as routes from './routes';
 import * as auth from './auth';
 
@@ -19,8 +18,6 @@ async function initDb(){
 
     if (config.SYNC_DATABASE){
       await sequelize.sync({force:true});
-      await models.User.sync({force:true});
-      await models.Group.sync({force:true});
     }
 
     console.log("connected to db");
@@ -33,11 +30,13 @@ async function initDb(){
 auth.init();
 
 const app = express();
+
 app.use(cors());
 app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(passport.initialize());
+
 app.use('/', routes.auth);
 app.use('/friend', passport.authenticate("jwt", { session: false }), routes.user);
 
