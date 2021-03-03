@@ -1,13 +1,13 @@
 import express from 'express';
 import passport from 'passport';
-import * as db from '../models/index';
 import * as jwt from 'jsonwebtoken';
 import config from '../config';
+import { User } from '../entity/user';
 
 const auth = express.Router();
 
 auth.post('/register', (req, res, next) => {
-  passport.authenticate("register", {session: false}, (err: null | Error, user: db.User, info) => {
+  passport.authenticate("register", {session: false}, (err: null | Error, user: User, info) => {
     if(err){
       const error = new Error("An error occured during registration.");
       return next(error);
@@ -24,13 +24,14 @@ auth.post('/register', (req, res, next) => {
   })(req, res, next);
 });
 
+// interface for encrypted contents of JWT
 interface TokenBody{
   id: number;
   username: string;
 }
 
 auth.post('/login', (req, res, next) => {
-  passport.authenticate("login", (err: null | Error, user: db.User, info) => { 
+  passport.authenticate("login", (err: null | Error, user: User, info) => { 
     if(err){
       const error = new Error("An error occurred while logging in.");
       return next(error);
