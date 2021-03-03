@@ -16,9 +16,12 @@ import * as auth from './auth';
 async function initDb(){
   try{
     await sequelize.authenticate();
-    // await sequelize.sync({force:true});
-    // await models.User.sync({force:true});
-    // await models.Group.sync({force:true});
+
+    if (config.SYNC_DATABASE){
+      await sequelize.sync({force:true});
+      await models.User.sync({force:true});
+      await models.Group.sync({force:true});
+    }
 
     console.log("connected to db");
   } catch{
@@ -35,8 +38,8 @@ app.use(helmet());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(passport.initialize());
-app.use(passport.session());
 app.use('/', routes.auth);
+app.use('/friend', passport.authenticate("jwt", { session: false }), routes.user);
 
 const server = http.createServer(app);
 

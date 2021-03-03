@@ -70,11 +70,12 @@ User.init(
       allowNull: false,
     }
   },{
-    tableName: 'Users',
+    tableName: 'user',
     sequelize
   }
 )
 
+// hash password
 User.beforeCreate( async function(user, options){
   if(!user.changed("password")) return;
 

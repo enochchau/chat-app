@@ -41,7 +41,7 @@ Group.init(
       allowNull: true,
     }
   },{
-    tableName: "Groups",
+    tableName: "group",
     sequelize
   }
 )
