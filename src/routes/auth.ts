@@ -39,7 +39,7 @@ auth.post('/login', (req, res, next) => {
     req.login(user, {session: false}, (err: null | Error) => {
       if (err) return next(err);
 
-      const body = { id: user.id, username: user.username};
+      const body: Express.User = { id: user.id, username: user.username};
       const token = jwt.sign({ user: body }, config.SECRETKEY);
       
       return res.json(token);

@@ -55,7 +55,7 @@ function init(){
     {secretOrKey: config.SECRETKEY, jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken()},
     async (token, done) => {
       try{
-        return done(null, token.user);
+        return done(null, token.user as Express.User);
       } catch (err) {
         return done(err);
       }
@@ -63,4 +63,12 @@ function init(){
   ));
 }
 
-export {init};
+declare global{
+  namespace Express {
+    export interface User{
+      id: number;
+      username: string;
+    }
+  }
+}
+export { init };
