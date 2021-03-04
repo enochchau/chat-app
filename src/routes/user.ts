@@ -3,7 +3,7 @@ import { getRepository } from "typeorm";
 import { User } from '../entity/user';
 
 
-class UserRouter {
+export class UserRouter {
   public router = express.Router();
   private userRepository = getRepository(User);
 
@@ -77,5 +77,3 @@ class UserRouter {
     }
   }
 }
-
-export default UserRouter;

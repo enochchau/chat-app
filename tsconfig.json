@@ -71,6 +71,6 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "__test__/connection.ts"  ],
   "exclude": ["node_modules", "**/*.spec.ts", "build/**/*"]
 }

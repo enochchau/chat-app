@@ -4,6 +4,10 @@ This is a simple websocket chat app.
 
 I am mostly trying to learn TypeScript and Parcel.
 
+## Tests
+
+* Figure out how to clean up the db between tests.
+[https://github.com/nestjs/nest/issues/409]
 
 ## Database
 

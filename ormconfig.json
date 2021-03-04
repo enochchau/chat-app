@@ -1,8 +1,12 @@
 {
-   "type": "sqlite",
-   "database": "test.db",
+   "type": "postgres",
+   "host": "localhost",
+   "port": 5432,
+   "database": "chat_app_test",
+   "username": "test_user",
+   "password": "test123",
    "synchronize": true,
-   "logging": true,
+   "logging": false,
    "entities": [
       "src/entity/**/*.ts"
    ],

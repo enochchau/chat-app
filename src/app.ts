@@ -14,25 +14,24 @@ import passport from 'passport';
 import * as auth from './auth';
 // routes
 import ChatRoom from './chatroom';
-import authroutes from './routes/auth';
-import UserRouter from './routes/user';
+import { AuthRouter } from './routes/auth';
+import { UserRouter } from './routes/user';
 
-createConnection()
-.then( async (connection) => {
+export function begin(): http.Server{
   // initialize the passport strategies
   auth.init();
 
   const app = express();
-
   app.use(cors());
   app.use(helmet());
   app.use(bodyParser.urlencoded({ extended: false }));
   app.use(bodyParser.json());
   app.use(passport.initialize());
 
-  app.use('/', authroutes);
+  const authRoutes = new AuthRouter();
+  app.use('/api/auth', authRoutes.router); 
   const userRoutes = new UserRouter();
-  app.use('/friend', passport.authenticate("jwt", { session: false }), userRoutes.router);
+  app.use('/api/friend', passport.authenticate("jwt", { session: false }), userRoutes.router);
 
   // initialize websocket
   const server = http.createServer(app);
@@ -51,6 +50,12 @@ createConnection()
     res.status(500).json({message: err.toString()});
   })
 
+  return server;
+}
+
+createConnection()
+.then((connection) => {
+  const server = begin();
   // start server
   server.listen(config.PORT, () => {
     console.log(`Listening at http://localhost:${config.PORT}`);
