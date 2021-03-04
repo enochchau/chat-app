@@ -31,25 +31,27 @@ const testUser: testUserInterface = {
 
 let testJwt: string = "";
 
-beforeAll(async ()=>{
+beforeAll(async (done)=>{
   await conn.create();
+  await conn.clear();
   server = begin();
+  server.listen(done);
 });
 
 afterAll(async (done) =>{
   await conn.clear();
   await conn.close();
-  done();
+  server.close(done)
 });
 
 test("GET /", async () => {
-  await supertest(server)
+  await supertest(server) 
     .get("/")
     .expect(200)
     .then((res) => {
       expect(res.body.message).toBe("hello world");
     });
-})
+});
 
 test("POST /api/auth/register", async () => {
   await supertest(server)
@@ -58,8 +60,8 @@ test("POST /api/auth/register", async () => {
     .expect(200)
     .then((res) => {
       expect(res.body.message).toBe("Registration successful");
-    })
-})
+    });
+});
 
 test("POST /api/auth/login", async () => {
   await supertest(server)
@@ -71,7 +73,7 @@ test("POST /api/auth/login", async () => {
       let decode = jwt_decode(testJwt) as jwtContentInterface;
       let jwtUser = decode.user as testJWTUserInterface;
 
-      expect(jwtUser.id).toBe(2);
+      expect(jwtUser.id).toBeGreaterThan(0);
       expect(jwtUser.username).toBe(testUser.username);
-    })
-})
+    });
+});

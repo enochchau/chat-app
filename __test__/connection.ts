@@ -1,25 +1,25 @@
 import { createConnection, getConnection, Connection } from 'typeorm';
 
 export class DBConnect {
+  public connection: Connection;
   public async create(){
-    await createConnection();
+    this.connection = await createConnection();
   }
 
   public async close(){
-    await getConnection().close();
+    await this.connection.close();
   }
 
   public async clear(){
-    const connection = getConnection();
-    const entities = connection.entityMetadatas;
+    const entities = this.connection.entityMetadatas;
 
     entities.forEach( async (entity) => {
-      const repository = connection.getRepository(entity.name);
-      await repository.query(`DELETE FROM \`${entity.tableName}\`;`);
+      const repository = this.connection.getRepository(entity.name);
+      await repository.query(`DELETE FROM \"${entity.tableName}\";`);
     })
   }
 
   public async get(): Promise<Connection>{
-    return await getConnection();
+    return await this.connection;
   }
 }

@@ -60,7 +60,9 @@ export class User {
   @JoinTable()
   friends: User[];
 
-  @ManyToMany(type => Group, group => group.users)
+  @ManyToMany(type => Group, group => group.users, {
+    cascade: true
+  })
   @JoinTable()
   groups: Group[]
 
