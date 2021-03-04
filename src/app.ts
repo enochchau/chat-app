@@ -1,64 +1,64 @@
 import config from './config';
+// typeORM
+import "reflect-metadata";
+import {createConnection} from "typeorm";
+// server stuff
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import passport from 'passport';
 import * as bodyParser from 'body-parser';
-
-import ChatRoom from './chatroom';
-import { sequelize } from './models/index';
-import * as routes from './routes';
+// authentication
+import passport from 'passport';
 import * as auth from './auth';
+// routes
+import ChatRoom from './chatroom';
+import { AuthRouter } from './routes/auth';
+import { UserRouter } from './routes/user';
 
-async function initDb(){
-  try{
-    await sequelize.authenticate();
+export function begin(): http.Server{
+  // initialize the passport strategies
+  auth.init();
 
-    if (config.SYNC_DATABASE){
-      await sequelize.sync({force:true});
-    }
+  const app = express();
+  app.use(cors());
+  app.use(helmet());
+  app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
+  app.use(passport.initialize());
 
-    console.log("connected to db");
-  } catch{
-    console.error('unable to connect to db');
-  }
+  const authRoutes = new AuthRouter();
+  app.use('/api/auth', authRoutes.router); 
+  const userRoutes = new UserRouter();
+  app.use('/api/friend', passport.authenticate("jwt", { session: false }), userRoutes.router);
+
+  // initialize websocket
+  const server = http.createServer(app);
+
+  const wss = new WebSocket.Server({server:server, path:'/chat'});
+  const chatRoom = new ChatRoom(wss);
+
+  // test
+  app.get("/", (req , res) => {
+    res.json({message: "hello world"});
+  })
+
+  // error handler
+  app.use((err: Error, req: express.Request, res: express.Response, next: any) => {
+    console.error(err.stack);
+    res.status(500).json({message: err.toString()});
+  })
+
+  return server;
 }
 
-// initialize the passport strategies
-auth.init();
-
-const app = express();
-
-app.use(cors());
-app.use(helmet());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(passport.initialize());
-
-app.use('/', routes.auth);
-app.use('/friend', passport.authenticate("jwt", { session: false }), routes.user);
-
-const server = http.createServer(app);
-
-const wss = new WebSocket.Server({server:server, path:'/chat'});
-const chatRoom = new ChatRoom(wss);
-
-app.get("/", (req , res) => {
-  res.json({message: "hello world"});
+createConnection()
+.then((connection) => {
+  const server = begin();
+  // start server
+  server.listen(config.PORT, () => {
+    console.log(`Listening at http://localhost:${config.PORT}`);
+  })
 })
-
-// error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: any) => {
-  console.error(err.stack);
-  res.status(500).json({message: err.toString()});
-})
-
-initDb().
-then( () => {
-    server.listen(config.PORT, () => {
-      console.log(`Listening at http://localhost:${config.PORT}`);
-    })
-  }
-)
+.catch((err) => console.error(err));

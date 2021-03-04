@@ -1,66 +1,79 @@
-import express from 'express';
-import * as db from '../models/index';
+import express, { NextFunction, Request, Response } from 'express';
+import { getRepository } from "typeorm";
+import { User } from '../entity/user';
 
-const router = express.Router();
 
-// add a friend
-router.post('/', async (req, res, next) => {
-  if (!req?.user?.id || !req.body.friendId) return res.sendStatus(400);
-  // can't add yourself
-  if (req.user.id === req.body.friendId) return res.sendStatus(400);
+export class UserRouter {
+  public router = express.Router();
+  private userRepository = getRepository(User);
 
-  try {
-
-    const user = await db.User.findByPk(req.user.id, {
-      include: [db.User.associations.Friends]
+  constructor(){
+    this.router.post("/", (req, res, next) => {
+      this.friendRequestHandler(req, res, next, this.addFriend);
     });
-    if (!user) return res.sendStatus(400);
 
-    // const friendlist = user.getFriends();
-    // console.log(friendlist);
+    this.router.delete("/", (req, res, next) => {
+      this.friendRequestHandler(req, res, next, this.removeFriend);
+    })
 
-    console.log(JSON.stringify(user, null,2));
-    res.json(user);
-
-    // const friend = await User.findByPk(req.body.friendId);
-    // if (!friend) return res.sendStatus(400);
-
-    // await user.addFriend(friend.id);
-
-    // const updatedUser = await User.findByPk(req.user.id, {
-    //   include: User.associations.friends,
-    // });
-    // if (!updatedUser ) return res.sendStatus(400);
+  }
+  
+  // check if two users are friends
+  private async areFriends(userId: number, friendId: number): Promise<boolean> {
+    const areFriends = await this.userRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.friends", "friend")
+      .where("user.id = :userId", {userId: userId})
+      .andWhere("friend.id = :friendId", {friendId: friendId})
+      .getCount();
     
-
-    // res.json(updatedUser);
-
-  } catch(err) {
-    next(err);
+    console.log(userId, friendId, areFriends);
+    
+    return Boolean(areFriends);
   }
-});
 
-// delete a friend
-router.delete('/', async (req, res, next) => {
-  if(!req?.user?.id || !req.body.friendId) return res.sendStatus(400);
-
-  try{
-    const user = await db.User.findByPk(req.user.id, {
-      include: db.User.associations.Friends,
-    });
-    if(!user) return res.sendStatus(400);
-
-
-    console.log(user.Friends);
-    res.json(user.Friends);
-
-    // let enemy = await User.findByPk(req.body.friendId);
-    // if(!enemy) return res.sendStatus(400);
-
-    // user.removeUser(enemy);
-  } catch(err) {
-    next(err);
+  // add a friendship to a user
+  private async addFriend(userId: number, friendId: number){
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(User, "friends")
+      .of(userId)
+      .add(friendId);
   }
-})
+  
+  private async removeFriend(userId: number, friendId: number){
+    await this.userRepository
+      .createQueryBuilder()
+      .relation(User, "friends")
+      .of(userId)
+      .remove(friendId);
+  }
 
-export default router;
+  private async friendRequestHandler(req: Request, res: Response, next: NextFunction, action:(userId: number, friendId: number) => Promise<void>){
+    if (!req?.user?.id || !req.body.friendId) return res.sendStatus(400);
+    const friendId = parseInt(req.body.friendId);
+    // can't add yourself
+    if (req.user.id === friendId) return res.sendStatus(400);
+
+    try {
+      // check if the current user exists
+      const user = await this.userRepository.findOne({where: {id: req.user.id}});
+      if (!user) return res.sendStatus(400);
+      // check if the friend exists
+      const friend = await this.userRepository.findOne({where: {id: friendId}});
+      if (!friend) return res.sendStatus(400);
+
+      // check if already friends
+      const alreadyFriends = await this.areFriends(req.user.id, friendId);
+      if (alreadyFriends) return res.sendStatus(400);
+
+      // do some action with friendship
+      await action(req.user.id, friendId);
+      
+      res.sendStatus(200);
+
+    } catch(err) {
+      next(err);
+    }
+  }
+}
