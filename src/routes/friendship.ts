@@ -6,16 +6,43 @@ export class FriendRouter {
   public router = express.Router();
 
   constructor(){
+    this.postFriend();
+    this.deleteFriend();
+    this.getFriends();
+  }
+
+  private postFriend(){
     // adds a friend if two users are not already friends
     this.router.post("/", (req, res, next) => {
       this.friendRequestHandler(req, res, next, false, UserEntity.addFriend);
     });
+  }
 
+  private deleteFriend(){
     // removes a friend if two users are already friends
     this.router.delete("/", (req, res, next) => {
       this.friendRequestHandler(req, res, next, true, UserEntity.removeFriend);
     })
+  }
 
+  private getFriends(){
+    this.router.get("/", async (req, res, next) => {
+      if(!req?.user?.id) return res.sendStatus(400);
+      try {
+        const user = await UserEntity.findOne({
+          where: {id: req.user.id},
+          relations: ["friends"]
+        });
+
+        if (!user) return res.sendStatus(400);
+
+        res.json(user);
+      } catch (err) {
+        next(err);
+      }
+
+      
+    })
   }
   
   private async friendRequestHandler(req: Request, res: Response, next: NextFunction, friendshipStatus: boolean, action:(user: UserEntity, friend: UserEntity) => Promise<UserEntity>){

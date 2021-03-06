@@ -153,6 +153,20 @@ describe('Testing API Routes', () => {
       .expect(400);
   });
 
+  test("GET /api/friend: get friends of testUsers[0]", async () => {
+    await supertest(server)
+      .get('/api/friend')
+      .set('Authorization', 'bearer ' + testUsers[0].jwt)
+      .expect(200)
+      .then((res) => {
+        console.log(JSON.stringify(res.body, null,2));
+        expect(res.body.friends.length).toBe(1);
+        expect(res.body.id).toBe(testUsers[0].id);
+        expect(res.body.name).toBe(testUsers[0].name);
+        expect(res.body.username).toBe(testUsers[0].username);
+      });
+  })
+
   test("POST /api/group: testUsers[0] creates a new group with all 3 testUsers", async () => {
     let userId: Array<number> = [];
     for(let testUser of testUsers){
@@ -164,7 +178,9 @@ describe('Testing API Routes', () => {
       .send({userId: userId})
       .expect(200)
       .then((res) => {
-        console.log(res.body);
+        expect(res.body.users.length).toBe(userId.length);
+        expect(res.body.name).toBeNull();
       });
   })
+
 });
