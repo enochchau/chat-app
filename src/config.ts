@@ -1,10 +1,28 @@
 require('dotenv').config();
 
+// process.env.NODE_ENV === 'dev'
 const config = {
   PORT: process.env.PORT || 500,
-  DATABASE_URL: process.env.DATABASE_URL || 'sqlite:test.db',
   SECRETKEY: process.env.SECRETKEY || "SUPERSECRETKEY",
-  SYNC_DATABASE: process.env.SYNC_DATABASE || false,
+  DB: {
+    type: "postgres" as any, 
+    host: 'localhost',
+    port: 5432,
+    database: "chat_app_test",
+    username: "test_user",
+    password: 'test123',
+    synchronize: true,
+    logging: true,
+    entities: [
+      __dirname + "/enitty/*.ts"
+    ]
+  }
 }
 
-export default config;
+if (process.env.NODE_ENV === "prod"){
+  config.DB.logging =  false;
+  config.DB.synchronize = false;
+  // parse the env.DATABSE_URL and fill in the other DB stuff
+}
+
+export { config };

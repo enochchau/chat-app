@@ -7,11 +7,12 @@ import {
   AfterLoad, 
   BeforeUpdate, 
   BeforeInsert,
-  Repository,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  BaseEntity,
+  FindRelationsNotFoundError,
 } from 'typeorm';
-import { Group } from './group';
+import { GroupEntity } from './group';
 import * as bcrypt from "bcrypt";
 
 const SALTROUNDS = 10;
@@ -19,17 +20,12 @@ const SALTROUNDS = 10;
 // for req.user to work with passport-JWT
 declare global{
   namespace Express {
-    export interface User{
-      id: number,
-      name: string,
-      username: string,
-      password: string,
-    }
+    export interface User extends UserEntity{}
   }
 }
 
 @Entity()
-export class User {
+export class UserEntity extends BaseEntity{
   
   @PrimaryGeneratedColumn()
   id: number;
@@ -46,7 +42,8 @@ export class User {
   username: string;
 
   @Column({
-    length: 72 
+    length: 72,
+    // select: false // see if you can get this working.
   })
   password: string;
 
@@ -56,15 +53,15 @@ export class User {
   @UpdateDateColumn()
   updated: Date;
 
-  @ManyToMany(type => User, user => user.friends)
+  @ManyToMany(type => UserEntity, user => user.friends)
   @JoinTable()
-  friends: User[];
+  friends: UserEntity[];
 
-  @ManyToMany(type => Group, group => group.users, {
+  @ManyToMany(type => GroupEntity, group => group.users, {
     cascade: true
   })
   @JoinTable()
-  groups: Group[]
+  groups: GroupEntity[]
 
   // used to check if the password changed and rehash it
   private tempPassword: string;
@@ -79,14 +76,14 @@ export class User {
   }
 
   @BeforeUpdate()
-  private async updateHash(){
+  private async updatePasswordHash(){
     if (this.tempPassword !== this.password){
       await this.hashPassword();
     }
   }
   
   @BeforeInsert()
-  private async insertHash(){
+  private async createPasswordHash(){
     await this.hashPassword();
   }
   
@@ -96,4 +93,36 @@ export class User {
     })
   } 
 
+  // queries
+  public static addFriend(user:UserEntity, friend:UserEntity): Promise<UserEntity>{
+    user.friends.push(friend);
+    return UserEntity.save(user);
+  }
+
+  public static removeFriend(user: UserEntity, friend: UserEntity): Promise<UserEntity>{
+    for(let i=0; i<user.friends.length; i++){
+      if (user.friends[i].id === friend.id){
+        user.friends.splice(i, 1);
+        break;
+      }
+    }
+    return UserEntity.save(user);
+  }
+
+  public static async areFriends(userId: number, friendId: number){
+    const areFriends = await this 
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.friends", "friend")
+      .where("user.id = :userId", {userId: userId})
+      .andWhere("friend.id = :friendId", {friendId: friendId})
+      .getCount();
+    
+    return Boolean(areFriends);
+  }
+
+  public static findUsersByIds(userIds: Array<number>){
+    return this.createQueryBuilder('user')
+      .where("user.id IN (:...ids)", { ids: userIds})
+      .execute();
+  }
 }

@@ -1,8 +1,8 @@
 import express from 'express';
 import passport from 'passport';
 import * as jwt from 'jsonwebtoken';
-import config from '../config';
-import { User } from '../entity/user';
+import { config } from '../config';
+import { UserEntity } from '../entity/user';
 
 // interface for encrypted contents of JWT
 interface TokenBody{
@@ -14,10 +14,15 @@ export class AuthRouter {
   public router = express.Router();
 
   constructor(){
+    this.register();
+    this.login();
+  }
+
+  private register(){
     this.router.post('/register', (req, res, next) => {
-      passport.authenticate("register", {session: false}, (err: null | Error, user: User, info) => {
+      passport.authenticate("register", {session: false}, (err: null | Error, user: UserEntity, info) => {
         if(err){
-          const error = new Error("An error occured during registration.");
+          const error = new Error("An error occured during registration: " + err.message);
           return next(error);
         }
 
@@ -31,12 +36,13 @@ export class AuthRouter {
         });
       })(req, res, next);
     });
+  }
 
-
+  private login(){
     this.router.post('/login', (req, res, next) => {
-      passport.authenticate("login", (err: null | Error, user: User, info) => { 
+      passport.authenticate("login", (err: null | Error, user: UserEntity, info) => { 
         if(err){
-          const error = new Error("An error occurred while logging in.");
+          const error = new Error("An error occurred while logging in: " + err.message);
           return next(error);
         }
 

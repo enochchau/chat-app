@@ -10,13 +10,23 @@ export class DBConnect {
     await this.connection.close();
   }
 
-  public async clear(){
+  private async clear(action: string){
     const entities = this.connection.entityMetadatas;
 
-    entities.forEach( async (entity) => {
-      const repository = this.connection.getRepository(entity.name);
-      await repository.query(`DELETE FROM \"${entity.tableName}\";`);
-    })
+    let entity;
+    for (entity of entities){
+      try {
+        await this.connection.query(action + ` TABLE \"${entity.tableName}\" CASCADE;`);
+      } catch(err) {
+        console.error(err);
+      }
+    }
+  }
+  public dropTables(){
+    return this.clear("DROP");
+  }
+  public truncateTables(){
+    return this.clear("TRUNCATE");
   }
 
   public async get(): Promise<Connection>{

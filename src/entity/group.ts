@@ -3,14 +3,14 @@ import {
   Column, 
   PrimaryGeneratedColumn, 
   ManyToMany, 
-  JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
+  BaseEntity,
 } from 'typeorm';
-import { User } from './user'
+import { UserEntity } from './user'
 
 @Entity()
-export class Group {
+export class GroupEntity extends BaseEntity{
   
   @PrimaryGeneratedColumn()
   id: number;
@@ -27,6 +27,13 @@ export class Group {
   @UpdateDateColumn()
   updated: Date;
 
-  @ManyToMany(type => User, user => user.groups)
-  users: User[];
+  @ManyToMany(type => UserEntity, user => user.groups)
+  users: UserEntity[];
+
+  public static createGroup(users: Array<UserEntity>, name: string | null = null){
+    const group = new GroupEntity();
+    if (name) group.name = name;
+    group.users = users
+    return this.save(group);
+  }
 }

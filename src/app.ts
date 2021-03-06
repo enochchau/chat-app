@@ -1,4 +1,4 @@
-import config from './config';
+import { config } from './config';
 // typeORM
 import "reflect-metadata";
 import {createConnection} from "typeorm";
@@ -11,54 +11,83 @@ import * as WebSocket from 'ws';
 import * as bodyParser from 'body-parser';
 // authentication
 import passport from 'passport';
-import * as auth from './auth';
+import { PassportStrategy } from './auth';
 // routes
 import ChatRoom from './chatroom';
 import { AuthRouter } from './routes/auth';
-import { UserRouter } from './routes/user';
+import { FriendRouter } from './routes/friendship';
+import { GroupRouter } from './routes/group';
 
-export function begin(): http.Server{
-  // initialize the passport strategies
-  auth.init();
+export class App {
+  public app = express();
 
-  const app = express();
-  app.use(cors());
-  app.use(helmet());
-  app.use(bodyParser.urlencoded({ extended: false }));
-  app.use(bodyParser.json());
-  app.use(passport.initialize());
+  constructor() {
+    PassportStrategy.initialize();
 
-  const authRoutes = new AuthRouter();
-  app.use('/api/auth', authRoutes.router); 
-  const userRoutes = new UserRouter();
-  app.use('/api/friend', passport.authenticate("jwt", { session: false }), userRoutes.router);
+    this.app.use(cors());
+    this.app.use(helmet());
+    this.app.use(bodyParser.urlencoded({ extended: false }));
+    this.app.use(bodyParser.json());
+    this.app.use(passport.initialize());
 
-  // initialize websocket
-  const server = http.createServer(app);
+    // create routes
+    const authRoutes = new AuthRouter();
+    this.app.use('/api/auth', authRoutes.router); 
+    const friendRoutes = new FriendRouter();
+    this.app.use('/api/friend', passport.authenticate("jwt", { session: false }), friendRoutes.router);
+    const groupRoutes = new GroupRouter();
+    this.app.use('/api/group', passport.authenticate("jwt", { session: false }), groupRoutes.router);
 
-  const wss = new WebSocket.Server({server:server, path:'/chat'});
-  const chatRoom = new ChatRoom(wss);
+    // test route
+    this.app.get("/", (req , res) => {
+      res.json({message: "hello world"});
+    })
 
-  // test
-  app.get("/", (req , res) => {
-    res.json({message: "hello world"});
-  })
+    // error handler
+    this.app.use((err: Error, req: express.Request, res: express.Response, next: any) => {
+      console.error(err.stack);
+      res.status(500).json({message: err.toString()});
+    })
+  }
 
-  // error handler
-  app.use((err: Error, req: express.Request, res: express.Response, next: any) => {
-    console.error(err.stack);
-    res.status(500).json({message: err.toString()});
-  })
+  public createWebsocketServer() {
+    // initialize websocket
+    const server = http.createServer(this.app);
 
-  return server;
+    const wss = new WebSocket.Server({server:server, path:'/chat'});
+    const chatRoom = new ChatRoom(wss);
+    return server;
+  }
+
+  public createServer(){
+    const server = http.createServer(this.app);
+    return server;
+  }
 }
 
-createConnection()
-.then((connection) => {
-  const server = begin();
-  // start server
-  server.listen(config.PORT, () => {
-    console.log(`Listening at http://localhost:${config.PORT}`);
+// createConnection({
+//   type: config.DB.type,
+//   host: config.DB.host,
+//   port: config.DB.port,
+//   database: config.DB.database,
+//   username: config.DB.username,
+//   password: config.DB.password,
+//   synchronize: config.DB.synchronize,
+//   logging: config.DB.logging,
+//   entities: config.DB.entities,
+// })
+
+if(require.main === module){
+
+  createConnection()
+  .then((connection) => {
+    const app = new App();
+    const server = app.createWebsocketServer();
+
+    // start server
+    server.listen(config.PORT, () => {
+      console.log(`Listening at http://localhost:${config.PORT}`);
+    })
   })
-})
-.catch((err) => console.error(err));
+  .catch((err) => console.error(err));
+}

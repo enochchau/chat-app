@@ -20,3 +20,8 @@ I am mostly trying to learn TypeScript and Parcel.
 From these associations we have:
 * junction table w/ User and Group FKs
 * junction table w/ User and User Fks
+
+
+## Main issue
+
+rewrite the login query so that `select: false` can be used on the password column.
