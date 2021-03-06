@@ -43,7 +43,6 @@ export class UserEntity extends BaseEntity{
 
   @Column({
     length: 72,
-    // select: false // see if you can get this working.
   })
   password: string;
 
@@ -118,11 +117,5 @@ export class UserEntity extends BaseEntity{
       .getCount();
     
     return Boolean(areFriends);
-  }
-
-  public static findUsersByIds(userIds: Array<number>){
-    return this.createQueryBuilder('user')
-      .where("user.id IN (:...ids)", { ids: userIds})
-      .execute();
   }
 }

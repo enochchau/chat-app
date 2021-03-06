@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
+  getConnection,
 } from 'typeorm';
 import { UserEntity } from './user'
 
@@ -30,10 +31,10 @@ export class GroupEntity extends BaseEntity{
   @ManyToMany(type => UserEntity, user => user.groups)
   users: UserEntity[];
 
-  public static createGroup(users: Array<UserEntity>, name: string | null = null){
-    const group = new GroupEntity();
-    if (name) group.name = name;
-    group.users = users
-    return this.save(group);
+  public static createGroupWithUsers(users: Array<UserEntity>, name: string | null = null){
+    const newGroup = new GroupEntity();
+    if (name) newGroup.name = name;
+    newGroup.users = users;
+    return this.save(newGroup);
   }
 }
