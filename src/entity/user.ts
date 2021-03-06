@@ -10,7 +10,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
-  FindRelationsNotFoundError,
 } from 'typeorm';
 import { GroupEntity } from './group';
 import * as bcrypt from "bcrypt";
@@ -43,6 +42,7 @@ export class UserEntity extends BaseEntity{
 
   @Column({
     length: 72,
+    select: false,
   })
   password: string;
 
@@ -63,7 +63,7 @@ export class UserEntity extends BaseEntity{
   groups: GroupEntity[]
 
   // used to check if the password changed and rehash it
-  private tempPassword: string;
+  private tempPassword?: string;
 
   @AfterLoad()
   private loadTempPassword(): void {
@@ -87,6 +87,7 @@ export class UserEntity extends BaseEntity{
   }
   
   public checkPassword(password: string, cb: (error: Error, result: boolean) => void){
+    if(!this.password) return;
     bcrypt.compare(password, this.password, function(err, res){
       cb(err, res);
     })

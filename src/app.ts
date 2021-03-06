@@ -65,18 +65,6 @@ export class App {
   }
 }
 
-// createConnection({
-//   type: config.DB.type,
-//   host: config.DB.host,
-//   port: config.DB.port,
-//   database: config.DB.database,
-//   username: config.DB.username,
-//   password: config.DB.password,
-//   synchronize: config.DB.synchronize,
-//   logging: config.DB.logging,
-//   entities: config.DB.entities,
-// })
-
 if(require.main === module){
 
   createConnection()

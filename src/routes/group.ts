@@ -19,13 +19,12 @@ export class GroupRouter {
         // check that all the users exist
         if (users.length !== userIds.length) return res.sendStatus(400);
 
-        const group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
+        let group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
 
-        res.sendStatus(200);
+        res.json(group);
       } catch(err) {
         next(err);
       }
-      
     })
   }
 }

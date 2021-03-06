@@ -44,7 +44,18 @@ export class PassportStrategy {
       {usernameField: 'username', passwordField: 'password'},
       async (username:string, password: string, done) => {
         try {
-          const user = await UserEntity.findOne({ where: {username:username}});
+          const user = await UserEntity.findOne({ 
+            where: {username:username},
+            select: [
+              "id",
+              "password",
+              "name",
+              "username",
+              "created",
+              "updated"
+            ]
+          });
+          // we have to explicitly select all values b/c password is set to `select: false`
           
           if(!user) return done(null, false, {message: "That username does not exist."});
           

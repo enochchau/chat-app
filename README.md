@@ -1,13 +1,8 @@
 # WebSocket Land
 
-This is a simple websocket chat app.
+This is a websocket chat app.
 
-I am mostly trying to learn TypeScript and Parcel.
-
-## Tests
-
-* Figure out how to clean up the db between tests.
-[https://github.com/nestjs/nest/issues/409]
+I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 
 ## Database
 
@@ -21,7 +16,3 @@ From these associations we have:
 * junction table w/ User and Group FKs
 * junction table w/ User and User Fks
 
-
-## Main issue
-
-rewrite the login query so that `select: false` can be used on the password column.

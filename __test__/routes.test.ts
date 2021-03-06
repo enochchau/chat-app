@@ -162,6 +162,9 @@ describe('Testing API Routes', () => {
       .post('/api/group')
       .set('Authorization', 'bearer ' + testUsers[0].jwt)
       .send({userId: userId})
-      .expect(200);
+      .expect(200)
+      .then((res) => {
+        console.log(res.body);
+      });
   })
 });
