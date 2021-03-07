@@ -120,4 +120,14 @@ export class UserEntity extends BaseEntity{
     
     return Boolean(areFriends);
   }
+
+  public static findGroupsOfUserId(userId: number, count: number){
+    return this
+      .createQueryBuilder()
+      .limit(count)
+      .orderBy("groups.updated", "DESC")
+      .relation(UserEntity, "groups")
+      .of(userId)
+      .loadMany();
+  }
 }
