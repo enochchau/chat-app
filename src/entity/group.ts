@@ -42,14 +42,14 @@ export class GroupEntity extends BaseEntity{
     return this.save(newGroup);
   }
 
-  public static findMessagesOfGroupId(groupId: number, fromDate: Date, count: number){
+  public static findMessagesOfGroupId(groupId: number, count: number, fromDate: Date){
     return this
-      .createQueryBuilder()
-      .where("messages.created <= :date", {date: fromDate})
-      .take(count)
-      .orderBy("messages.created", "DESC")
-      .relation(GroupEntity, "messages")
-      .of(groupId)
-      .loadMany();
+      .createQueryBuilder("group")
+      .leftJoinAndSelect("group.messages", "messages")
+      .where("group.id = :id", {id: groupId})
+      .andWhere("messages.updated <= :date", {date: fromDate})
+      .orderBy("messages.updated", "DESC")
+      .limit(count)
+      .getOne()
   }
 }

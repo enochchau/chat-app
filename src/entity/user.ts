@@ -121,21 +121,14 @@ export class UserEntity extends BaseEntity{
     return Boolean(areFriends);
   }
 
-  public static findGroupsOfUserId(userId: number, count: number){
-    // return this
-    //   .createQueryBuilder()
-    //   .orderBy("groups.updated", "DESC")
-    //   .take(count)
-    //   .relation(UserEntity, "groups")
-    //   .of(userId)
-    //   .loadMany();
+  public static findGroupsOfUserId(userId: number, count: number, fromDate: Date){
     return this
       .createQueryBuilder("user")
       .leftJoinAndSelect("user.groups", "groups")
       .where("user.id = :id", {id: userId})
+      .andWhere("groups.updated <= :date", {date: fromDate})
       .orderBy("groups.updated", "DESC")
       .limit(count)
       .getOne()
-      
   }
 }

@@ -35,9 +35,10 @@ export class GroupRouter {
     this.router.get('/', async (req, res, next) => {
       if(!req.user) return;
       const count = req.query.count ? parseInt(req.query.count as string) : 10; // default to send 10 groups if no count
+      const date = req.query.date ? new Date(req.query.date as string) : new Date();
       try {
 
-        const user = await UserEntity.findGroupsOfUserId(req.user.id, count);
+        const user = await UserEntity.findGroupsOfUserId(req.user.id, count, date);
         if(!user) return res.sendStatus(400);
         const groups = user.groups;
 

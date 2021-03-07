@@ -136,14 +136,19 @@ describe('Testing /api/auth', () => {
 
   test("GET /api/group: get the latest 3 groupIds for runner.testUsers[0]", async () => {
     const count = 3;
+    const date = new Date();
     await supertest(runner.server)
       .get('/api/group')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
-      .query({count: count})
+      .query({count: count, date: date}) 
       .expect(200)
       .then((res) => {
-        console.log(res.body);
+        // check the count
         expect(res.body.length).toBeLessThanOrEqual(count);
+        // check the timestamps
+        res.body.forEach((group: any) => {
+          expect(new Date(group.updated).getTime()).toBeLessThanOrEqual(date.getTime());
+        })
       })
   });
 
