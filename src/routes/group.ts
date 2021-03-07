@@ -15,6 +15,7 @@ export class GroupRouter {
     this.router.post("/", async (req, res, next) => {
       if (!req.body.userId || req.body.userId.length < 1) return res.sendStatus(400);
       const userIds = req.body.userId as Array<number>; 
+      // check if the group already exists...
 
       try {
         const users: Array<UserEntity> = await UserEntity.findByIds(userIds);
@@ -35,7 +36,10 @@ export class GroupRouter {
       if(!req.user) return;
       const count = req.query.count ? parseInt(req.query.count as string) : 10; // default to send 10 groups if no count
       try {
-        const groups = await UserEntity.findGroupsOfUserId(req.user.id, count);
+
+        const user = await UserEntity.findGroupsOfUserId(req.user.id, count);
+        if(!user) return res.sendStatus(400);
+        const groups = user.groups;
 
         res.json(groups);
         

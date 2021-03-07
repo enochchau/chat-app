@@ -122,12 +122,20 @@ export class UserEntity extends BaseEntity{
   }
 
   public static findGroupsOfUserId(userId: number, count: number){
+    // return this
+    //   .createQueryBuilder()
+    //   .orderBy("groups.updated", "DESC")
+    //   .take(count)
+    //   .relation(UserEntity, "groups")
+    //   .of(userId)
+    //   .loadMany();
     return this
-      .createQueryBuilder()
-      .limit(count)
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.groups", "groups")
+      .where("user.id = :id", {id: userId})
       .orderBy("groups.updated", "DESC")
-      .relation(UserEntity, "groups")
-      .of(userId)
-      .loadMany();
+      .limit(count)
+      .getOne()
+      
   }
 }

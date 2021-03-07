@@ -46,8 +46,8 @@ export class GroupEntity extends BaseEntity{
     return this
       .createQueryBuilder()
       .where("messages.created <= :date", {date: fromDate})
+      .take(count)
       .orderBy("messages.created", "DESC")
-      .limit(count)
       .relation(GroupEntity, "messages")
       .of(groupId)
       .loadMany();

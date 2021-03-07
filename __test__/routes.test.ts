@@ -1,17 +1,17 @@
 import supertest from 'supertest';
-import { JwtUserInterface, jwtToJwtUser } from '../../src/auth/jwt';
-import { TestSetup } from '../setup';
+import { JwtUserInterface, jwtToJwtUser } from '../src/auth/jwt';
+import { TestSetup } from './setup';
 
-describe('Testing API Routes', () => {
+describe('Testing /api/auth', () => {
 
-  const runner = new TestSetup();
+  const runner = new TestSetup(5);
   
-  beforeAll(async (done)=>{
-    runner.buildUp(done);
+  beforeAll((done)=>{
+    runner.buildUp(done, true);
   });
 
   afterAll((done) => {
-    runner.tearDown(done, true);
+    runner.tearDown(done, false);
   });
 
   test("GET /", async () => {
@@ -23,7 +23,8 @@ describe('Testing API Routes', () => {
       });
   });
 
-  // register three test users
+//----- AUTH -----//
+  // register all test users
   test("POST /api/auth/register: register all test users", async () => {
     for (let testUser of runner.testUsers){
       try{
@@ -40,8 +41,8 @@ describe('Testing API Routes', () => {
     }
   });
 
-  // login all three users to obtain id and jwt
-  test("POST /api/auth/login: login 3 test users", async () => {
+  // login all users to obtain id and jwt
+  test("POST /api/auth/login: login all test users", async () => {
     for (let testUser of runner.testUsers){
       try {
         await supertest(runner.server)
@@ -62,6 +63,8 @@ describe('Testing API Routes', () => {
       }
     }
   });
+
+// ------ FRIENDS ----- //
 
   test("POST /api/friend: runner.testUsers[0] adds runner.testUsers[1] and runner.testUsers[2] as friends", async () => {
     await supertest(runner.server)
@@ -111,34 +114,37 @@ describe('Testing API Routes', () => {
         expect(res.body.name).toBe(runner.testUsers[0].name);
         expect(res.body.username).toBe(runner.testUsers[0].username);
       });
-  })
+  });
 
-  test("POST /api/group: runner.testUsers[0] creates a new group with all 3 runner.testUsers", async () => {
-    let userId: Array<number> = [];
-    for(let testUser of runner.testUsers){
-      userId.push(testUser.id);
+// ----- GROUPS ------ //
+
+  test("POST /api/group: testUsers[0] creates 4 new group with testUsers[1:4]", async () => {
+    for(let i=1; i<runner.testUsers.length; i++){
+      let userId: Array<number> = [runner.testUsers[0].id, runner.testUsers[i].id];
+
+      await supertest(runner.server)
+        .post('/api/group')
+        .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
+        .send({userId: userId})
+        .expect(200)
+        .then((res) => {
+          expect(res.body.users.length).toBe(userId.length);
+          expect(res.body.name).toBeNull();
+        });
     }
-    await supertest(runner.server)
-      .post('/api/group')
-      .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
-      .send({userId: userId})
-      .expect(200)
-      .then((res) => {
-        expect(res.body.users.length).toBe(userId.length);
-        expect(res.body.name).toBeNull();
-      });
-  })
+  });
 
-  test("GET /api/group: get the latest 5 groupIds for runner.testUsers[0]", async () => {
-    const count = 5;
+  test("GET /api/group: get the latest 3 groupIds for runner.testUsers[0]", async () => {
+    const count = 3;
     await supertest(runner.server)
       .get('/api/group')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .query({count: count})
       .expect(200)
       .then((res) => {
+        console.log(res.body);
         expect(res.body.length).toBeLessThanOrEqual(count);
       })
-  })
+  });
 
 });
