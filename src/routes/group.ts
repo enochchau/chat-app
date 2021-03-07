@@ -1,4 +1,5 @@
 import express from 'express';
+import { getConnection } from 'typeorm';
 import { GroupEntity } from '../entity/group';
 import { UserEntity } from '../entity/user';
 
@@ -7,6 +8,7 @@ export class GroupRouter {
 
   constructor(){
     this.postNewGroup();
+    this.getGroupsForUser();
   }
 
   private postNewGroup(){
@@ -26,5 +28,26 @@ export class GroupRouter {
         next(err);
       }
     })
+  }
+  
+  private getGroupsForUser(){
+    this.router.get('/', async (req, res, next) => {
+      if(!req.user) return;
+      const count = req.query.count ? parseInt(req.query.count as string) : 10; // default to send 10 groups if no count
+      try {
+        const groups = await getConnection()
+          .createQueryBuilder()
+          .limit(count)
+          .orderBy("groups.updated", "DESC")
+          .relation(UserEntity, "groups")
+          .of(req.user.id)
+          .loadMany();
+
+        res.json(groups);
+        
+      } catch(err) {
+        next(err);
+      }
+    });
   }
 }

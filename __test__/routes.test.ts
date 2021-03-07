@@ -42,7 +42,7 @@ describe('Testing API Routes', () => {
   beforeAll(async (done)=>{
     await conn.create();
 
-    server = app.createWebsocketServer();
+    server = app.createServer();
     server.listen(done);
   });
 
@@ -148,7 +148,6 @@ describe('Testing API Routes', () => {
       .set('Authorization', 'bearer ' + testUsers[0].jwt)
       .expect(200)
       .then((res) => {
-        console.log(JSON.stringify(res.body, null,2));
         expect(res.body.friends.length).toBe(1);
         expect(res.body.id).toBe(testUsers[0].id);
         expect(res.body.name).toBe(testUsers[0].name);
@@ -170,6 +169,19 @@ describe('Testing API Routes', () => {
         expect(res.body.users.length).toBe(userId.length);
         expect(res.body.name).toBeNull();
       });
+  })
+
+  test("GET /api/group: get the latest 5 groupIds for testUsers[0]", async () => {
+    const count = 5;
+    await supertest(server)
+      .get('/api/group')
+      .set('Authorization', 'bearer ' + testUsers[0].jwt)
+      .query({count: count})
+      .expect(200)
+      .then((res) => {
+        console.log(res.body);
+        expect(res.body.length).toBeLessThanOrEqual(count);
+      })
   })
 
 });

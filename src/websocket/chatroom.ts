@@ -6,7 +6,7 @@ import { UserEntity } from '../entity/user';
 
 // generic websocket message
 export interface GenericWSMessage<T extends GenericWSPayload> {
-  topic: string;
+  topic: "server" | "error" | "join room" | "chat";
   payload: T;
 }
 export interface GenericWSPayload {

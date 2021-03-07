@@ -11,7 +11,7 @@ let config =  {
   "synchronize": true,
   "logging": true,
   "entities": [
-    "src/entity/**/*.js"
+    "src/entity/**/*.ts"
   ]
 }
 
@@ -42,7 +42,7 @@ if (NODE_ENV === "test"){
     "synchronize": true,
     "logging": false,
     "entities": [
-      "src/entity/**/*.js"
+      "src/entity/**/*.ts"
     ]
   }
 }

@@ -7,13 +7,6 @@ import { UserEntity } from '../entity/user';
 const JWTstrategy = passportJWT.Strategy;
 const LocalStrategy = passportLocal.Strategy;
 
-// for req.user to work with passport-JWT
-declare global{
-  namespace Express {
-    export interface User extends UserEntity{}
-  }
-}
-
 export class PassportStrategy {
 
   public static initialize() {
