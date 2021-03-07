@@ -1,7 +1,14 @@
 import { Server } from "http";
 import { App } from "../src/app";
 import { DBConnect } from "./connection";
-import { testUserInterface } from "./testinterface";
+
+export interface testUserInterface {
+  name: string;
+  username: string;
+  password: string;
+  jwt: string;
+  id: number;
+}
 
 export class TestSetup {
   public testUsers: Array<testUserInterface>;

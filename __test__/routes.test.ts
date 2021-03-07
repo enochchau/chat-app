@@ -1,13 +1,14 @@
+// These tests have to run sequentially to properly create and use users.
 import supertest from 'supertest';
 import { JwtUserInterface, jwtToJwtUser } from '../src/auth/jwt';
 import { TestSetup } from './setup';
 
-describe('Testing /api/auth', () => {
+describe('Testing API routes', () => {
 
   const runner = new TestSetup(5);
   
   beforeAll((done)=>{
-    runner.buildUp(done, true);
+    runner.buildUp(done, false);
   });
 
   afterAll((done) => {

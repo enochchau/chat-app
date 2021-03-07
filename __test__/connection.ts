@@ -3,7 +3,16 @@ import { createConnection, getConnection, Connection } from 'typeorm';
 export class DBConnect {
   public connection: Connection;
   public async create(){
-    this.connection = await createConnection();
+    this.connection = await createConnection({
+      type: "sqlite",
+      database: ":memory:",
+      dropSchema: true,
+      synchronize: true,
+      logging: false,
+      entities: [
+        "src/entity/**/*.ts"
+      ]
+    });
   }
 
   public async close(){

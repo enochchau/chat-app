@@ -39,3 +39,7 @@ Messages should be deleted after reaching 24 hours of age.
     * `server`: server message
     * `error`: error message from the server
     * `history`: history of the chat room
+
+## API
+
+* Check if a group already exists before creating the group

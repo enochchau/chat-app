@@ -33,12 +33,9 @@ if (NODE_ENV === 'prod'){
 
 if (NODE_ENV === "test"){
   config =  {
-    "type": "postgres",
-    "host": "localhost",
-    "port": 5432,
-    "database": "chat_app_test",
-    "username": "test_user",
-    "password": "test123",
+    "type": "sqlite",
+    "database": ":memory:",
+    "dropSchema": true,
     "synchronize": true,
     "logging": false,
     "entities": [
