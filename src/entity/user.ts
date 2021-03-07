@@ -16,12 +16,6 @@ import * as bcrypt from "bcrypt";
 
 const SALTROUNDS = 10;
 
-// for req.user to work with passport-JWT
-declare global{
-  namespace Express {
-    export interface User extends UserEntity{}
-  }
-}
 
 @Entity()
 export class UserEntity extends BaseEntity{

@@ -6,7 +6,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
-  getConnection,
 } from 'typeorm';
 import { UserEntity } from './user'
 

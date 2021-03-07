@@ -2,8 +2,7 @@ import { Server } from 'http';
 import supertest from 'supertest';
 import { DBConnect } from './connection';
 import { App } from '../src/app';
-import jwt_decode from 'jwt-decode';
-import { UserEntity } from '../src/entity/user';
+import { JwtUserInterface, jwtToJwtUser } from '../src/auth/jwt';
 
 interface testUserInterface {
   name: string;
@@ -11,16 +10,6 @@ interface testUserInterface {
   password: string;
   jwt: string;
   id: number;
-}
-
-interface testJWTUserInterface {
-  id: number;
-  username: string;
-}
-
-interface jwtContentInterface{
-  user: testJWTUserInterface;
-  iat: number;
 }
 
 describe('Testing API Routes', () => {
@@ -103,8 +92,8 @@ describe('Testing API Routes', () => {
           .expect(200)
           .then((res) => {
             testUser.jwt = res.body;
-            let decode = jwt_decode(testUser.jwt) as jwtContentInterface;
-            let jwtUser = decode.user as testJWTUserInterface;
+
+            const jwtUser: JwtUserInterface = jwtToJwtUser(testUser.jwt);
 
             testUser.id = jwtUser.id;
             expect(testUser.id).toBeGreaterThan(0);

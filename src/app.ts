@@ -11,9 +11,9 @@ import * as WebSocket from 'ws';
 import * as bodyParser from 'body-parser';
 // authentication
 import passport from 'passport';
-import { PassportStrategy } from './auth';
+import { PassportStrategy } from './auth/auth';
 // routes
-import ChatRoom from './chatroom';
+import { ChatRoom } from './websocket/chatroom';
 import { AuthRouter } from './routes/auth';
 import { FriendRouter } from './routes/friendship';
 import { GroupRouter } from './routes/group';
@@ -54,8 +54,12 @@ export class App {
     // initialize websocket
     const server = http.createServer(this.app);
 
-    const wss = new WebSocket.Server({server:server, path:'/chat'});
+    const wss = new WebSocket.Server({
+      server: server, 
+      path:'/chat',
+    });
     const chatRoom = new ChatRoom(wss);
+
     return server;
   }
 

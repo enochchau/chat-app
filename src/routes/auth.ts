@@ -3,12 +3,7 @@ import passport from 'passport';
 import * as jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { UserEntity } from '../entity/user';
-
-// interface for encrypted contents of JWT
-interface TokenBody{
-  id: number;
-  username: string;
-}
+import { JwtUserInterface } from '../auth/jwt';
 
 export class AuthRouter {
   public router = express.Router();
@@ -54,7 +49,7 @@ export class AuthRouter {
         req.login(user, {session: false}, (err: null | Error) => {
           if (err) return next(err);
 
-          const body: TokenBody = { id: user.id, username: user.username};
+          const body: JwtUserInterface = { id: user.id, username: user.username};
           const token = jwt.sign({ user: body }, config.SECRETKEY);
           
           return res.json(token);
