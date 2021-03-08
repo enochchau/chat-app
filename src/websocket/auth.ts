@@ -1,6 +1,6 @@
 import { UserEntity } from '../entity/user';
 import { GroupEntity } from '../entity/group';
-import { IdWebsocket } from './user_tracker/idwebsocket';
+import { IdWebsocket } from './chat_tracker/idwebsocket';
 
 export class WsGroupAuthenticator{
   static async verifyInDatabase(userId: number, groupId: number): Promise<boolean>{
@@ -14,7 +14,14 @@ export class WsGroupAuthenticator{
     if(!user || !group){
       return false;
     }
-    return true;
+    return WsGroupAuthenticator.findUserInGroup(user.id, group);
+  }
+
+  private static findUserInGroup(userId: number, group:GroupEntity): boolean{
+    for(let user of group.users){
+      if (user.id === userId) return true;
+    }
+    return false;
   }
 
   static addUserToGroupMap(groupMap: Map<number, Array<IdWebsocket>>, userId: number, groupId: number, websocket: WebSocket){
