@@ -1,7 +1,6 @@
 import { UserEntity } from '../entity/user';
 import { GroupEntity } from '../entity/group';
-import { IdWebsocket } from './chatroom';
-import * as WebSocket from 'ws';
+import { IdWebsocket } from './user_tracker/idwebsocket';
 
 export class WsGroupAuthenticator{
   static async verifyInDatabase(userId: number, groupId: number): Promise<boolean>{

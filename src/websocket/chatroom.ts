@@ -1,10 +1,7 @@
-import { ServerMessage } from './servermesssage';
 import * as WebSocket from 'ws';
-import { jwtToJwtUser } from '../auth/jwt';
-import { GroupEntity } from '../entity/group';
-import { UserEntity } from '../entity/user';
-import { WsGroupAuthenticator } from './auth';
+import { ActiveFriendChat } from './user_tracker/activefriendchat';
 import { WsHandler } from './wshandler';
+import { IdWebsocket, IdWsPair } from './user_tracker/idwebsocket';
 
 // generic websocket message
 export interface GenericWSMessage<T extends GenericWSPayload> {
@@ -16,18 +13,14 @@ export interface GenericWSPayload {
   message: string;
 }
 
-// interface for user id and associated websocket
-export interface IdWebsocket {
-  id: number;
-  ws: WebSocket;
-}
+export type ActiveChatGroups = Map<number, Map<number, IdWebsocket>>;
 
 export class ChatRoom{
   public wss: WebSocket.Server;
   // groupMap = Map<group.id, Array<user.id>>
-  private groupMap: Map<number, Array<IdWebsocket>> = new Map();
+  private groupMap: ActiveChatGroups = new Map();
   // friendMap = Map<friendId, userId>
-  private friendMap: Map<number, number> = new Map();
+  private friendMap: ActiveFriendChat = new ActiveFriendChat();
   constructor(wss:WebSocket.Server){
     this.wss = wss;
     this.setup();

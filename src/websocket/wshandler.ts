@@ -3,10 +3,12 @@ import { ServerMessage } from './servermesssage';
 import {
   GenericWSMessage,
   GenericWSPayload,
+  ActiveChatGroups
 } from './chatroom'
 import { WsGroupAuthenticator } from './auth';
 import { jwtToJwtUser } from '../auth/jwt';
-import { IdWebsocket } from './chatroom';
+import { IdWebsocket } from './user_tracker/idwebsocket';
+import { ActiveFriendChat } from "./user_tracker/activefriendchat";
 
 // TX User message
 interface TXMessage extends GenericWSMessage<TXPayload>{
@@ -27,9 +29,13 @@ export class WsHandler {
   private userId: number = -1;
   private friendId: number = -1;
   private ws: WebSocket;
+  private groupMap: ActiveChatGroups;
+  private friendMap: ActiveFriendChat;
 
-  constructor(ws: WebSocket, groupMap: Map<number, Array<IdWebsocket>>, friendMap: Map<number, number>){
+  constructor(ws: WebSocket, groupMap: ActiveChatGroups, friendMap: ActiveFriendChat){
     this.ws = ws;
+    this.groupMap = groupMap;
+    this.friendMap = friendMap;
     this.ws.on('message', this.toEvent); 
     this.ws.on('message error', ()=> {
       console.log('message error');
@@ -73,15 +79,6 @@ export class WsHandler {
     });
 
     ws.on('close', () => {
-      // remove the user from the room
-      const group = groupMap.get(this.groupId);
-      if (group){
-        this.removeUserFromGroup(this.userId, group);
-
-        if (group.length === 0)
-          this.deleteEmptyGroup(groupMap, this.groupId);
-      }
-      console.log("closing websocket");
     });
   }
   
@@ -96,7 +93,7 @@ export class WsHandler {
     }
   }
 
-  private deleteEmptyGroup(groupMap: Map<number, Array<IdWebsocket>>, groupId: number){
+  private deleteEmptyGroup(groupMap: ActiveChatGroups, groupId: number){
     groupMap.delete(groupId);
   }
 
@@ -105,6 +102,18 @@ export class WsHandler {
     if (userIndex !== -1){
       group.splice(1, userIndex);
     } 
+  }
+
+  private onClose(){
+    // remove the user from the room
+    const currentGroup = this.groupMap.get(this.groupId);
+    if (currentGroup){
+      this.removeUserFromGroup(this.userId, currentGroup);
+
+      if (currentGroup.size === 0)
+        this.deleteEmptyGroup(this.groupMap, this.groupId);
+    }
+    console.log("closing websocket");
   }
 
 }
