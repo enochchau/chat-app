@@ -1,7 +1,7 @@
 import * as WebSocket from 'ws';
-import { ActiveFriendChat } from './user_tracker/activefriendchat';
+import { ActiveFriendChat } from './chat_tracker/activefriendchat';
 import { WsHandler } from './wshandler';
-import { IdWebsocket, IdWsPair } from './user_tracker/idwebsocket';
+import { IdWebsocket, IdWsPair } from './chat_tracker/idwebsocket';
 
 // generic websocket message
 export interface GenericWSMessage<T extends GenericWSPayload> {

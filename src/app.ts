@@ -13,7 +13,7 @@ import * as bodyParser from 'body-parser';
 import passport from 'passport';
 import { PassportStrategy } from './auth/auth';
 // routes
-import { ChatRoom } from './websocket/chatroom';
+import { ChatRoom } from './websocket';
 import { AuthRouter } from './routes/auth';
 import { FriendRouter } from './routes/friendship';
 import { GroupRouter } from './routes/group';

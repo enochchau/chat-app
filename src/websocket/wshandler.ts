@@ -4,11 +4,11 @@ import {
   GenericWSMessage,
   GenericWSPayload,
   ActiveChatGroups
-} from './chatroom'
+} from '.'
 import { WsGroupAuthenticator } from './auth';
 import { jwtToJwtUser } from '../auth/jwt';
-import { IdWebsocket } from './user_tracker/idwebsocket';
-import { ActiveFriendChat } from "./user_tracker/activefriendchat";
+import { IdWebsocket } from './chat_tracker/idwebsocket';
+import { ActiveFriendChat } from "./chat_tracker/activefriendchat";
 
 // TX User message
 interface TXMessage extends GenericWSMessage<TXPayload>{

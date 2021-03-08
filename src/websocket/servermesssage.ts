@@ -1,4 +1,4 @@
-import { GenericWSPayload, GenericWSMessage} from './chatroom';
+import { GenericWSPayload, GenericWSMessage} from '.';
 
 // TX Server Message
 interface TXServerMessage extends GenericWSMessage<GenericWSPayload>{
