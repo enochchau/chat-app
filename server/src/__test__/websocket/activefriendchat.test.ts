@@ -1,5 +1,5 @@
-import { ActiveFriendChat } from './activefriendchat';
-import { IdWsPair, IdWebsocket } from './idwebsocket';
+import { ActiveFriendChat } from '../../websocket/chat_tracker/activefriendchat';
+import { IdWsPair, IdWebsocket } from '../../websocket/chat_tracker/idwebsocket';
 import { WebSocket } from 'mock-socket';
 
 describe('Testing ActiveFriendChat tracker', () => {

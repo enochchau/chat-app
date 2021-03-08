@@ -71,16 +71,8 @@ export class FriendRouter {
       let user: UserEntity = users[req.user.id > friendId ? 1 : 0];
       let friend: UserEntity = users[req.user.id > friendId ? 0 : 1];
       
-      let alreadyFriends = false;
-      for(let test of user.friends){
-        if(test.id === friend.id){
-          alreadyFriends = true;
-          break;
-        }
-      }
-
       // check if already friends
-      if (alreadyFriends !== friendshipStatus) return res.sendStatus(400);
+      if (this.alreadyFriends(user, friend) !== friendshipStatus) return res.sendStatus(400);
 
       // do some action with friendship
       await action(user, friend);
@@ -90,5 +82,17 @@ export class FriendRouter {
     } catch(err) {
       next(err);
     }
+  }
+
+  // checks if a user is already friends with another user
+  private alreadyFriends(user: UserEntity, friend: UserEntity): boolean{
+    let alreadyFriends = false;
+    for(let friendCheck of user.friends){
+      if(friendCheck.id === friend.id){
+        alreadyFriends = true;
+        break;
+      }
+    }
+    return alreadyFriends;
   }
 }

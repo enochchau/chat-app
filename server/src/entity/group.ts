@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { UserEntity } from './user';
-import { MessageEntity } from './message';
+import { MsgGroupEntity } from './msggroup';
 
 @Entity()
 export class GroupEntity extends BaseEntity{
@@ -32,8 +32,8 @@ export class GroupEntity extends BaseEntity{
   @ManyToMany(type => UserEntity, user => user.groups)
   users: UserEntity[];
 
-  @OneToMany(() => MessageEntity, message => message.group)
-  messages: MessageEntity[];
+  @OneToMany(() => MsgGroupEntity , message => message.group)
+  messages: MsgGroupEntity[];
 
   public static createGroupWithUsers(users: Array<UserEntity>, name: string | null = null){
     const newGroup = new GroupEntity();

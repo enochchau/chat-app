@@ -10,7 +10,7 @@ import {
 import { GroupEntity } from "./group";
 
 @Entity()
-export class MessageEntity extends BaseEntity{
+export class MsgGroupEntity extends BaseEntity{
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -23,6 +23,16 @@ export class MessageEntity extends BaseEntity{
   @UpdateDateColumn()
   updated: Date;
 
+  @Column()
+  groupId: number;
+
   @ManyToOne(() => GroupEntity, group => group.messages)
   group: GroupEntity;
+
+  public static addMessage(groupId: number, message: string){
+    const msg = new MsgGroupEntity();
+    msg.groupId = groupId;
+    msg.message = message;
+    return this.save(msg);
+  }
 }

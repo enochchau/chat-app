@@ -100,6 +100,13 @@ export class UserEntity extends BaseEntity{
     return UserEntity.save(user);
   }
 
+  public static addFriendById(userId: number, friendId: number){
+    return this.createQueryBuilder()
+      .relation(UserEntity, "friends")
+      .of(userId)
+      .add(friendId);
+  }
+
   public static removeFriend(user: UserEntity, friend: UserEntity): Promise<UserEntity>{
     for(let i=0; i<user.friends.length; i++){
       if (user.friends[i].id === friend.id){
@@ -108,6 +115,13 @@ export class UserEntity extends BaseEntity{
       }
     }
     return UserEntity.save(user);
+  }
+
+  public static removeFriendById(userId: number, friendId: number){
+    return this.createQueryBuilder()
+      .relation(UserEntity, "friends")
+      .of(userId)
+      .remove(friendId);
   }
 
   public static async areFriends(userId: number, friendId: number){
@@ -130,5 +144,9 @@ export class UserEntity extends BaseEntity{
       .orderBy("groups.updated", "DESC")
       .limit(count)
       .getOne()
+  }
+
+  public static findOneByUsername(username: string, relations: Array<string> = []){
+    return this.findOne({where: {username: username}, relations: relations});
   }
 }

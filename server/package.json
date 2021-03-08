@@ -1,11 +1,11 @@
 {
-  "name": "chat-app",
+  "name": "chat-app-server",
   "version": "1.0.0",
   "description": "",
   "main": "dist/app.js",
   "scripts": {
     "start": "tsc --build && node dist/app.js",
-    "test": "jest",
+    "test": "ts-node src/__test__/entity/seed.ts && jest",
     "dev": "ts-node-dev --respawn src/app.ts",
     "build": "tsc --build",
     "clean": "tsc --build --clean"

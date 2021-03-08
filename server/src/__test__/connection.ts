@@ -1,18 +1,28 @@
 import { createConnection, getConnection, Connection } from 'typeorm';
+type DbTypeOption = 'sqlite' | 'postgres';
 
+// For database testing, use postgres
+// for integration testing, use sqlite3
+
+// establish databse connections for tests
 export class DBConnect {
   public connection: Connection;
-  public async create(){
-    this.connection = await createConnection({
-      type: "sqlite",
-      database: ":memory:",
-      dropSchema: true,
-      synchronize: true,
-      logging: false,
-      entities: [
-        "src/entity/**/*.ts"
-      ]
-    });
+  public async create(type: DbTypeOption){
+    if(type === 'sqlite'){
+      this.connection = await createConnection({
+        type: "sqlite",
+        database: ":memory:",
+        dropSchema: true,
+        synchronize: true,
+        logging: false,
+        entities: [
+          "../entity/**/*.ts"
+        ]
+      });
+    }
+    if(type === 'postgres') { 
+      this.connection = await createConnection();
+    }
   }
 
   public async close(){
