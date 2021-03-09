@@ -1,11 +1,11 @@
-import { GenericWSPayload, GenericWSMessage} from '.';
+import { GenericPayload, GenericMessage} from './generic';
 
 // TX Server Message
-interface TXServerMessage extends GenericWSMessage<GenericWSPayload>{
-  payload: GenericWSPayload;
+interface TXServerMessage extends GenericMessage<GenericPayload>{
+  payload: GenericPayload;
 }
 
-export class ServerMessage {
+export class Server{
   static invalidToken() {
     return {
       topic: "error",

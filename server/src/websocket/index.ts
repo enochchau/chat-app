@@ -1,33 +1,19 @@
 import * as WebSocket from 'ws';
-import { ActiveFriendChat } from './chat_tracker/activefriendchat';
-import { WsHandler } from './wshandler';
-import { IdWebsocket, IdWsPair } from './chat_tracker/idwebsocket';
+import * as Tracker from './tracker/index';
+import { WsHandler } from './handler';
 
-// generic websocket message
-export interface GenericWSMessage<T extends GenericWSPayload> {
-  topic: "server" | "error" | "join group" | "chat group" | "join friend" | "chat friend";
-  payload: T;
-}
-export interface GenericWSPayload {
-  timestamp: Date;
-  message: string;
-}
-
-export type ActiveChatGroups = Map<number, Map<number, IdWebsocket>>;
 
 export class ChatRoom{
   public wss: WebSocket.Server;
-  // groupMap = Map<group.id, Array<user.id>>
-  private groupMap: ActiveChatGroups = new Map();
-  // friendMap = Map<friendId, userId>
-  private friendMap: ActiveFriendChat = new ActiveFriendChat();
+  private groupMap: Tracker.ActiveGroups = new Map();
+  private friendMap: Tracker.ActiveFriends = new Tracker.ActiveFriends();
   constructor(wss:WebSocket.Server){
     this.wss = wss;
     this.setup();
   }
 
   public setup () {
-    this.wss.on('connection', (ws: WebSocket) => {
+    this.wss.on('connection', (ws) => {
       console.log("opening websocket");
       const wsHandler = new WsHandler(ws, this.groupMap, this.friendMap);
     });

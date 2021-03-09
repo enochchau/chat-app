@@ -1,6 +1,6 @@
 import { IdWsPair } from './idwebsocket';
 
-export class ActiveFriendChat{
+export class ActiveFriends{
   private activeFriendMap: Map<string, IdWsPair> = new Map();
 
   constructor(pairArray?: Array<IdWsPair>){
