@@ -8,7 +8,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import * as bodyParser from 'body-parser';
 // authentication
 import passport from 'passport';
 import { PassportStrategy } from './auth/auth';
@@ -26,8 +25,8 @@ export class App {
 
     this.app.use(cors());
     this.app.use(helmet());
-    this.app.use(bodyParser.urlencoded({ extended: false }));
-    this.app.use(bodyParser.json());
+    this.app.use(express.urlencoded({ extended: false}));
+    this.app.use(express.json());
     this.app.use(passport.initialize());
 
     // create routes
