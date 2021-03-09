@@ -1,13 +1,16 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import * as Store from './store';
-import ChatApp from './chatroom/app';
+import { StoreProvider} from './store';
+import { ChakraProvider } from '@chakra-ui/react';
+import { Routes } from './route/index';
 
 const App = () => {
   return(
-    <Store.Provider>
-      <ChatApp/>
-    </Store.Provider>
+    <ChakraProvider>
+      <StoreProvider>
+        <Routes/>
+      </StoreProvider>
+    </ChakraProvider>
   );
 }
 

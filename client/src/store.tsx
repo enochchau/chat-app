@@ -8,7 +8,7 @@ const initialState = {
   username: ''
 }
 
-export const Context = React.createContext<{
+export const StoreContext = React.createContext<{
   state: typeof initialState;
   dispatch: React.Dispatch<any>;
 }>({state: initialState, dispatch: () => null})
@@ -28,12 +28,12 @@ interface StoreProviderProps {
   children: React.ReactNode,
 }
 
-export const Provider = ({children}:StoreProviderProps) => {
+export const StoreProvider = ({children}:StoreProviderProps) => {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
   return(
-    <Context.Provider value={{ state, dispatch }}>
+    <StoreContext.Provider value={{ state, dispatch }}>
       {children}
-    </Context.Provider>
+    </StoreContext.Provider>
   );
 }

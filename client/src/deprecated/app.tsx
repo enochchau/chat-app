@@ -1,14 +1,14 @@
-import * as Store from '../store';
+import { StoreContext } from '../store';
 import * as React from 'react';
 import { ChatMessage } from './chatmsg';
 import { WSURL } from '../config';
-import InputBox from './input';
-import ChatList from './chatlist';
+import InputBox from '../deprecated/input';
+import ChatList from '../deprecated/chatlist';
 
 const ChatApp = () => {
   const [value, setValue] = React.useState<string>('');
   const [chatMessages, setChatMessages] = React.useState<Array<ChatMessage>>([]);
-  const { state, dispatch } = React.useContext(Store.Context);
+  const { state, dispatch } = React.useContext(StoreContext);
   const ws = React.useRef<WebSocket | null>(null);
 
   React.useEffect(() => {
