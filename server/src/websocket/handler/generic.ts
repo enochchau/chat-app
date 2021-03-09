@@ -16,8 +16,10 @@ export class GenericHandler{
     this.ws = ws;
     this.groupTracker = groupTracker;
     this.friendTracker = friendTracker;
-    this.id.group === -1;
-    this.id.friend === -1;
-    this.id.user === -1;
+    this.id = {
+      group: -1,
+      friend: -1,
+      user: -1,
+    };
   }
 }

@@ -22,6 +22,7 @@ export class PassportStrategy {
         try{
           const user = await UserEntity.findOne({ where: {username: username}});
           if(user) return done(null, false, {message: "That username is already taken."});
+          if(!req.body.name) done(null, false, {message: "Please include a name"});
 
           let newUser = new UserEntity();
           newUser.name = req.body.name;

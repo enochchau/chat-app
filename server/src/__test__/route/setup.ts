@@ -18,7 +18,7 @@ export class RouteSetup extends TestUserSetup{
   public async buildUp(cb: () => void, truncateTables: boolean = false){
     await this.connection.create('sqlite');
     if (truncateTables) await this.connection.truncateTables();
-    this.server = this.app.createWebsocketServer();
+    this.server = this.app.createServer();
     this.server.listen(cb)
   }
 

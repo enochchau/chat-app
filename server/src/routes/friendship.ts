@@ -40,9 +40,7 @@ export class FriendRouter {
       } catch (err) {
         next(err);
       }
-
-      
-    })
+    });
   }
   
   private async friendRequestHandler(req: Request, res: Response, next: NextFunction, friendshipStatus: boolean, action:(user: UserEntity, friend: UserEntity) => Promise<UserEntity>){
@@ -75,7 +73,9 @@ export class FriendRouter {
       if (this.alreadyFriends(user, friend) !== friendshipStatus) return res.sendStatus(400);
 
       // do some action with friendship
+      // actions must be bidirectional
       await action(user, friend);
+      await action(friend, user);
       
       res.sendStatus(200);
 

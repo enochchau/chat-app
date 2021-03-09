@@ -89,6 +89,7 @@ export class UserEntity extends BaseEntity{
   
   public checkPassword(password: string, cb: (error: Error, result: boolean) => void){
     if(!this.password) return;
+
     bcrypt.compare(password, this.password, function(err, res){
       cb(err, res);
     })

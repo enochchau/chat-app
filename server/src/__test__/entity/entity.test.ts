@@ -27,8 +27,6 @@ describe ('Testing Database Entities', () =>  {
 
   beforeAll(async ()=>{
     await dbconnector.create('postgres');
-    // sqlite doesn't use the same truncate table syntax
-    // plus we don't need to truncate tables in sqlite
     await dbconnector.truncateTables();
     await dbconnector.close();
   })
@@ -104,8 +102,6 @@ describe ('Testing Database Entities', () =>  {
     expect(remsg.user1Id).toBe(user0.id);
     expect(remsg.user2Id).toBe(user1.id);
   });
-
-  test("MsgFriendEntity: find messages between ")
 
   test("GroupEntity: create a new group between testUsers 0,1,2", async () => {
     const users = await UserEntity.findByIds([testUsers[0].id, testUsers[1].id, testUsers[2].id]);

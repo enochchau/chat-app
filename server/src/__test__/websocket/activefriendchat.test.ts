@@ -1,9 +1,10 @@
-import { ActiveFriendChat } from '../../websocket/tracker/friend';
+import { ActiveFriends} from '../../websocket/tracker/friend';
 import { IdWsPair, IdWebsocket } from '../../websocket/tracker/idwebsocket';
-import { WebSocket } from 'mock-socket';
+import WebSocket from 'ws';
+jest.mock('ws');
 
-describe('Testing ActiveFriendChat tracker', () => {
-  let activeFriendChat: ActiveFriendChat;
+describe('Testing ActiveFriends tracker', () => {
+  let activeFriendChat: ActiveFriends;
   // make some fake data
   let idWsArr: Array<IdWebsocket>;
   let idWsPairArr: Array<IdWsPair>;
@@ -26,7 +27,7 @@ describe('Testing ActiveFriendChat tracker', () => {
   });
 
   test("Contructor", () => {
-    activeFriendChat = new ActiveFriendChat(idWsPairArr);
+    activeFriendChat = new ActiveFriends(idWsPairArr);
     expect(activeFriendChat.size).toBe(SIZE-2);
   });
 

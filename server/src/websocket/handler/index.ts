@@ -39,7 +39,7 @@ export class WsHandler extends GenericHandler{
     return true;
   }
 
-  private toEvent(message: string) {
+  private toEvent = (message: string) => {
     try{
       const event: Msg.User.RXMessage = JSON.parse(message);
       this.ws.emit(event.topic, event.payload);

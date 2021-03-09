@@ -16,7 +16,7 @@ export class DBConnect {
         synchronize: true,
         logging: false,
         entities: [
-          "../entity/**/*.ts"
+          "./src/entity/**/*.ts"
         ]
       });
     }
