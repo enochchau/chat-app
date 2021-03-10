@@ -52,7 +52,7 @@ export class AuthRouter {
           const body: JwtUserInterface = { id: user.id, username: user.username};
           const token = jwt.sign({ user: body }, config.SECRETKEY);
           
-          return res.json(token);
+          return res.json({token: token, message: info.message});
         });
       })(req,res,next);
     });
