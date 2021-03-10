@@ -4,7 +4,6 @@ import {
   FormErrorMessage, 
   Input,
 } from '@chakra-ui/react';
-import { childPadding } from './form';
 
 
 interface FormInputProps {
@@ -27,7 +26,6 @@ export const FormInput = ({
 }: FormInputProps) => {
   return(
     <FormControl 
-      padding={childPadding}
       id={id} 
       isInvalid={isInvalid}
     >

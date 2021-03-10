@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Auth from '../component/form/auth';
+import axios from 'axios';
+import { REGISTER } from '../api';
 
 export const RegisterPage = () => {
   return(
@@ -36,13 +38,21 @@ const RegisterForm = () =>  {
 
   const onSubmit = (data: RegisterFormData) =>{
     console.log(data);
+    axios.post(REGISTER, data)
+      .then((res) => {
+        console.log(res.data.message);
+        // saveToken(res)
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   return(
     <Auth.Form 
       title="Register" 
       onSubmit={handleSubmit(onSubmit)}
-      altLink="/register"
+      altLink="/login"
       linkText="Already have an account?"
     >
       <Auth.FormInput

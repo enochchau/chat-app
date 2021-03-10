@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { childPadding } from './form';
 import {
   Button as ChakraButton
 } from '@chakra-ui/react';
@@ -18,7 +17,6 @@ export const Button = ({
     <ChakraButton
       isLoading={isLoading}
       type={type}
-      margin={childPadding}
     >
       {children}
     </ChakraButton>
