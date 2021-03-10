@@ -20,15 +20,7 @@ export class AuthRouter {
           const error = new Error("An error occured during registration: " + err.message);
           return next(error);
         }
-
-        if (!user){
-          res.json(info);
-          return;
-        }
-
-        res.json({
-          message: "Registration successful",
-        });
+        res.json(info);
       })(req, res, next);
     });
   }
