@@ -5,7 +5,7 @@ import {
   Heading, 
   VStack
 } from '@chakra-ui/react';
-import { Link } from '../../route';
+import { Link } from '../route';
 
 interface FormProps extends React.FormHTMLAttributes<HTMLFormElement>{
   children: React.ReactNode;

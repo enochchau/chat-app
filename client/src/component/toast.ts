@@ -27,3 +27,21 @@ export const GoodLogin = (description: string): UseToastOptions => {
     isClosable: true,
   });
 };
+
+export const GoodRegister: UseToastOptions =  {
+  title: "Registration Accepted",
+  description: `You will be redirected in a moment.`,
+  status: "success",
+  duration: 5000,
+  isClosable: true,
+}
+
+export const BadRegister = (description: string): UseToastOptions => {
+  return({
+    title: "Registration Denied",
+    description: description,
+    status: "warning",
+    duration: 5000,
+    isClosable: true,
+  });
+}
