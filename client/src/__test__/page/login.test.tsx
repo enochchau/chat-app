@@ -4,17 +4,15 @@ import "@testing-library/jest-dom/extend-expect";
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 
-import { render, fireEvent, screen, waitFor } from "./test-utils";
+import { render, fireEvent, screen, waitFor } from "../test-utils";
 
-import { LoginPage } from '../page/login';
-import { testUser, handler } from './testapi';
+import { LoginPage } from '../../page/login';
+import { testUser, handler } from '../testapi';
 
-import { URL, LOGIN } from '../api/index';
-
-const localStorageMock = jest.spyOn(window.localStorage.__proto__, 'setItem');
-const sessionStorageMock = jest.spyOn(window.sessionStorage.__proto__, 'setItem');
+import { URL, LOGIN } from '../../api/index';
 
 describe("<LoginPage/>", () => {
+
   const server = setupServer(...handler);
 
   const submitForm = (username: HTMLInputElement, password: HTMLInputElement, button: HTMLButtonElement) => {
@@ -27,13 +25,16 @@ describe("<LoginPage/>", () => {
     const utils = render(<LoginPage/>);
     const username = screen.getByLabelText("Username", {selector: 'input'}) as HTMLInputElement;
     const password = screen.getByLabelText("Password", {selector: 'input'}) as HTMLInputElement;
-    const button = screen.getByRole("button", {name: /Login/i}) as HTMLButtonElement;
+    const button = screen.getByRole("button", {name: /Submit/i}) as HTMLButtonElement;
     const rememberMe = screen.getByRole("checkbox") as HTMLInputElement;
     return {username, password, rememberMe, button, ...utils}
   }
 
   beforeAll(() => server.listen());
-  afterEach(() => server.resetHandlers());
+  afterEach(() => {
+    server.resetHandlers();
+    jest.restoreAllMocks();
+  });
   afterAll(() => server.close());
 
   test('Expect an empty form', () => {
@@ -56,16 +57,31 @@ describe("<LoginPage/>", () => {
   });
 
   test("Login successfully without rememberMe", async () => {
-    const {username, password, button} = setup();
+    const localStorageMock = jest.spyOn(window.localStorage.__proto__, 'setItem');
+    const sessionStorageMock = jest.spyOn(window.sessionStorage.__proto__, 'setItem');
+    const {username, password, button, rememberMe} = setup();
 
-    submitForm(username, password, button);
+    fireEvent.change(username, { target: {value: testUser.username}});
+    fireEvent.change(password, { target: {value: testUser.password}});
+
+    expect(username).toHaveValue(testUser.username);
+    expect(password).toHaveValue(testUser.password);
+    expect(rememberMe).not.toBeChecked();
+    
+    fireEvent.click(button);
 
     await waitFor(() => expect(screen.getByText("Valid Credentials")).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText("Logged in successfully.")).toBeInTheDocument());
     expect(sessionStorageMock).toHaveBeenCalled();
+
+    // this doesn't work b/c local and session storage share the same prototype
+    // expect(localStorageMock).not.toHaveBeenCalled();
   });
 
   test("Login successfully with rememberMe", async () => {
+    const localStorageMock = jest.spyOn(window.localStorage.__proto__, 'setItem');
+    const sessionStorageMock = jest.spyOn(window.sessionStorage.__proto__, 'setItem');
+    
     const {username, password, button, rememberMe} = setup();
 
     fireEvent.click(rememberMe);
@@ -74,6 +90,7 @@ describe("<LoginPage/>", () => {
     await waitFor(() => expect(screen.getByText("Valid Credentials")).toBeInTheDocument());
     await waitFor(() => expect(screen.getByText("Logged in successfully.")).toBeInTheDocument());
     expect(localStorageMock).toHaveBeenCalled();
+    // expect(sessionStorageMock).not.toHaveBeenCalled();
   });
 
   test("Wrong username", async () => {

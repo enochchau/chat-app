@@ -1,14 +1,18 @@
-import { Center, useToast } from '@chakra-ui/react';
 import * as React from 'react';
+import { Center, useToast } from '@chakra-ui/react';
+
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
+
 import axios from 'axios';
 import { LOGIN } from '../api';
 import { decodeToJwtUser, saveToken } from '../api/token';
-import * as Auth from '../component/form/auth';
-import { ServerError, BadLogin, GoodLogin } from '../component/toast';
 import { StoreContext } from '../store';
+
+import * as Auth from '../component/auth';
+import { ServerError, BadLogin, GoodLogin } from '../component/toast';
+import { Redirect } from 'react-router-dom';
 
 export const LoginPage = () => {
   return (
@@ -38,6 +42,9 @@ const LoginForm = () => {
   const { handleSubmit, errors, register, formState } = useForm({
     resolver: yupResolver(schema)
   });
+
+  const [formAccepted, setFormAccepted] = React.useState<boolean>(false);
+
   // use toast for error handling
   const toastMessage = useToast();
   
@@ -60,6 +67,7 @@ const LoginForm = () => {
             toastMessage(GoodLogin(data.message));
             saveToken(data.token, rememberMe);
             storeDispatch({type: 'store current user', payload: jwtUser});
+            setFormAccepted(true);
           }
         } else {
           toastMessage(BadLogin(data.message));
@@ -73,7 +81,11 @@ const LoginForm = () => {
       
   }
 
+  // redirect link is currently a placeholder
   return(
+    formAccepted
+    ? <Redirect to="/"/>
+    :
     <Auth.Form 
       title="Login" 
       onSubmit={handleSubmit(onSubmit)}
@@ -106,7 +118,7 @@ const LoginForm = () => {
         isLoading={formState.isSubmitting}
         type="submit"
       >
-        Login
+        Submit
       </Auth.Button>
     </Auth.Form>
   );
