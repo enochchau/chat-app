@@ -57,7 +57,8 @@ const RegisterForm = () =>  {
     >
       <Auth.FormInput
         id="name"
-        isInvalid={errors.name}
+        label="Name"
+        isInvalid={Boolean(errors.name)}
         type="text"
         placeholder="Name"
         register={register}
@@ -67,7 +68,8 @@ const RegisterForm = () =>  {
 
       <Auth.FormInput
         id="username"
-        isInvalid={errors.username}
+        label="Username"
+        isInvalid={Boolean(errors.username)}
         type="text"
         placeholder="Username"
         register={register}
@@ -77,7 +79,8 @@ const RegisterForm = () =>  {
 
       <Auth.FormInput
         id="password"
-        isInvalid={errors.password}
+        label="Password"
+        isInvalid={Boolean(errors.password)}
         type="password"
         placeholder="Password"
         register={register}
@@ -87,7 +90,8 @@ const RegisterForm = () =>  {
 
       <Auth.FormInput
         id="rePassword"
-        isInvalid={errors.rePassword}
+        label="Re-type Password"
+        isInvalid={Boolean(errors.rePassword)}
         type="password"
         placeholder="Re-type Password"
         register={register}

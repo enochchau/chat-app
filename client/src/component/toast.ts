@@ -17,3 +17,13 @@ export const BadLogin = (description: string): UseToastOptions => {
     isClosable: true,
   });
 };
+
+export const GoodLogin = (description: string): UseToastOptions => {
+  return({
+    title: "Valid Credentials",
+    description: description,
+    status: "success",
+    duration: 5000,
+    isClosable: true,
+  });
+};

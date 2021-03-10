@@ -29,7 +29,6 @@ function reducer(state:typeof initialState, action:ACTIONTYPE){
 interface StoreProviderProps {
   children: React.ReactNode,
 }
-
 export const StoreProvider = ({children}:StoreProviderProps) => {
   const [storeState, storeDispatch] = React.useReducer(reducer, initialState);
 
