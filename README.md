@@ -6,7 +6,11 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 
 # Frontend
 
-make the frontend...
+- [x] Login
+- [x] Register
+- [ ] Add Friends
+- [ ] Create Groups
+- [ ] Chat page
 
 # Backend
 
