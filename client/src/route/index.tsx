@@ -3,24 +3,24 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link as ReactRouterLink
 } from 'react-router-dom';
-import { PrivateRoute } from './private';
+import { PrivateRoute } from '../component/route';
 import { LoginPage } from '../page/login';
-import { Link } from '@chakra-ui/react'
+import { RegisterPage } from '../page/register';
+import { Link } from '../component/route';
 
 export const Routes = () => {
   return(
     <Router>
-      <Link as={ReactRouterLink} to="/">Home</Link>
-      <Link as={ReactRouterLink} to="/login">Login</Link>
-      <Link as={ReactRouterLink} to="/register">Register</Link>
+      <Link to="/">Home</Link>
+      <Link to="/login">Login</Link>
+      <Link to="/register">Register</Link>
       <Switch>
         <Route path="/login">
           <LoginPage/>
         </Route>
         <Route path="/register">
-
+          <RegisterPage/>
         </Route>
         <Route path="/">
 

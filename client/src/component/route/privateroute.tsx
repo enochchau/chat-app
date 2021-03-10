@@ -1,14 +1,11 @@
 import * as React from 'react';
 import {
   Route,
-  Redirect
+  Redirect,
+  RouteProps
 } from "react-router-dom";
 
-interface PrivateRouteProps {
-  children: React.ReactNode
-}
-
-export const PrivateRoute = ({children, ...rest}:PrivateRouteProps) => {
+export const PrivateRoute = ({children, ...rest}:RouteProps) => {
   function validate(){
     return true;
   }
