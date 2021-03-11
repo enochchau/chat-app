@@ -1,19 +1,8 @@
-import { Stack } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import * as React from 'react';
 import { LeftMessage, RightMessage } from './message';
+import { HTMLWsMsg } from '../wsmsg';
 
-interface WsMsg {
-  userId: number;
-  timestamp: Date;
-  name: string;
-  avatar?: string;
-}
-export interface StringWsMsg extends WsMsg{
-  message: string;
-}
-export interface HTMLWsMsg extends WsMsg{
-  message: React.ReactNode;
-}
 
 interface MessageListProps{
   messages: Array<HTMLWsMsg>;
@@ -21,7 +10,7 @@ interface MessageListProps{
 }
 export const MessageList = ({messages, currentUserId}: MessageListProps) => {
   return(
-    <Stack>
+    <Box>
       {messages.map((msg, i) => {
         // this is the left side
         if(msg.userId !== currentUserId){
@@ -31,6 +20,10 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
               timestamp={msg.timestamp}
               personName={msg.name}
               avatar={msg.avatar}
+              marginBottom={
+                isFirst(i) ? "2.5px" :
+                marginManager(messages[i-1].userId, msg.userId)
+              }
             >
               {msg.message}
             </LeftMessage>
@@ -41,11 +34,23 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
           <RightMessage 
             key={i}
             timestamp={msg.timestamp}
+            marginBottom={
+              isFirst(i) ? "2.5px" :
+              marginManager(messages[i-1].userId, msg.userId)
+            }
           >
             {msg.message}
           </RightMessage>
         );
       })}
-    </Stack>
+    </Box>
   );
+}
+
+function isFirst(index: number): boolean{
+  return index === 0 ? true : false;
+}
+
+function marginManager (previousId: number, currentId: number): string{
+  return previousId === currentId ? "1px" : "2.5px";
 }

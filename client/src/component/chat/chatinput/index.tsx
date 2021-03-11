@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { Box } from "@chakra-ui/react" ;
+import { processSendMessageEvent } from './sendmessage';
+import {shouldShowPlaceholder} from './placeholder'
 
-// see if you can incorporate this into global styles later...
-export const FONTSIZE = "1rem";
 interface ChatInputProps {
-  text: string,
-  showPlaceholder: boolean,
   onInput: (e: React.FormEvent<HTMLDivElement>) => void;
   onKeyPress: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  showPlaceholder: boolean;
 }
-export const ChatInput = ({text, showPlaceholder, onInput, onKeyPress}: ChatInputProps) => {
+
+const ChatInput = ({onInput, onKeyPress, showPlaceholder}: ChatInputProps) => {
   return(
     <Box
       borderRadius='xl'
@@ -20,19 +20,15 @@ export const ChatInput = ({text, showPlaceholder, onInput, onKeyPress}: ChatInpu
         overflowY="auto" 
         overflowX="hidden" 
         maxHeight="100px"
-        width="100%"
-        minHeight={FONTSIZE}
         paddingLeft="10px"
         paddingRight="10px"
       >
         <Box
           padding="5px"
           contentEditable
-          width="100%"
-          height="100%"
           border="none"
           _focus={{outline: "none"}}
-          fontSize={FONTSIZE}
+          fontSize="md"          
           onInput={onInput}
           overflowWrap="break-word"
           onKeyPress={onKeyPress}
@@ -47,3 +43,5 @@ export const ChatInput = ({text, showPlaceholder, onInput, onKeyPress}: ChatInpu
     </Box>
   );
 }
+
+export { ChatInput, processSendMessageEvent, shouldShowPlaceholder }

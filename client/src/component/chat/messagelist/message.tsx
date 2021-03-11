@@ -14,7 +14,7 @@ interface MessageProps {
   timestamp: Date;
   tsPlacement: Placement;
 }
-export const Message = ({timestamp, children, tsPlacement}: MessageProps) => {
+const Message = ({timestamp, children, tsPlacement}: MessageProps) => {
   return(
     <Flex
       borderRadius="xl"
@@ -39,6 +39,7 @@ export const Message = ({timestamp, children, tsPlacement}: MessageProps) => {
 interface DirectionalMessageProps{
   children: React.ReactNode;
   timestamp: Date;
+  marginBottom?: string;
 }
 
 interface LeftMessageProps extends DirectionalMessageProps {
@@ -46,9 +47,9 @@ interface LeftMessageProps extends DirectionalMessageProps {
   personName: string;
 }
 
-export const LeftMessage = ({personName, avatar, children, timestamp}:LeftMessageProps) => {
+export const LeftMessage = ({personName, avatar, children, timestamp, marginBottom}:LeftMessageProps) => {
   return(
-    <Flex justify="space-between">
+    <Flex justify="space-between" marginBottom={marginBottom}>
       <HStack>
         <Avatar name={personName} size="sm" src={avatar}/>
         <Message timestamp={timestamp} tsPlacement="left">
@@ -60,9 +61,9 @@ export const LeftMessage = ({personName, avatar, children, timestamp}:LeftMessag
   );
 }
 
-export const RightMessage = ({children, timestamp}:DirectionalMessageProps) => {
+export const RightMessage = ({children, timestamp, marginBottom}:DirectionalMessageProps) => {
   return(
-    <Flex justify="space-between">
+    <Flex justify="space-between" marginBottom={marginBottom}>
       <Spacer/>
       <Message timestamp={timestamp} tsPlacement="right">
         {children}

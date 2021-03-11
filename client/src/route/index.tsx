@@ -4,7 +4,6 @@ import {
   Switch,
   Route,
 } from 'react-router-dom';
-import { Link } from '../component/route';
 import { PrivateRoute } from '../component/route';
 import { LoginPage } from '../page/login';
 import { RegisterPage } from '../page/register';
@@ -14,10 +13,6 @@ import { ChatPage } from '../page/chat';
 export const Routes = () => {
   return(
     <Router>
-      <Link to="/">Home</Link>
-      <Link to="/login">Login</Link>
-      <Link to="/register">Register</Link>
-      <Link to="/chat">Chat</Link>
       <Switch>
         <PrivateRoute path="/chat">
           <ChatPage/>
