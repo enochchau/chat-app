@@ -1,11 +1,6 @@
 import { StringWsMsg } from '../wsmsg';
 import { NodeTypes } from './placeholder';
 
-// replace Shift Enter with Enter
-function shiftEnterToNewline(e: React.KeyboardEvent<HTMLDivElement>){
-  if(e.key === "Enter" && e.shiftKey) e.key = "Enter";
-}
-
 // util function: parse child text nodes or br nodes to string
 const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
   let outString = "";
@@ -31,10 +26,9 @@ function prepareMessageForWs(childNodes: NodeListOf<ChildNode>, userId: number, 
 }
 
 export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, userId: number, name: string, avatar?:string): StringWsMsg | undefined{
+  if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
 
-  shiftEnterToNewline(event);
-
-  if(event.key === "Enter"){
+  else if(event.key === "Enter"){
     event.preventDefault();
     if(event.currentTarget.textContent){
       const childNodes = event.currentTarget.childNodes;

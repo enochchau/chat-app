@@ -20,6 +20,7 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
               timestamp={msg.timestamp}
               personName={msg.name}
               avatar={msg.avatar}
+              showAvatar={ i === messages.length - 1 || msg.userId !== messages[i+1].userId}
               marginBottom={
                 isFirst(i) ? "2.5px" :
                 marginManager(messages[i-1].userId, msg.userId)

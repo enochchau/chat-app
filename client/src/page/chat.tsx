@@ -42,7 +42,7 @@ export const ChatPage = () => {
   const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
   const { storeState, storeDispatch} = React.useContext(StoreContext);
 
-  const handleInfoClick = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+  const handleInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setToggleInfo(!toggleInfo);
   }
 
@@ -67,6 +67,7 @@ export const ChatPage = () => {
       e.currentTarget.textContent = "";
       setShowPlaceholder(true);
     }
+    handleNewMessage(demoMessage)
   }
 
   return(
@@ -96,19 +97,32 @@ export const ChatPage = () => {
         height="100%"
       >
         <TopAvatarPanel name="Enoch" onInfoClick={handleInfoClick}/>
-        <MessageList
-          messages={messages}
-          currentUserId={storeState.id}
-        />
-        <ChatInput
-          showPlaceholder={showPlaceholder}
-          onInput={handleChatInput}
-          onKeyPress={handleSendMessage}
-        />
+        <Box
+          height="70vh"
+          overflowY="auto"
+        >
+          <MessageList
+            messages={messages}
+            currentUserId={storeState.id}
+          />
+        </Box>
+        <Box
+          width={{
+            sm: toggleInfo ? "calc(100vw - 84px - 249px)" : "calc(100vw - 84px)",
+            md: toggleInfo ? "calc(100vw - 360px - 249px)" : "calc(100vw - 360px)",
+          }}
+        >
+          <ChatInput
+            showPlaceholder={showPlaceholder}
+            onInput={handleChatInput}
+            onKeyPress={handleSendMessage}
+            toggleInfo={toggleInfo}
+          />
+        </Box>
       </Box>
 
       { toggleInfo && 
-        <Box>
+        <Box width="249px">
           <SidePanel width="249px" border="1px">
             <Box height="1300px"></Box>
           </SidePanel>

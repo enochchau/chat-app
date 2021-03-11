@@ -6,23 +6,24 @@ import {
   Box,
   Placement,
   HStack,
-  Avatar
+  Avatar,
+  FlexProps
 } from '@chakra-ui/react';
 
-interface MessageProps {
+interface MessageProps extends FlexProps{
   children: React.ReactNode;
   timestamp: Date;
   tsPlacement: Placement;
 }
-const Message = ({timestamp, children, tsPlacement}: MessageProps) => {
+const Message = ({timestamp, children, tsPlacement, ...rest}: MessageProps) => {
   return(
     <Flex
       borderRadius="xl"
-      border="1px"
       pt="4px"
       pb="4px"
       pr="8px"
       pl="8px"
+      {...rest}
     >
       <Tooltip 
         label={timestamp.toLocaleTimeString()} 
@@ -44,15 +45,16 @@ interface DirectionalMessageProps{
 
 interface LeftMessageProps extends DirectionalMessageProps {
   avatar?: string;
+  showAvatar: boolean;
   personName: string;
 }
 
-export const LeftMessage = ({personName, avatar, children, timestamp, marginBottom}:LeftMessageProps) => {
+export const LeftMessage = ({personName, avatar, children, timestamp, marginBottom, showAvatar}:LeftMessageProps) => {
   return(
-    <Flex justify="space-between" marginBottom={marginBottom}>
+    <Flex justify="space-between" marginBottom={marginBottom} marginLeft={!showAvatar ? "40px" : "0px"}>
       <HStack>
-        <Avatar name={personName} size="sm" src={avatar}/>
-        <Message timestamp={timestamp} tsPlacement="left">
+        { showAvatar && <Avatar name={personName} size="sm" src={avatar}/> }
+        <Message timestamp={timestamp} tsPlacement="left" backgroundColor="gray.300" color="black">
           {children}
         </Message>
       </HStack>
@@ -65,7 +67,7 @@ export const RightMessage = ({children, timestamp, marginBottom}:DirectionalMess
   return(
     <Flex justify="space-between" marginBottom={marginBottom}>
       <Spacer/>
-      <Message timestamp={timestamp} tsPlacement="right">
+      <Message timestamp={timestamp} tsPlacement="right" backgroundColor="blue.400" color="white" mr="15px">
         {children}
       </Message>
     </Flex>

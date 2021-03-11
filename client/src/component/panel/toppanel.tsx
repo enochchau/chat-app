@@ -5,7 +5,7 @@ import * as React from 'react';
 interface TopAvatarPanelProps {
   name: string;
   avatarSrc?: string;
-  onInfoClick: (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => void;
+  onInfoClick: React.MouseEventHandler<HTMLButtonElement>;
 }
 export const TopAvatarPanel = ({name, avatarSrc, onInfoClick}: TopAvatarPanelProps) => {
   return(
@@ -13,10 +13,11 @@ export const TopAvatarPanel = ({name, avatarSrc, onInfoClick}: TopAvatarPanelPro
       align="center"
       justify="space-between"
       padding="10px"
+      boxShadow="base"
     >
       <HStack padding="5px">
-        <Avatar name={name} src={avatarSrc} size="md"/>
-        <Heading size="md">
+        <Avatar name={name} src={avatarSrc} size="sm"/>
+        <Heading size="sm">
           {name}
         </Heading>
       </HStack>
@@ -24,7 +25,9 @@ export const TopAvatarPanel = ({name, avatarSrc, onInfoClick}: TopAvatarPanelPro
         <IconButton
           aria-label="See Chat Info"
           isRound
-          icon={<InfoIcon fontSize="lg" onClick={onInfoClick}/>}
+          icon={<InfoIcon fontSize="lg"/>}
+          onClick={onInfoClick}
+          background="none"
         />
       </HStack>
     </Flex>
