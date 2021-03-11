@@ -12,6 +12,8 @@ import { REGISTER } from '../api';
 import { BadRegister, GoodRegister, ServerError } from '../component/toast';
 import { Redirect } from 'react-router-dom';
 
+import { FontIcon , RedoIcon } from '../component/icon';
+
 export const RegisterPage = () => {
   return(
     <Center>
@@ -84,27 +86,18 @@ const RegisterForm = () =>  {
           register={register}
           name="name"
           errorMessage={errors.name?.message}
+          icon={<FontIcon/>}
         />
 
-        <Auth.FormInput
-          id="username"
-          label="Username"
+        <Auth.UsernameFormInput
           isInvalid={Boolean(errors.username)}
-          type="text"
-          placeholder="Username"
           register={register}
-          name="username"
           errorMessage={errors.username?.message}
         />
-
-        <Auth.FormInput
-          id="password"
-          label="Password"
+        
+        <Auth.PasswordFormInput
           isInvalid={Boolean(errors.password)}
-          type="password"
-          placeholder="Password"
           register={register}
-          name="password"
           errorMessage={errors.password?.message}
         />
 
@@ -117,6 +110,7 @@ const RegisterForm = () =>  {
           register={register}
           name="rePassword"
           errorMessage={errors.rePassword?.message}
+          icon={<RedoIcon/>}
         />
 
         <Auth.Button

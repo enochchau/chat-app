@@ -1,5 +1,5 @@
 import { Form } from "./form";
-import { FormInput } from './input';
+import { FormInput, UsernameFormInput, PasswordFormInput } from './input';
 import { Button } from './button';
 import { RememberMe } from './rememberme';
-export { Form, FormInput, Button, RememberMe };
+export { Form, FormInput, Button, RememberMe, UsernameFormInput, PasswordFormInput };

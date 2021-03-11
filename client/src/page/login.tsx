@@ -92,27 +92,18 @@ const LoginForm = () => {
       altLink="/register"
       linkText="Don't have an account?"
     >
-      <Auth.FormInput
-        label="Username"
-        id="username"
+      <Auth.UsernameFormInput
         isInvalid={Boolean(errors.username)}
-        type="text"
-        placeholder="Username"
         register={register}
-        name="username"
         errorMessage={errors.username?.message}
       />
-
-      <Auth.FormInput
-        label="Password"
-        id="password"
+      
+      <Auth.PasswordFormInput
         isInvalid={Boolean(errors.password)}
-        type="password"
-        placeholder="Password"
         register={register}
-        name="password"
         errorMessage={errors.password?.message}
       />
+
       <Auth.RememberMe register={register} />
       <Auth.Button
         isLoading={formState.isSubmitting}
