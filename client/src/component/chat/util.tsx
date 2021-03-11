@@ -1,3 +1,6 @@
+import { Box } from "@chakra-ui/react";
+import * as React from "react";
+
 export type NodeTypes = "[object Text]" | "[object HTMLBRElement]"
 
 // helper function for countNodeChildren
@@ -34,4 +37,19 @@ export const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => 
   });
   // console.log(outString);
   return outString;
+}
+
+export const parseStringToHtml = (str: string): React.ReactNode => {
+  const strArr = str.split('');
+  return(
+    <Box>
+      {
+        strArr.map((character, i) => {
+          // add an extra space to replace the newline char
+          if (character === '\n') return (<> <br/></>)
+          return character
+        })
+      }
+    </Box>
+  );
 }

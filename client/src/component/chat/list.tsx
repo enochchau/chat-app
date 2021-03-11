@@ -2,15 +2,21 @@ import { Stack } from '@chakra-ui/react';
 import * as React from 'react';
 import { LeftMessage, RightMessage } from './message';
 
-export interface WsMsg {
-  message: string;
+interface WsMsg {
   userId: number;
   timestamp: Date;
   name: string;
   avatar?: string;
 }
+export interface StringWsMsg extends WsMsg{
+  message: string;
+}
+export interface HTMLWsMsg extends WsMsg{
+  message: React.ReactNode;
+}
+
 interface MessageListProps{
-  messages: Array<WsMsg>;
+  messages: Array<HTMLWsMsg>;
   currentUserId: number;
 }
 export const MessageList = ({messages, currentUserId}: MessageListProps) => {

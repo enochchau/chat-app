@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react';
 
 interface MessageProps {
-  children: string;
+  children: React.ReactNode;
   timestamp: Date;
   tsPlacement: Placement;
 }
@@ -37,7 +37,7 @@ export const Message = ({timestamp, children, tsPlacement}: MessageProps) => {
 }
 
 interface DirectionalMessageProps{
-  children: string;
+  children: React.ReactNode;
   timestamp: Date;
 }
 

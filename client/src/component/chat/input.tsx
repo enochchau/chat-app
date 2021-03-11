@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Box } from "@chakra-ui/react" ;
 
 // see if you can incorporate this into global styles later...
-const FONTSIZE = "1rem";
+export const FONTSIZE = "1rem";
 interface ChatInputProps {
   text: string,
   showPlaceholder: boolean,
@@ -20,6 +20,7 @@ export const ChatInput = ({text, showPlaceholder, onInput, onKeyPress}: ChatInpu
         overflowY="auto" 
         overflowX="hidden" 
         maxHeight="100px"
+        width="100%"
         minHeight={FONTSIZE}
         paddingLeft="10px"
         paddingRight="10px"
