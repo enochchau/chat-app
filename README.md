@@ -11,6 +11,11 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] Add Friends
 - [ ] Create Groups
 - [ ] Chat page
+    - For text input, use overflow-wrap
+- [ ] Remove Demo user placeholder data
+
+## Reach goals
+- [ ] implement avatars
 
 # Backend
 
@@ -30,8 +35,12 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 
 - [ ] Log websocket messages into db
 - [ ] send message history when a user connects to the websocket
-- [ ] create friend chat handler
-- [ ] create a friend chat authenticator
+- [x] chat tracker for groups
+- [x] chat tracker for friends
+- [x] group chat handler
+- [ ] friend chat handler
+- [x] group chat authenticator
+- [ ] friend chat authenticator
 
 ## API
 
