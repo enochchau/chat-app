@@ -40,26 +40,35 @@ interface DirectionalMessageProps{
   children: string;
   timestamp: Date;
 }
-export const LeftMessage = ({children, timestamp}:DirectionalMessageProps) => {
+
+interface LeftMessageProps extends DirectionalMessageProps {
+  avatar?: string;
+  personName: string;
+}
+
+export const LeftMessage = ({personName, avatar, children, timestamp}:LeftMessageProps) => {
   return(
     <Flex justify="space-between">
       <HStack>
-        <Avatar name="dan" size="sm" src="https://scontent.fsjc1-3.fna.fbcdn.net/v/t1.0-1/c24.33.198.198a/p240x240/67663361_2399631803645638_9161317739476811776_n.jpg?_nc_cat=105&ccb=1-3&_nc_sid=7206a8&_nc_ohc=cfz9q50SoxoAX8lpemZ&_nc_ht=scontent.fsjc1-3.fna&tp=27&oh=0fccda4857990efe2fd7a8595cd3e12c&oe=606CB318"/>
+        <Avatar name={personName} size="sm" src={avatar}/>
         <Message timestamp={timestamp} tsPlacement="left">
           {children}
         </Message>
       </HStack>
-      <Box/>
+      <Spacer/>
     </Flex>
   );
 }
+
 export const RightMessage = ({children, timestamp}:DirectionalMessageProps) => {
   return(
     <Flex justify="space-between">
-      <Box/>
+      <Spacer/>
       <Message timestamp={timestamp} tsPlacement="right">
         {children}
       </Message>
     </Flex>
   );
 }
+
+const Spacer = () => <Box><Box width="87px"/></Box>

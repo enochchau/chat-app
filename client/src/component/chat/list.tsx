@@ -1,11 +1,13 @@
-import { Flex, Stack, Box } from '@chakra-ui/react';
+import { Stack } from '@chakra-ui/react';
 import * as React from 'react';
 import { LeftMessage, RightMessage } from './message';
 
 export interface WsMsg {
-  message: string,
-  userId: number,
-  timestamp: Date,
+  message: string;
+  userId: number;
+  timestamp: Date;
+  name: string;
+  avatar?: string;
 }
 interface MessageListProps{
   messages: Array<WsMsg>;
@@ -19,7 +21,10 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
         if(msg.userId !== currentUserId){
           return(
             <LeftMessage
+              key={i}
               timestamp={msg.timestamp}
+              personName={msg.name}
+              avatar={msg.avatar}
             >
               {msg.message}
             </LeftMessage>
@@ -28,6 +33,7 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
         // this is the right side
         return(
           <RightMessage 
+            key={i}
             timestamp={msg.timestamp}
           >
             {msg.message}
