@@ -3,6 +3,7 @@ import jwt_decode from 'jwt-decode';
 export interface JwtUserInterface {
   id: number;
   username: string;
+  name: string;
 }
 
 export interface JwtContentInterface{

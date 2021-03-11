@@ -4,10 +4,13 @@ import { DecodedJwtUser, decodeToJwtUser, getToken } from './api/token';
 type ACTIONTYPE = 
   | { type: 'store current user'; payload: DecodedJwtUser};
 
+// REMEBER TO REMOVE THIS LATER
 // initial reducer state
 const initialState = {
-  username: '',
-  id: -1
+  username: 'demo_user',
+  id: -1,
+  name: 'demo name',
+  avatar: "", // currently unused
 }
 
 export const StoreContext = React.createContext<{
@@ -19,7 +22,7 @@ export const StoreContext = React.createContext<{
 function reducer(state:typeof initialState, action:ACTIONTYPE){
   switch(action.type){
     case 'store current user':
-      return {...state, username: action.payload.username, id: action.payload.id};
+      return {...state, username: action.payload.username, id: action.payload.id, name: action.payload.name};
     default: 
       return state;
   }

@@ -22,6 +22,7 @@ interface DecodedJwt extends JwtPayload {
 export interface DecodedJwtUser {
   id: number;
   username: string;
+  name: string;
 }
 export function decodeToJwtUser(token: string): DecodedJwtUser | undefined{
   try {
