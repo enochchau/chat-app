@@ -4,5 +4,3 @@ export interface IdWebsocket {
   id: number;
   ws: WebSocket;
 }
-
-export type IdWsPair = [IdWebsocket, IdWebsocket];

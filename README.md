@@ -4,6 +4,14 @@ This is a websocket chat app.
 
 I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 
+# User Information
+
+* Id
+* Name: 128 chars 
+* Username: 5 to 64 chars
+* Password 
+* Avatar (url)
+
 # Frontend
 
 - [x] Login
@@ -13,6 +21,7 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] Chat page
     - For text input, use overflow-wrap
 - [ ] Remove Demo user placeholder data
+- [ ] User dashboard for changing user information (i.e. Name and password)
 
 ## Reach goals
 - [ ] implement avatars
@@ -41,6 +50,12 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] friend chat handler
 - [x] group chat authenticator
 - [ ] friend chat authenticator
+
+### Current issues:
+
+- fix the friend tracker and friend handler
+- allow a user to connect multiple times to the same chat room.
+    - this means they are connecting from different devices which should be allows.
 
 ## API
 

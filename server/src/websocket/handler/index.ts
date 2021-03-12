@@ -1,32 +1,35 @@
 import WebSocket from "ws"
 import * as Tracker from '../tracker/index';
-import * as Msg from '../message/index';
 import { GenericHandler } from './generic';
-import { GroupChatHandler } from "./group";
+import { GroupPayloadHandler } from "./group";
+import { pipe } from 'fp-ts/lib/function';
+import { fold } from 'fp-ts/Either';
+import * as t from 'io-ts';
+import { ChatMessage, AuthMessage, ServerMessage } from '../message';
 
 export class WsHandler extends GenericHandler{
-  private groupChatHandler: GroupChatHandler;
+  private groupPayloadHandler: GroupPayloadHandler;
 
   constructor(ws: WebSocket, groupTracker: Tracker.ActiveGroups, friendTracker: Tracker.ActiveFriends){
     super(ws, groupTracker, friendTracker);
 
-    this.groupChatHandler = new GroupChatHandler(this.ws, this.groupTracker, this.friendTracker, this.id);
+    this.groupPayloadHandler = new GroupPayloadHandler(this.ws, this.groupTracker, this.friendTracker, this.id);
 
     // send new messages to the handler to parse out topic and payload
     this.ws.on('message', this.toEvent); 
     // error handler
     this.ws.on('message error', ()=> {
       console.log('message error');
-      ws.send(JSON.stringify(Msg.Server.badRequest()));
+      ws.send(JSON.stringify(ServerMessage.badRequest()));
     });
 
     // authenticate user and add them to a group
-    this.ws.on('join group', async (payload: Msg.User.RXPayload) => {
-      await this.groupChatHandler.onJoinGroup(payload);
+    this.ws.on('join group', async (message: AuthMessage) => {
+      await this.groupPayloadHandler.onJoinGroup(message.payload);
     });
     // send a group chat message to other users that are connected
-    this.ws.on('chat group', (payload: Msg.User.RXPayload) => {
-      this.groupChatHandler.onChatGroup(payload);
+    this.ws.on('chat group', (message: ChatMessage) => {
+      this.groupPayloadHandler.onChatGroup(message);
     });
 
     this.ws.on('close', () => {
@@ -41,8 +44,13 @@ export class WsHandler extends GenericHandler{
 
   private toEvent = (message: string) => {
     try{
-      const event: Msg.User.RXMessage = JSON.parse(message);
-      this.ws.emit(event.topic, event.payload);
+      const event = JSON.parse(message);
+
+      const onAuthLeft = (errors: t.Errors) => this.ws.emit("message error");
+      const onAuthRight = (event: AuthMessage) => this.ws.emit(event.topic, event);
+      const onChatLeft = (errors: t.Errors) => pipe(AuthMessage.decode(event), fold(onAuthLeft, onAuthRight));
+      const onChatRight = (event: ChatMessage) => this.ws.emit(event.topic, event);
+      pipe(ChatMessage.decode(event), fold(onChatLeft, onChatRight));
     } catch(err) {
       console.error("RX messsge on websocket was not a valid json.");
       this.ws.emit("message error");
@@ -57,8 +65,7 @@ export class WsHandler extends GenericHandler{
     if (currentGroup){
       this.removeUserFromGroup(this.id.user, currentGroup);
 
-      if (currentGroup.length === 0)
-        this.deleteEmptyGroup(this.groupTracker, this.id.group);
+      if (currentGroup.length === 0) this.deleteEmptyGroup(this.groupTracker, this.id.group);
     }
     console.log("closing websocket");
   }

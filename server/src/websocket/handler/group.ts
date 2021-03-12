@@ -1,11 +1,11 @@
 import { HandlerIds, GenericHandler } from './generic';
 import * as Tracker from '../tracker/index';
 import { jwtToJwtUser } from '../../auth/jwt';
-import * as Msg from '../message/index';
-import { WsGroupAuthenticator } from '../auth';
+import { AuthPayload, ChatMessage, ServerMessage } from '../message';
+import { WsAuthenticator } from '../auth';
 import WebSocket from 'ws';
 
-export class GroupChatHandler extends GenericHandler {
+export class GroupPayloadHandler extends GenericHandler {
   
   constructor(ws: WebSocket, groupTracker: Tracker.ActiveGroups, friendTracker: Tracker.ActiveFriends, id: HandlerIds){
     super(ws, groupTracker, friendTracker);
@@ -13,15 +13,15 @@ export class GroupChatHandler extends GenericHandler {
   }
 
 // verify user before adding them to the group
-  public async onJoinGroup(payload: Msg.User.AuthPayload) {
+  public async onJoinGroup(payload: AuthPayload) {
     // parse the JWT
     const jwtUserInfo = jwtToJwtUser(payload.token);
     const userId = jwtUserInfo.id;
-    const groupId = payload.groupId;
+    const groupId = payload.chatId;
     
     try {
       // verify the group and user and in the DB
-      const inDatabase = await WsGroupAuthenticator.verifyInDatabase(userId, groupId);
+      const inDatabase = await WsAuthenticator.verifyGroup(userId, groupId);
       if(inDatabase){
         this.addUserToGroupTracker(userId, groupId);
         this.id.group = groupId;
@@ -29,11 +29,11 @@ export class GroupChatHandler extends GenericHandler {
         // send group chat history
       } else {
         // else tell the user it was a bad request
-        this.ws.send(JSON.stringify(Msg.Server.badRequest()));
+        this.ws.send(JSON.stringify(ServerMessage.badRequest()));
       }
     } catch(error) {
-      console.error("Error verifying webosocket user: ", error);
-      this.ws.send(JSON.stringify(Msg.Server.serverError()));
+      console.error("Error verifying websocket user: ", error);
+      this.ws.send(JSON.stringify(ServerMessage.serverError()));
     }
   }
 
@@ -56,24 +56,24 @@ export class GroupChatHandler extends GenericHandler {
 
   // ------- GROUP CHATTING
   
-  public onChatGroup(payload: Msg.User.RXPayload){
+  public onChatGroup(message: ChatMessage){
     // verify the user is authenticated before allowing to chat
     if(this.isAuthedForGroupChat()) {
       const group = this.groupTracker.get(this.id.group);
       if (!group) return;
 
       // LOG MESSAGE HERE
-      this.dispersePayloadToGroup(group, payload);
+      this.dispersePayloadToGroup(group, message);
 
     } else {
-      this.ws.send(JSON.stringify(Msg.Server.notAuthenticated()));
+      this.ws.send(JSON.stringify(ServerMessage.notAuthenticated()));
     }
   }
 
-  private dispersePayloadToGroup(group: Tracker.IdWebsocket[], payload: Msg.User.RXPayload){
+  private dispersePayloadToGroup(group: Tracker.IdWebsocket[], message: ChatMessage){
     group.forEach( idws => {
       if(idws.ws.readyState === WebSocket.OPEN){
-        idws.ws.send(JSON.stringify(payload))
+        idws.ws.send(JSON.stringify(message))
       }
     });
   }

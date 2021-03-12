@@ -1,9 +1,9 @@
-import { IdWsPair } from './idwebsocket';
+import { IdWebsocket } from './idwebsocket';
 
 export class ActiveFriends{
-  private activeFriendMap: Map<string, IdWsPair> = new Map();
+  private activeFriendMap: Map<string, Array<IdWebsocket>> = new Map();
 
-  constructor(pairArray?: Array<IdWsPair>){
+  constructor(pairArray?: Array<IdWebsocket>){
     if(pairArray){
       pairArray.forEach((pair) => {
         this.add(pair);
@@ -11,15 +11,25 @@ export class ActiveFriends{
     }
   }
 
-  public add(newPair: IdWsPair){
-    if(newPair[0].id === newPair[1].id) return false;
+  public add(userIdWs: IdWebsocket, friendId: number){
 
-    if (!this.find(newPair[0].id, newPair[1].id)){
-      const currentKey = this.createKey(newPair[0].id, newPair[1].id);
-      this.activeFriendMap.set(currentKey, newPair);
+    const currentKey = this.createKey(userIdWs.id, friendId);
+
+    // see if these two friends are already active
+    if (!this.find(userIdWs.id, friendId)){
+      // create a new friend chat room
+      this.activeFriendMap.set(currentKey, [userIdWs]);
       return true;
-    }
+    } else {
+      // add the user to the existing chat room
+      const existingChatRoom = this.get(userIdWs.id, friendId);
 
+      if(existingChatRoom.length < 2) {
+        existingChatRoom.push(userIdWs);
+        this.activeFriendMap.set(currentKey, existingChatRoom);
+        return true;
+      }
+    }
     return false;
   }
 
