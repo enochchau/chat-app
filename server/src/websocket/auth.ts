@@ -1,25 +1,29 @@
 import { UserEntity } from '../entity/user';
-import { GroupEntity } from '../entity/group';
 
-export class WsGroupAuthenticator{
-  static async verifyInDatabase(userId: number, groupId: number): Promise<boolean>{
+export class WsAuthenticator{
+  static async verifyGroup(userId: number, groupId: number): Promise<boolean>{
     const user = await UserEntity.findOne({
       where: {id: userId},
+      relations: ["groups"]
     });
-    const group = await GroupEntity.findOne({
-      where: {id: groupId},
-      relations: ["users"]
-    })
-    if(!user || !group){
-      return false;
-    }
-    return WsGroupAuthenticator.findUserInGroup(user.id, group);
-  }
 
-  private static findUserInGroup(userId: number, group:GroupEntity): boolean{
-    for(let user of group.users){
-      if (user.id === userId) return true;
+    if (user){
+      if(this.findGroupInUserGroups(user, groupId)){
+        return true;
+      }
     }
     return false;
+  }
+
+  private static findGroupInUserGroups(user: UserEntity, groupId: number): boolean {
+    user.groups.forEach((group) => {
+      if(group.id === groupId) return true;
+    });
+    return false;
+  }
+
+  static async verifyFriend(userId: number, friendId: number): Promise<boolean> {
+    const friendStatus = await UserEntity.areFriends(userId, friendId);
+    return friendStatus;
   }
 }
