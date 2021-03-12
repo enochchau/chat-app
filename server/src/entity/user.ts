@@ -148,7 +148,7 @@ export class UserEntity extends BaseEntity{
       .where("user.id = :id", {id: userId})
       .andWhere("groups.updated <= :date", {date: fromDate})
       .orderBy("groups.updated", "DESC")
-      .limit(count)
+      .take(count)
       .getOne()
   }
 
