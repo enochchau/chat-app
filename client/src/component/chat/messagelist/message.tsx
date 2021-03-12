@@ -7,28 +7,28 @@ import {
   Placement,
   HStack,
   Avatar,
-  FlexProps
+  FlexProps,
 } from '@chakra-ui/react';
+import { SideButtons } from './sidebuttons';
 
-interface MessageProps extends FlexProps{
+interface MessageTextProps extends FlexProps{
   children: React.ReactNode;
   timestamp: Date;
-  tsPlacement: Placement;
+  timestampPlacement: Placement;
 }
-const Message = ({timestamp, children, tsPlacement, ...rest}: MessageProps) => {
+const MessageText = ({timestamp, children, timestampPlacement, ...rest}: MessageTextProps) => {
   return(
     <Flex
       borderRadius="xl"
       pt="4px"
       pb="4px"
-      pr="8px"
+      pr="8px"     
       pl="8px"
-      {...rest}
     >
       <Tooltip 
         label={timestamp.toLocaleTimeString()} 
         fontSize='sm'
-        placement={tsPlacement}
+        placement={timestampPlacement}
         borderRadius="lg"
       >
         <Text fontSize="md">{children}</Text>
@@ -37,41 +37,24 @@ const Message = ({timestamp, children, tsPlacement, ...rest}: MessageProps) => {
   );
 }
 
-interface DirectionalMessageProps{
+interface MessageProps {
   children: React.ReactNode;
   timestamp: Date;
-  marginBottom?: string;
-}
-
-interface LeftMessageProps extends DirectionalMessageProps {
-  avatar?: string;
-  showAvatar: boolean;
+  avatarSrc?: string;
+  showAvatar?: boolean;
   personName: string;
+  timestampPlacement: "right" | "left"
 }
-
-export const LeftMessage = ({personName, avatar, children, timestamp, marginBottom, showAvatar}:LeftMessageProps) => {
+export const Message = ({personName, avatarSrc, children, timestamp, timestampPlacement, showAvatar}: MessageProps) => {
   return(
-    <Flex justify="space-between" marginBottom={marginBottom} marginLeft={!showAvatar ? "40px" : "0px"}>
+    <Flex>
       <HStack>
-        { showAvatar && <Avatar name={personName} size="sm" src={avatar}/> }
-        <Message timestamp={timestamp} tsPlacement="left" backgroundColor="gray.300" color="black">
+        { showAvatar && <Avatar name={personName} size="sm" src={avatarSrc}/> }
+        <MessageText timestamp={timestamp} timestampPlacement={timestampPlacement}>
           {children}
-        </Message>
+        </MessageText>
       </HStack>
-      <Spacer/>
+      <SideButtons/>
     </Flex>
   );
 }
-
-export const RightMessage = ({children, timestamp, marginBottom}:DirectionalMessageProps) => {
-  return(
-    <Flex justify="space-between" marginBottom={marginBottom}>
-      <Spacer/>
-      <Message timestamp={timestamp} tsPlacement="right" backgroundColor="blue.400" color="white" mr="15px">
-        {children}
-      </Message>
-    </Flex>
-  );
-}
-
-const Spacer = () => <Box><Box width="87px"/></Box>

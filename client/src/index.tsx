@@ -5,6 +5,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { Routes } from './route/index';
 import { createBreakpoints } from "@chakra-ui/theme-tools";
 import { extendTheme } from "@chakra-ui/react";
+import {IconButton} from './theme'
 
 // there is only 1 break point for the left panel
 const breakpoints = createBreakpoints({
@@ -14,7 +15,12 @@ const breakpoints = createBreakpoints({
   xl: "900000px"
 })
 
-const theme = extendTheme({breakpoints});
+const theme = extendTheme({
+  breakpoints,
+  components: {
+    IconButton
+  }
+});
 
 const App = () => {
   return(
