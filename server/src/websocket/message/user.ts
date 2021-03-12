@@ -1,5 +1,3 @@
-import { pipe } from 'fp-ts/lib/function';
-import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 import * as tt from 'io-ts-types';
 
@@ -18,13 +16,23 @@ const GenericMessage = <C extends t.Mixed>(codec: C) =>
     payload: codec,
   });
 
-const GenericPayload = t.type({
+const ChatPayload = t.type({
   timestamp: tt.date,
   message: t.string,
   chatId: t.number
 });
 
-// we can use the topic to figure out if the chatId is a userId or a groupId
+const AuthPayload = t.type({
+  timestamp: tt.date,
+  chatId: t.number,
+  token: t.string,
+});
 
-export const UserMessage = GenericMessage(GenericPayload);
-export type UserMessage = t.TypeOf<typeof UserMessage>;
+// we can use the topic to figure out if the chatId is a userId or a groupId
+export type AuthPayload = t.TypeOf<typeof AuthPayload>;
+export const AuthMessage = GenericMessage(AuthPayload);
+export type AuthMessage = t.TypeOf<typeof AuthMessage>;
+
+export type ChatPayload = t.TypeOf<typeof ChatPayload>;
+export const ChatMessage = GenericMessage(ChatPayload);
+export type ChatMessage= t.TypeOf<typeof ChatMessage>;

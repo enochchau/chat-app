@@ -1,4 +1,4 @@
-import { Server } from './server';
-import {UserMessage} from './user';
+import { Server as ServerMessage } from './server';
+import { AuthMessage, ChatMessage, AuthPayload, ChatPayload } from './user';
 
-export { UserMessage, Server};
+export { AuthMessage, ChatMessage, ServerMessage, AuthPayload, ChatPayload};
