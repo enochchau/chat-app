@@ -1,4 +1,4 @@
 import { Server } from './server';
-import * as User from './user';
+import {UserMessage} from './user';
 
-export { User, Server};
+export { UserMessage, Server};

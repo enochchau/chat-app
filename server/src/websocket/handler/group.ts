@@ -11,8 +11,9 @@ export class GroupChatHandler extends GenericHandler {
     super(ws, groupTracker, friendTracker);
     this.id = id;
   }
+
 // verify user before adding them to the group
-  public async onJoinGroup(payload: Msg.User.RXPayload) {
+  public async onJoinGroup(payload: Msg.User.AuthPayload) {
     // parse the JWT
     const jwtUserInfo = jwtToJwtUser(payload.token);
     const userId = jwtUserInfo.id;

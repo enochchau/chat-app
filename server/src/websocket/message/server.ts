@@ -1,8 +1,13 @@
-import { GenericPayload, GenericMessage} from './generic';
+import * as t from 'io-ts';
 
+type ServerTopic = "okay" | "error";
 // TX Server Message
-interface TXServerMessage extends GenericMessage<GenericPayload>{
-  payload: GenericPayload;
+type ServerMessage = {
+  topic: ServerTopic,
+  payload: {
+    timestamp: Date,
+    message: string
+  }
 }
 
 export class Server{
@@ -13,7 +18,7 @@ export class Server{
         timestamp: new Date(),
         message: "invalid token",
       }
-    } as TXServerMessage;
+    } as ServerMessage;
   }
 
   static serverError() {
@@ -23,7 +28,7 @@ export class Server{
         timestamp: new Date(),
         message: "server error",
       }
-    } as TXServerMessage;
+    } as ServerMessage;
   }
 
   static badRequest() {
@@ -33,7 +38,7 @@ export class Server{
         timestamp: new Date(),
         message: "bad request",
       }
-    } as TXServerMessage;
+    } as ServerMessage;
   }
 
   static notAuthenticated(){
@@ -43,16 +48,16 @@ export class Server{
         timestamp: new Date(),
         message: "user is not authenticated",
       }
-    } as TXServerMessage;
+    } as ServerMessage;
   }
 
   static validToken() {
     return {
-      topic: "server",
+      topic: "okay",
       payload: {
         timestamp: new Date(),
         message: "valid token",
       }
-    } as TXServerMessage;
+    } as ServerMessage;
   }
 }

@@ -47,6 +47,11 @@ export class UserEntity extends BaseEntity{
   })
   password: string;
 
+  @Column({
+    nullable: true,
+  })
+  avatar: string;
+
   @CreateDateColumn()
   created: Date;
 
