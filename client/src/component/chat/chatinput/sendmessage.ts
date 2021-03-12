@@ -1,5 +1,5 @@
-import { StringWsMsg } from '../wsmsg';
 import { NodeTypes } from './placeholder';
+import { ChatMessage, ChatTopics } from '../../../api/validators/websocket'
 
 // util function: parse child text nodes or br nodes to string
 const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
@@ -13,26 +13,27 @@ const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
   return outString;
 }
 
-function prepareMessageForWs(childNodes: NodeListOf<ChildNode>, userId: number, name: string, avatar?: string){
+function prepareMessageForWs(topic: ChatTopics, childNodes: NodeListOf<ChildNode>, userId: number, chatId: number): ChatMessage{
   const inputText = parseHtmlToString(childNodes);
-  const newMessage: StringWsMsg = {
-    message: inputText,
-    userId: userId,
-    timestamp: new Date(),
-    name: name,
-    avatar: avatar,
-  };
-  return newMessage;
+  return {
+    topic: topic,
+    payload:{
+      timestamp: new Date(),
+      message: inputText,
+      chatId: chatId,
+      userId: userId
+    }
+  } as ChatMessage
 }
 
-export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, userId: number, name: string, avatar?:string): StringWsMsg | undefined{
+export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, topic: ChatTopics, userId: number, chatId: number): ChatMessage | undefined{
   if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
 
   else if(event.key === "Enter"){
     event.preventDefault();
     if(event.currentTarget.textContent){
       const childNodes = event.currentTarget.childNodes;
-      return prepareMessageForWs(childNodes, userId, name, avatar);
+      return prepareMessageForWs(topic, childNodes, userId, chatId);
     }
   }
 }

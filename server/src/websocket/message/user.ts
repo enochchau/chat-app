@@ -19,7 +19,8 @@ const GenericMessage = <C extends t.Mixed>(codec: C) =>
 const ChatPayload = t.type({
   timestamp: tt.date,
   message: t.string,
-  chatId: t.number
+  chatId: t.number,
+  userId: t.number,
 });
 
 const AuthPayload = t.type({

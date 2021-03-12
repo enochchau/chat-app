@@ -3,20 +3,30 @@ export const Message: ComponentStyleConfig = {
   parts: ["message", "text", "sideButtons"],
   baseStyle: {
     message: {
-      justify:"space-between"
+      justify:"space-between",
+      pt: "2px",
     },
     text: {
-      paddingTop:   "4px",
-      paddingBottom:"4px",
-      paddingRight: "8px",
-      paddingLeft:  "8px",
+      pt:"4px",
+      pb:"4px",
+      pr:"8px",
+      pl:"8px",
       borderRadius: "xl"
     },
+    sideButtons:{
+      justify:"center",
+      align:"center",
+      mt:"2px"
+    }
   },
   variants: {
     left: {
       message: {
         flexDirection: "row"
+      },
+      text: {
+        backgroundColor: "gray.400",
+        color: "black"
       },
       sideButtons: {
         flexDir: "row"
@@ -26,6 +36,10 @@ export const Message: ComponentStyleConfig = {
       message: {
         flexDir: "row-reverse"
       },
+      text: {
+        backgroundColor: "blue.400",
+        color: "white"
+      },
       sideButtons: {
         flexDir: "row-reverse"
       }
@@ -33,13 +47,14 @@ export const Message: ComponentStyleConfig = {
   }
 }
 
-export const IconButton: ComponentStyleConfig = {
+export const Icon: ComponentStyleConfig = {
   baseStyle: {
-    background: "none"
+    background: "none",
+    margin: "5px",
   },
   variants: {
     sideMsgButton:{
-      color: "gray.200"
+      color: "gray.300"
     }
   }
 }

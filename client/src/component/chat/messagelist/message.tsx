@@ -21,6 +21,7 @@ interface MessageTextProps extends FlexProps{
 }
 const MessageText = ({timestamp, children, timestampPlacement, ...rest}: MessageTextProps) => {
   const styles = useStyles();
+  console.log(styles)
   return(
     <Flex
       sx={styles.text}
@@ -31,7 +32,7 @@ const MessageText = ({timestamp, children, timestampPlacement, ...rest}: Message
         placement={timestampPlacement}
         borderRadius="lg"
       >
-        <Text fontSize="md">{children}</Text>
+        <Text wordBreak="break-word" fontSize="md">{children}</Text>
       </Tooltip>
     </Flex>
   );
@@ -51,7 +52,7 @@ export const Message = ({personName, avatarSrc, children, timestamp, showAvatar,
     <Flex sx={styles.message}>
       <StylesProvider value={styles}>
         <HStack>
-          { (showAvatar &&  variant==="left") && <Avatar name={personName} size="sm" src={avatarSrc}/> }
+          { (showAvatar &&  variant==="left") ? <Avatar name={personName} size="sm" src={avatarSrc}/> : <Box height="32px" width="32px"/>}
             <MessageText timestamp={timestamp} timestampPlacement={variant}>
               {children}
             </MessageText>

@@ -5,11 +5,12 @@ const ChatTopics = t.union([
   t.literal('chat group'),
   t.literal('chat friend'),
 ]);
-
+export type ChatTopics = t.TypeOf<typeof ChatTopics>;
 const ServerTopics = t.union([
   t.literal('okay'),
   t.literal('error')
 ]);
+export type ServerTopics = t.TypeOf<typeof ServerTopics>;
 
 
 export const ChatMessage = t.type({
@@ -17,7 +18,8 @@ export const ChatMessage = t.type({
   payload: t.type({
     timestamp: tt.date,
     message: t.string,
-    chatId: t.number
+    chatId: t.number,
+    userId: t.number,
   })
 });
 

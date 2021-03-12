@@ -1,11 +1,17 @@
 import { Box } from '@chakra-ui/react';
 import * as React from 'react';
 import { Message } from './message';
-import { HTMLWsMsg } from '../wsmsg';
 
+export type DisplayableMessage = {
+  userId: number,
+  name: string,
+  message: React.ReactNode,
+  timestamp: Date,
+  avatarSrc?: string,
+}
 
 interface MessageListProps{
-  messages: Array<HTMLWsMsg>;
+  messages: Array<DisplayableMessage>;
   currentUserId: number;
 }
 export const MessageList = ({messages, currentUserId}: MessageListProps) => {
@@ -19,8 +25,11 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
               key={i}
               timestamp={msg.timestamp}
               personName={msg.name}
-              avatarSrc={msg.avatar}
+              avatarSrc={msg.avatarSrc}
               variant="left"
+              showAvatar={
+                i === messages.length-1 ? true : msg.userId !== messages[i+1].userId 
+              }
             >
               {msg.message}
             </Message>
@@ -32,7 +41,7 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
             key={i}
             timestamp={msg.timestamp}
             personName={msg.name}
-            avatarSrc={msg.avatar}
+            avatarSrc={msg.avatarSrc}
             variant="right"
           >
             {msg.message}
