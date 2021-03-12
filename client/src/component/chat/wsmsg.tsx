@@ -1,18 +1,9 @@
 import * as React from 'react';
 import { Box } from "@chakra-ui/react";
+import { ChatMessage, ChatPayload } from '../../api/validators/websocket';
 
-interface WsMsg {
-  userId: number;
-  timestamp: Date;
-  name: string;
-  avatar?: string;
-}
-export interface StringWsMsg extends WsMsg{
-  message: string;
-}
-export interface HTMLWsMsg extends WsMsg{
-  message: React.ReactNode;
-}
+export type HTMLPayload = Omit<ChatPayload, "message"> & {message: React.ReactNode}
+export type HTMLChatMessage = Pick<ChatMessage, "topic"> & {payload: HTMLPayload}
 
 const parseStringToHtml = (str: string): React.ReactNode => {
   const strArr = str.split('');
@@ -29,15 +20,16 @@ const parseStringToHtml = (str: string): React.ReactNode => {
   );
 }
 
-export function convertStringToHTMLWsMsg(message: StringWsMsg): HTMLWsMsg {
-  const html = parseStringToHtml(message.message.trim());
+export function convertStringToHTMLWsMsg(message: ChatMessage): HTMLChatMessage {
+  const html = parseStringToHtml(message.payload.message.trim());
 
-  const htmlMessage: HTMLWsMsg = {
-    message: html,
-    userId: message.userId,
-    timestamp: message.timestamp,
-    name: message.name,
-    avatar: message.avatar
+  const htmlMessage: HTMLChatMessage = {
+    topic: message.topic,
+    payload: {
+      message: html,
+      chatId: message.payload.chatId,
+      timestamp: message.payload.timestamp
+    }
   }
   return htmlMessage
 }

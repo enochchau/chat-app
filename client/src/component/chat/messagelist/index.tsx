@@ -1,6 +1,6 @@
 import { Box } from '@chakra-ui/react';
 import * as React from 'react';
-import { LeftMessage, RightMessage } from './message';
+import { Message } from './message';
 import { HTMLWsMsg } from '../wsmsg';
 
 
@@ -15,43 +15,30 @@ export const MessageList = ({messages, currentUserId}: MessageListProps) => {
         // this is the left side
         if(msg.userId !== currentUserId){
           return(
-            <LeftMessage
+            <Message
               key={i}
               timestamp={msg.timestamp}
               personName={msg.name}
-              avatar={msg.avatar}
-              showAvatar={ i === messages.length - 1 || msg.userId !== messages[i+1].userId}
-              marginBottom={
-                isFirst(i) ? "2.5px" :
-                marginManager(messages[i-1].userId, msg.userId)
-              }
+              avatarSrc={msg.avatar}
+              variant="left"
             >
               {msg.message}
-            </LeftMessage>
+            </Message>
           );
         }
         // this is the right side
         return(
-          <RightMessage 
+          <Message
             key={i}
             timestamp={msg.timestamp}
-            marginBottom={
-              isFirst(i) ? "2.5px" :
-              marginManager(messages[i-1].userId, msg.userId)
-            }
+            personName={msg.name}
+            avatarSrc={msg.avatar}
+            variant="right"
           >
             {msg.message}
-          </RightMessage>
+          </Message>
         );
       })}
     </Box>
   );
-}
-
-function isFirst(index: number): boolean{
-  return index === 0 ? true : false;
-}
-
-function marginManager (previousId: number, currentId: number): string{
-  return previousId === currentId ? "1px" : "2.5px";
 }

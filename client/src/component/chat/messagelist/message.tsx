@@ -8,6 +8,9 @@ import {
   HStack,
   Avatar,
   FlexProps,
+  useMultiStyleConfig,
+  StylesProvider,
+  useStyles,
 } from '@chakra-ui/react';
 import { SideButtons } from './sidebuttons';
 
@@ -17,13 +20,10 @@ interface MessageTextProps extends FlexProps{
   timestampPlacement: Placement;
 }
 const MessageText = ({timestamp, children, timestampPlacement, ...rest}: MessageTextProps) => {
+  const styles = useStyles();
   return(
     <Flex
-      borderRadius="xl"
-      pt="4px"
-      pb="4px"
-      pr="8px"     
-      pl="8px"
+      sx={styles.text}
     >
       <Tooltip 
         label={timestamp.toLocaleTimeString()} 
@@ -43,18 +43,21 @@ interface MessageProps {
   avatarSrc?: string;
   showAvatar?: boolean;
   personName: string;
-  timestampPlacement: "right" | "left"
+  variant: "right" | "left";
 }
-export const Message = ({personName, avatarSrc, children, timestamp, timestampPlacement, showAvatar}: MessageProps) => {
+export const Message = ({personName, avatarSrc, children, timestamp, showAvatar, variant}: MessageProps) => {
+  const styles = useMultiStyleConfig("Message", { variant })
   return(
-    <Flex>
-      <HStack>
-        { showAvatar && <Avatar name={personName} size="sm" src={avatarSrc}/> }
-        <MessageText timestamp={timestamp} timestampPlacement={timestampPlacement}>
-          {children}
-        </MessageText>
-      </HStack>
-      <SideButtons/>
+    <Flex sx={styles.message}>
+      <StylesProvider value={styles}>
+        <HStack>
+          { (showAvatar &&  variant==="left") && <Avatar name={personName} size="sm" src={avatarSrc}/> }
+            <MessageText timestamp={timestamp} timestampPlacement={variant}>
+              {children}
+            </MessageText>
+        </HStack>
+        <SideButtons/>
+      </StylesProvider>
     </Flex>
   );
 }

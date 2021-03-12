@@ -3,6 +3,7 @@ import {
   Flex,
   IconButton,
   useStyleConfig,
+  useStyles,
 } from '@chakra-ui/react';
 import { EllipsisVIcon, SmileIcon, ReplyIcon } from '../../icon';
 
@@ -13,8 +14,11 @@ interface SideButtonsProps {
 }
 export const SideButtons = ({onSmileClick, onReplyClick, onOptionsClick}: SideButtonsProps) => {
   const styles = useStyleConfig("IconButton", { variant: "sideMsgButton" })
+  const flexStyles = useStyles();
   return (
-    <Flex>
+    <Flex
+      sx={flexStyles.sideButtons}
+    >
       <IconButton
         aria-label="React to message"
         background="none"
