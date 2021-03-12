@@ -1,9 +1,9 @@
-import { UserMessage } from '../../websocket/message/user';
+import { ChatMessage } from '../../../websocket/message';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 
-describe('Test UserMessage IO', () => {
+describe('Test ChatMessage IO', () => {
 
   const demoMessage = {
     topic: 'join group',
@@ -17,8 +17,8 @@ describe('Test UserMessage IO', () => {
   test('Validate an Okay message', () => {
 
     const onLeft = (errors: t.Errors):boolean => false;
-    const onRight = (message: UserMessage): boolean => true;
-    const res = pipe(UserMessage.decode(demoMessage), fold(onLeft, onRight));
+    const onRight = (message: ChatMessage): boolean => true;
+    const res = pipe(ChatMessage.decode(demoMessage), fold(onLeft, onRight));
 
     expect(res).toBe(true);
   })
