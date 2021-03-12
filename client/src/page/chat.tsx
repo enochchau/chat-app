@@ -9,36 +9,14 @@ import { TopAvatarPanel } from '../component/panel/toppanel';
 import { MessageList } from '../component/chat/messagelist';
 import { ChatInput, shouldShowPlaceholder, processSendMessageEvent } from '../component/chat/chatinput';
 
-import { StringWsMsg, HTMLWsMsg, convertStringToHTMLWsMsg } from '../component/chat/wsmsg';
-
-// DEMO DATA
-const DEMOAVATAR = "https://scontent.fsjc1-3.fna.fbcdn.net/v/t1.0-1/c24.33.198.198a/p240x240/67663361_2399631803645638_9161317739476811776_n.jpg?_nc_cat=105&ccb=1-3&_nc_sid=7206a8&_nc_ohc=cfz9q50SoxoAX8lpemZ&_nc_ht=scontent.fsjc1-3.fna&tp=27&oh=0fccda4857990efe2fd7a8595cd3e12c&oe=606CB318"
-
-const demoMessage:StringWsMsg = {
-  message: "some message",
-  userId: 3489053908445,
-  timestamp: new Date(),
-  name: "person name person",
-  avatar: DEMOAVATAR,
-}
-
-const demoHTMLMessage:HTMLWsMsg = {
-  message: <Box>some message"</Box>,
-  userId: 3489053908445,
-  timestamp: new Date(),
-  name: "person name person",
-  avatar: DEMOAVATAR,
-}
-
-const demoChat:Array<HTMLWsMsg> = [];
-for(let i=0; i<0; i++){
-  demoChat.push(demoMessage);
-}
+import { convertStringToHTMLWsMsg, HTMLChatMessage } from '../component/chat/wsmsg';
+import { rxFriendMessage, rxGroupMessage } from '../api/demodata';
+import { ChatMessage, ServerMessage } from '../api/validators/websocket';
 
 // the middle box should have flex
 export const ChatPage = () => {
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-  const [messages, setMessages] = React.useState<Array<HTMLWsMsg>>([]);
+  const [messages, setMessages] = React.useState<Array<HTMLChatMessage>>([]);
   const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
   const { storeState, storeDispatch} = React.useContext(StoreContext);
 
@@ -46,7 +24,7 @@ export const ChatPage = () => {
     setToggleInfo(!toggleInfo);
   }
 
-  const handleNewMessage = (newMessage: StringWsMsg) => {
+  const handleNewMessage = (newMessage: ChatMessage) => {
     // messages are recieved as strings but must be displayed as HTML
     const htmlMessage = convertStringToHTMLWsMsg(newMessage);
     const updatedMessages = [...messages];
@@ -63,11 +41,12 @@ export const ChatPage = () => {
     const newMessage = processSendMessageEvent(e, storeState.id, storeState.name);
     if(newMessage) {
       handleNewMessage(newMessage);
+      setTimeout(() => {handleNewMessage(rxFriendMessage)}, 500);
+
       // reset the chat box
       e.currentTarget.textContent = "";
       setShowPlaceholder(true);
     }
-    handleNewMessage(demoMessage)
   }
 
   return(

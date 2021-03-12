@@ -1,6 +1,6 @@
 import { ComponentStyleConfig } from '@chakra-ui/react'
-const Message: ComponentStyleConfig = {
-  parts: ["message", "text"],
+export const Message: ComponentStyleConfig = {
+  parts: ["message", "text", "sideButtons"],
   baseStyle: {
     message: {
       justify:"space-between"
@@ -11,6 +11,24 @@ const Message: ComponentStyleConfig = {
       paddingRight: "8px",
       paddingLeft:  "8px",
       borderRadius: "xl"
+    },
+  },
+  variants: {
+    left: {
+      message: {
+        flexDirection: "row"
+      },
+      sideButtons: {
+        flexDir: "row"
+      }
+    },
+    right: {
+      message: {
+        flexDir: "row-reverse"
+      },
+      sideButtons: {
+        flexDir: "row-reverse"
+      }
     }
   }
 }
