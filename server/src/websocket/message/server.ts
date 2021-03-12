@@ -1,5 +1,3 @@
-import * as t from 'io-ts';
-
 type ServerTopic = "okay" | "error";
 // TX Server Message
 type ServerMessage = {
