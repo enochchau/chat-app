@@ -1,14 +1,14 @@
 import * as React from 'react';
-import { Picker as EmojiPicker } from 'emoji-mart';
+import { Picker as EmojiPicker, PickerProps as EmojiPickerProps} from 'emoji-mart';
 import { chakra, ChakraProps } from '@chakra-ui/react';
 
 
 const ChakraEmojiPicker = chakra(EmojiPicker);
 
-interface PickerProps {
+interface PickerProps extends EmojiPickerProps{
   toggleOffset: boolean;
 }
-export const Picker: typeof ChakraEmojiPicker = ({toggleOffset, ...rest}: PickerProps) => 
+export const Picker = ({toggleOffset, ...rest}: PickerProps) => 
   <ChakraEmojiPicker
     enableFrequentEmojiSort={true}
     set="facebook"

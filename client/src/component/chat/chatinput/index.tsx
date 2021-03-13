@@ -4,23 +4,28 @@ import { processSendMessageEvent } from './sendmessage';
 import {shouldShowPlaceholder} from './placeholder'
 
 interface ChatInputProps extends ChakraProps {
-  onKeyPress: (e:React.KeyboardEvent<HTMLDivElement>) => void;
+  onEnterPress?: (e:React.KeyboardEvent<HTMLDivElement>) => void;
+  onKeyPress?: (e:React.KeyboardEvent<HTMLDivElement>) => void;
   onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
+  chatRef: React.ReactNode;
 }
 
-const ChatInput = ({onKeyPress, onInput, ...rest}: ChatInputProps) => {
+const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, ...rest}: ChatInputProps) => {
   const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
+
   const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
 
     else if(event.key === "Enter"){
       event.preventDefault();
-      onKeyPress(event);
+      if(onEnterPress) onEnterPress(event);
       setShowPlaceholder(true);
     }
+    if(onKeyPress) onKeyPress(event);
   }
 
   const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    e.preventDefault();
     if(onInput) onInput(e);
 
     setShowPlaceholder(shouldShowPlaceholder(e));
@@ -40,10 +45,11 @@ const ChatInput = ({onKeyPress, onInput, ...rest}: ChatInputProps) => {
         overflowWrap="break-word"
         textOverflow="clip"
         contentEditable
+        onInput={handleInput}
+        ref={chatRef}
         border="none"
         _focus={{outline: "none"}}
         fontSize="md"          
-        onInput={handleInput}
         onKeyPress={handleKeyPress}
         _after={showPlaceholder 
           ? {
@@ -51,7 +57,7 @@ const ChatInput = ({onKeyPress, onInput, ...rest}: ChatInputProps) => {
             color: "gray.400",
           } 
           : {}}
-      />
+      ></Box>
     </Box>
   );
 }
