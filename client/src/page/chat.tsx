@@ -69,7 +69,8 @@ export const ChatPage = () => {
       if(sender){
         const displayableMessage = createDisplayableMessage(newMessage.payload.userId, sender, html, newMessage);
         const updatedMessages = [...messages];
-        updatedMessages.push(displayableMessage);
+        // array is displayed backwards, later messages should come first
+        updatedMessages.unshift(displayableMessage);
         setMessages(updatedMessages);
       } else {
         // do a fetch request to get the data since we've evidently lost it
@@ -138,7 +139,6 @@ export const ChatPage = () => {
           onMessageSubmit={handleSendMessage} 
           rightPanelStatus={toggleInfo}
         />
-
       </Flex>
 
       { toggleInfo && 

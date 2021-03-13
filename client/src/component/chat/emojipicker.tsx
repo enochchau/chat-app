@@ -19,7 +19,7 @@ export const Picker = ({toggleOffset, ...rest}: PickerProps) =>
         fontSize: "12px", 
         color: '#666',
         bottom: "60px", 
-        right: toggleOffset ? "265px" : "30px", 
+        right: toggleOffset ? "295px" : "30px", 
         position: "absolute",
         boxShadow: "2px 2px 8px 1px rgba(0, 0, 0, 0.2)",
         overflow: "hidden"

@@ -1,3 +1,5 @@
+import * as React from "react";
+
 export type NodeTypes = "[object Text]" | "[object HTMLBRElement]"
 
 // helper function for countNodeChildren
@@ -24,22 +26,25 @@ const countNodeChildren = (childNodes: NodeListOf<ChildNode>, childNodeTypes: Ar
 }
 
 // logic to determine if the placeholder should be shown
-export function shouldShowPlaceholder(e: React.FormEvent<HTMLDivElement>): boolean{
-  const childNodes = e.currentTarget.childNodes;
+export function shouldShowPlaceholder(refCurrent: HTMLDivElement):boolean{
+  if(!refCurrent) return false;
+  const childNodes = refCurrent.childNodes;
+
   // there is nothing
   if(childNodes.length === 0) return true;
+
   // count the number of HTML BR Elements
   const childCount = countNodeChildren(childNodes, ["[object HTMLBRElement]"]);
   let brCount = childCount.get("[object HTMLBRElement]");
   if(!brCount) brCount = 0;
 
   // there is 1 non-visible br and no text content
-  if(brCount === 1 && e.currentTarget.textContent === ""){
-    e.currentTarget.textContent = '';
+  if(brCount === 1 && refCurrent.textContent === ""){
+    refCurrent.textContent = '';
     return true;
   }
   // there is a visible br and no text content
-  if(brCount > 1 && e.currentTarget.textContent === ""){
+  if(brCount > 1 && refCurrent.textContent === ""){
     return false;
   } 
 

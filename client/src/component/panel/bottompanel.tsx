@@ -12,24 +12,25 @@ interface BottomPanelProps {
 }
 export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProps) => {
   const [toggleEmojiPicker, setToggleEmojiPicker] = React.useState<boolean>(false);
-  const chatText = React.createRef<HTMLDivElement>();
+  const [updatePlaceholder, setUpdatePlaceholder] = React.useState<boolean>(false);
+
+  const chatRef = React.createRef<HTMLDivElement>();
+
   const showEmojiPicker = () => {
     setToggleEmojiPicker(!toggleEmojiPicker) ;
   }
 
   const clickEmoji = (emoji: BaseEmoji, e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-    if(chatText.current){
-      chatText.current.innerText += emoji.native;
+    if(chatRef.current){
+      chatRef.current.innerText += emoji.native;
+      setUpdatePlaceholder(!updatePlaceholder);
     }
   }
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
-    if(chatText.current){
-      console.log(chatText.current.innerHTML)
-    }
-  }
+
   const hideEmojiPicker = () => {
     setToggleEmojiPicker(false);
   }
+
   return(
     <Flex
       flexDir="row"
@@ -50,8 +51,8 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProp
       > 
         <ChatInput
           onEnterPress={onMessageSubmit}
-          onInput={handleInput}
-          chatRef={chatText}
+          chatRef={chatRef}
+          updatePlaceholder={updatePlaceholder}
           borderTopLeftRadius="xl"
           borderBottomLeftRadius="xl"
           backgroundColor="gray.100"

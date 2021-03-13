@@ -7,10 +7,11 @@ interface ChatInputProps extends ChakraProps {
   onEnterPress?: (e:React.KeyboardEvent<HTMLDivElement>) => void;
   onKeyPress?: (e:React.KeyboardEvent<HTMLDivElement>) => void;
   onInput?: (e: React.FormEvent<HTMLDivElement>) => void;
-  chatRef: React.ReactNode;
+  chatRef: React.RefObject<HTMLDivElement>;
+  updatePlaceholder: boolean;
 }
 
-const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, ...rest}: ChatInputProps) => {
+const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, updatePlaceholder, ...rest}: ChatInputProps) => {
   const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -28,8 +29,17 @@ const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, ...rest}: ChatIn
     e.preventDefault();
     if(onInput) onInput(e);
 
-    setShowPlaceholder(shouldShowPlaceholder(e));
+    if(chatRef && chatRef.current){
+      setShowPlaceholder(shouldShowPlaceholder(chatRef.current));
+    }
   }
+
+  React.useEffect(() => {
+    if(chatRef && chatRef.current){
+      setShowPlaceholder(shouldShowPlaceholder(chatRef.current));
+    }
+  }, [ chatRef, updatePlaceholder ]);
+
   return(
     <Box
       {...rest}
