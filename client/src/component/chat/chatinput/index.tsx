@@ -1,50 +1,55 @@
 import * as React from 'react';
-import { HStack, Box, Flex } from "@chakra-ui/react" ;
+import { Box, ChakraProps, Flex } from "@chakra-ui/react" ;
 import { processSendMessageEvent } from './sendmessage';
 import {shouldShowPlaceholder} from './placeholder'
 import { SmileIcon } from '../../icon';
 
-interface ChatInputProps {
-  onInput: (e: React.FormEvent<HTMLDivElement>) => void;
-  onKeyPress: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  showPlaceholder: boolean;
-  toggleInfo: boolean;
+interface ChatInputProps extends ChakraProps {
+  onKeyPress: (e:React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
-const ChatInput = ({onInput, onKeyPress, toggleInfo, showPlaceholder}: ChatInputProps) => {
+const ChatInput = ({onKeyPress, ...rest}: ChatInputProps) => {
+  const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
+
+    else if(event.key === "Enter"){
+      event.preventDefault();
+      onKeyPress(event);
+      setShowPlaceholder(true);
+    }
+  }
+
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    setShowPlaceholder(shouldShowPlaceholder(e));
+  }
   return(
     <Box
-      borderRadius='xl'
-      margin="10px"
-      backgroundColor="gray.100"
-      maxWidth="inherit"
+      {...rest}
+      width="100%"
+      maxHeight="100px"
+      overflowY="auto"
+      overflowX='hidden'
     >
-      <Box 
-        overflowY="auto" 
-        overflowX="hidden" 
-        maxHeight="100px"
-        maxWidth="inherit"
-        paddingLeft="10px"
-        paddingRight="10px"
-      >
-        <Box
-          overflowWrap="break-word"
-          textOverflow="clip"
-          padding="5px"
-          contentEditable
-          border="none"
-          _focus={{outline: "none"}}
-          fontSize="md"          
-          onInput={onInput}
-          onKeyPress={onKeyPress}
-          _after={showPlaceholder 
-            ? {
-              content: '"Aa"', 
-              color: "gray.400",
-            } 
-            : {}}
-        />
-      </Box>
+      <Box
+        ml="10px"
+        mr="10px"
+        padding="5px"
+        overflowWrap="break-word"
+        textOverflow="clip"
+        contentEditable
+        border="none"
+        _focus={{outline: "none"}}
+        fontSize="md"          
+        onInput={handleInput}
+        onKeyPress={handleKeyPress}
+        _after={showPlaceholder 
+          ? {
+            content: '"Aa"', 
+            color: "gray.400",
+          } 
+          : {}}
+      />
     </Box>
   );
 }

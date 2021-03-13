@@ -21,7 +21,6 @@ interface MessageTextProps extends FlexProps{
 }
 const MessageText = ({timestamp, children, timestampPlacement, ...rest}: MessageTextProps) => {
   const styles = useStyles();
-  console.log(styles)
   return(
     <Flex
       sx={styles.text}

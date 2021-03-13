@@ -9,7 +9,6 @@ const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
     if (childType === "[object Text]") outString += child.textContent;
     if (childType === "[object HTMLBRElement]") outString += '\n';
   });
-  // console.log(outString);
   return outString;
 }
 
@@ -27,13 +26,8 @@ function prepareMessageForWs(topic: ChatTopics, childNodes: NodeListOf<ChildNode
 }
 
 export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, topic: ChatTopics, userId: number, chatId: number): ChatMessage | undefined{
-  if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
-
-  else if(event.key === "Enter"){
-    event.preventDefault();
-    if(event.currentTarget.textContent){
-      const childNodes = event.currentTarget.childNodes;
-      return prepareMessageForWs(topic, childNodes, userId, chatId);
-    }
+  if(event.currentTarget.textContent){
+    const childNodes = event.currentTarget.childNodes;
+    return prepareMessageForWs(topic, childNodes, userId, chatId);
   }
 }

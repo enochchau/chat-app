@@ -17,6 +17,10 @@ import { DisplayableMessage } from '../component/chat/messagelist/index';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
+import { SmileIcon } from '../component/icon';
+import { Picker } from '../component/chat/emojipicker';
+
+import { ClickOutside } from '../component/clickoutside';
 
 type ConnectedUserTracker = Map<number, ConnectedUser>
 const demoNameTracker = new Map();
@@ -38,12 +42,14 @@ function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, 
     message: htmlMessage,
   } as DisplayableMessage
 }
+// <Picker
+// />
 
 // the middle box should have flex
 export const ChatPage = () => {
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-  const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([demoDisplayMessage, demoDisplayMessage, demoDisplayMessage]);
+  const [toggleEmojiPicker, setToggleEmojiPicker] = React.useState<boolean>(false);
 
   // this map should be populated when the user enters a new chat room
   // use the REST API
@@ -55,11 +61,17 @@ export const ChatPage = () => {
     setToggleInfo(!toggleInfo);
   }
 
+  const showEmojiPicker = () => {
+    setToggleEmojiPicker(!toggleEmojiPicker) ;
+  }
+  const hideEmojiPicker = () => {
+    setToggleEmojiPicker(false);
+  }
+
   const handleNewMessage = (newMessage: any) => {
 
     const onLeft = (errors: t.Errors) => console.error("Bad rx at websocket", errors);
     const onRight = (newMessage: ChatMessage) => {
-      console.log(newMessage);
       // messages are recieved as strings but must be displayed as HTML
       const html = parseStringToHtml(newMessage.payload.message);
 
@@ -77,10 +89,6 @@ export const ChatPage = () => {
     pipe(ChatMessage.decode(newMessage), fold(onLeft, onRight));
   }
 
-  const handleChatInput = (e: React.FormEvent<HTMLDivElement>) => {
-    setShowPlaceholder(shouldShowPlaceholder(e));
-  }
-
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
@@ -91,14 +99,13 @@ export const ChatPage = () => {
 
       // reset the chat box
       e.currentTarget.textContent = "";
-      setShowPlaceholder(true);
     }
   }
 
   return(
     <Flex
-      maxHeight="100vh"
-      maxWidth="100vw"
+      height="100vh"
+      width="100vw"
       // overflowX="hidden"
       // overflowY="hidden"
       direction="row"
@@ -108,7 +115,7 @@ export const ChatPage = () => {
     >
 
       <Box>
-        <SidePanel width={{sm: '84px', md:"360px"}} border="1px">
+        <SidePanel width={{sm: '84px', md:"360px"}} boxShadow="base">
           <Box height="1300px">
             <Link to="/">Home</Link>
             <Link to="/login">Login</Link>
@@ -118,32 +125,74 @@ export const ChatPage = () => {
         </SidePanel>
       </Box>
 
-      <Box width="100%">
+      <Flex 
+        width="100%"
+        flexDir="column"
+        justify="space-between"
+        height="100vh"
+      >
         <Box>
           <TopAvatarPanel name="Enoch" onInfoClick={handleInfoClick}/>
         </Box>
         <Box
           overflowY="auto"
-          margin="5px"
+          padding="5px"
+          flexBasis="calc( 100vh - 54px - 70px )" // 54=bottom, 74=top 
         >
           <MessageList
             messages={messages}
             currentUserId={storeState.id}
           />
         </Box>
-        <Box>
-          <ChatInput
-            showPlaceholder={showPlaceholder}
-            onInput={handleChatInput}
-            onKeyPress={handleSendMessage}
-            toggleInfo={toggleInfo}
-          />
-        </Box>
-      </Box>
+        <Flex
+          flexDir="row"
+          padding="10px"
+        >
+          <Box 
+            width={
+              toggleInfo 
+              ? {
+                sm:"calc(100vw - 458px)",
+                md:"calc(100vw - 734px)"
+              }
+              : {
+                sm:"calc(100vw - 153px)",
+                md:"calc(100vw - 429px)"
+              }
+            }
+          > 
+            <ChatInput
+              onKeyPress={handleSendMessage}
+              borderTopLeftRadius="xl"
+              borderBottomLeftRadius="xl"
+              backgroundColor="gray.100"
+            />
+          </Box>
+          <Box
+            backgroundColor="gray.100"
+            borderTopRightRadius="xl"
+            borderBottomRightRadius="xl"
+          >
+            <ClickOutside onClick={hideEmojiPicker}>
+              <SmileIcon
+                mt="10px"
+                mr="10px"
+                onClick={showEmojiPicker}
+              />
+              {toggleEmojiPicker && 
+                <Picker
+                  toggleOffset={toggleInfo}
+                />
+              }
+            </ClickOutside>
+          </Box>
+        </Flex>
+
+      </Flex>
 
       { toggleInfo && 
         <Box>
-          <SidePanel width="249px" border="1px">
+          <SidePanel width="320px" boxShadow="base">
             <Box height="1300px"></Box>
           </SidePanel>
         </Box>

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import 'emoji-mart/css/emoji-mart.css'
 import { StoreProvider} from './store';
 import { ChakraProvider } from '@chakra-ui/react';
 import { Routes } from './route/index';
@@ -9,7 +10,7 @@ import { Icon, Message } from './theme'
 
 // there is only 1 break point for the left panel
 const breakpoints = createBreakpoints({
-  sm: "899px",
+  sm: "0px",
   md: "900px",
   lg: "900000px",
   xl: "900000px"
