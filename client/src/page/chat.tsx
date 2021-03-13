@@ -85,7 +85,7 @@ export const ChatPage = () => {
     const newMessage = processSendMessageEvent(e, "chat friend", storeState.id, 33);
     if(newMessage) {
       handleNewMessage(newMessage);
-      setTimeout(() => {handleNewMessage(rxFriendMessage)}, 500);
+      // setTimeout(() => {handleNewMessage(rxFriendMessage)}, 500);
 
       // reset the chat box
       e.currentTarget.textContent = "";

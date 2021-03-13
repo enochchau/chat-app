@@ -4,17 +4,28 @@ import { Flex, Box } from '@chakra-ui/react';
 import { ClickOutside } from '../clickoutside';
 import { Picker } from '../chat/emojipicker';
 import { SmileIcon } from '../icon';
-import { EmojiData } from 'emoji-mart';
+import { BaseEmoji } from 'emoji-mart';
 
 interface BottomPanelProps {
   rightPanelStatus: boolean;
   onMessageSubmit: (e: React.KeyboardEvent<HTMLDivElement>) => void;
-  clickEmoji: (emoji: EmojiData, e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
 }
-export const BottomPanel = ({rightPanelStatus, onMessageSubmit, clickEmoji}: BottomPanelProps) => {
+export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProps) => {
   const [toggleEmojiPicker, setToggleEmojiPicker] = React.useState<boolean>(false);
+  const chatText = React.createRef<HTMLDivElement>();
   const showEmojiPicker = () => {
     setToggleEmojiPicker(!toggleEmojiPicker) ;
+  }
+
+  const clickEmoji = (emoji: BaseEmoji, e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+    if(chatText.current){
+      chatText.current.innerText += emoji.native;
+    }
+  }
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if(chatText.current){
+      console.log(chatText.current.innerHTML)
+    }
   }
   const hideEmojiPicker = () => {
     setToggleEmojiPicker(false);
@@ -38,8 +49,9 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit, clickEmoji}: Bot
         }
       > 
         <ChatInput
-          onKeyPress={onMessageSubmit}
-          onInput={HANDLE INPUT HERE, LINK TO EMOJI PICKER}
+          onEnterPress={onMessageSubmit}
+          onInput={handleInput}
+          chatRef={chatText}
           borderTopLeftRadius="xl"
           borderBottomLeftRadius="xl"
           backgroundColor="gray.100"

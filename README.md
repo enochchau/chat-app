@@ -23,6 +23,8 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] Remove Demo user placeholder data
 - [ ] User dashboard for changing user information (i.e. Name and password)
 
+Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
+
 ## Reach goals
 - [ ] implement avatars
 

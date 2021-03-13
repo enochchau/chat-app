@@ -3,8 +3,8 @@ export const Message: ComponentStyleConfig = {
   parts: ["message", "text", "sideButtons"],
   baseStyle: {
     message: {
-      justify:"space-between",
-      pt: "2px",
+      alignItems:"center",
+      paddingTop: "2px",
     },
     text: {
       pt:"4px",
@@ -14,9 +14,14 @@ export const Message: ComponentStyleConfig = {
       borderRadius: "xl"
     },
     sideButtons:{
-      justify:"center",
-      align:"center",
-      mt:"2px"
+      display: "flex",
+      justifyContent:"center",
+      alignItems:"stretch",
+      mt:"2px",
+      color: "transparent",
+      _hover: {
+        color: "gray.300"
+      }
     }
   },
   variants: {
@@ -54,7 +59,19 @@ export const Icon: ComponentStyleConfig = {
   },
   variants: {
     sideMsgButton:{
-      color: "gray.300"
+    }
+  }
+}
+
+export const Tooltip: ComponentStyleConfig = {
+  baseStyle: {
+    fontSize: "sm",
+    borderRadius: "lg",
+    padding: "5px",
+    backgroundColor: 'rgba(0, 0, 0, 0.7)'
+  },
+  variants: {
+    sideMsgButton: {
     }
   }
 }
