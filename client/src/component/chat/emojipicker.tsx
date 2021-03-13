@@ -5,10 +5,10 @@ import { chakra, ChakraProps } from '@chakra-ui/react';
 
 const ChakraEmojiPicker = chakra(EmojiPicker);
 
-interface PickerProps extends ChakraProps{
+interface PickerProps {
   toggleOffset: boolean;
 }
-export const Picker = ({toggleOffset, ...rest}: PickerProps) => 
+export const Picker: typeof ChakraEmojiPicker = ({toggleOffset, ...rest}: PickerProps) => 
   <ChakraEmojiPicker
     enableFrequentEmojiSort={true}
     set="facebook"

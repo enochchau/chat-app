@@ -7,9 +7,9 @@ import { SidePanel } from '../component/panel/sidepanel';
 import { TopAvatarPanel } from '../component/panel/toppanel';
 
 import { MessageList } from '../component/chat/messagelist';
-import { ChatInput, shouldShowPlaceholder, processSendMessageEvent } from '../component/chat/chatinput';
-
+import { processSendMessageEvent } from '../component/chat/chatinput';
 import  { parseStringToHtml } from '../component/chat/htmlchatmessage';
+
 import { rxFriendMessage, rxGroupMessage, demoDisplayMessage } from '../api/demodata';
 import { ChatMessage, ServerMessage } from '../api/validators/websocket';
 import { DisplayableMessage } from '../component/chat/messagelist/index';
@@ -17,10 +17,8 @@ import { DisplayableMessage } from '../component/chat/messagelist/index';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-import { SmileIcon } from '../component/icon';
-import { Picker } from '../component/chat/emojipicker';
 
-import { ClickOutside } from '../component/clickoutside';
+import { BottomPanel } from '../component/panel/bottompanel';
 
 type ConnectedUserTracker = Map<number, ConnectedUser>
 const demoNameTracker = new Map();
@@ -49,7 +47,6 @@ function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, 
 export const ChatPage = () => {
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([demoDisplayMessage, demoDisplayMessage, demoDisplayMessage]);
-  const [toggleEmojiPicker, setToggleEmojiPicker] = React.useState<boolean>(false);
 
   // this map should be populated when the user enters a new chat room
   // use the REST API
@@ -59,13 +56,6 @@ export const ChatPage = () => {
 
   const handleInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setToggleInfo(!toggleInfo);
-  }
-
-  const showEmojiPicker = () => {
-    setToggleEmojiPicker(!toggleEmojiPicker) ;
-  }
-  const hideEmojiPicker = () => {
-    setToggleEmojiPicker(false);
   }
 
   const handleNewMessage = (newMessage: any) => {
@@ -144,49 +134,10 @@ export const ChatPage = () => {
             currentUserId={storeState.id}
           />
         </Box>
-        <Flex
-          flexDir="row"
-          padding="10px"
-        >
-          <Box 
-            width={
-              toggleInfo 
-              ? {
-                sm:"calc(100vw - 458px)",
-                md:"calc(100vw - 734px)"
-              }
-              : {
-                sm:"calc(100vw - 153px)",
-                md:"calc(100vw - 429px)"
-              }
-            }
-          > 
-            <ChatInput
-              onKeyPress={handleSendMessage}
-              borderTopLeftRadius="xl"
-              borderBottomLeftRadius="xl"
-              backgroundColor="gray.100"
-            />
-          </Box>
-          <Box
-            backgroundColor="gray.100"
-            borderTopRightRadius="xl"
-            borderBottomRightRadius="xl"
-          >
-            <ClickOutside onClick={hideEmojiPicker}>
-              <SmileIcon
-                mt="10px"
-                mr="10px"
-                onClick={showEmojiPicker}
-              />
-              {toggleEmojiPicker && 
-                <Picker
-                  toggleOffset={toggleInfo}
-                />
-              }
-            </ClickOutside>
-          </Box>
-        </Flex>
+        <BottomPanel 
+          onMessageSubmit={handleSendMessage} 
+          rightPanelStatus={toggleInfo}
+        />
 
       </Flex>
 
