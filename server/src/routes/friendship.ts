@@ -86,13 +86,12 @@ export class FriendRouter {
 
   // checks if a user is already friends with another user
   private alreadyFriends(user: UserEntity, friend: UserEntity): boolean{
-    let alreadyFriends = false;
     for(let friendCheck of user.friends){
       if(friendCheck.id === friend.id){
-        alreadyFriends = true;
+        return true;
         break;
       }
     }
-    return alreadyFriends;
+    return false;
   }
 }

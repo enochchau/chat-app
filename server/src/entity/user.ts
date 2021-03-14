@@ -10,6 +10,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
+  FindOneOptions,
 } from 'typeorm';
 import { GroupEntity } from './group';
 import * as bcrypt from "bcrypt";
@@ -30,16 +31,17 @@ export class UserEntity extends BaseEntity{
   @PrimaryGeneratedColumn()
   id: number;
   
+  // email acts as a unique username
   @Column({
-    length: 128
-  })
-  name: string;
-  
-  @Column({
-    length: 64,
+    length: 254,
     unique: true,
   })
-  username: string;
+  email: string;
+  // non-unique name 
+  @Column({
+    length: 64,
+  })
+  name: string;
 
   @Column({
     length: 72,
@@ -150,9 +152,5 @@ export class UserEntity extends BaseEntity{
       .orderBy("groups.updated", "DESC")
       .take(count)
       .getOne()
-  }
-
-  public static findOneByUsername(username: string, relations: Array<string> = []){
-    return this.findOne({where: {username: username}, relations: relations});
   }
 }

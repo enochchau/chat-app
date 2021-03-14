@@ -41,7 +41,7 @@ export class AuthRouter {
         req.login(user, {session: false}, (err: null | Error) => {
           if (err) return next(err);
 
-          const body: JwtUserInterface = { id: user.id, username: user.username, name: user.name};
+          const body: JwtUserInterface = { id: user.id, name: user.name, email: user.email};
           const token = jwt.sign({ user: body }, config.SECRETKEY);
           
           return res.json({token: token, message: info.message});

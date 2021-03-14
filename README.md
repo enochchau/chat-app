@@ -7,15 +7,17 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 # User Information
 
 * Id
-* Name: 128 chars 
-* Username: 5 to 64 chars
+* email: 254 chars 
+* name: 5 to 64 chars
 * Password 
 * Avatar (url)
 
 # Frontend
 
-- [x] Login
+- [ ] Login
+    * [ ] Change username to email
 - [x] Register
+    * [ ] Change name to email
 - [ ] Add Friends
 - [ ] Create Groups
 - [ ] Chat page
@@ -24,6 +26,20 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] User dashboard for changing user information (i.e. Name and password)
 
 Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
+
+### Auth forms
+
+* [ ] put limits on input size based on sizes defined in the database models 
+
+#### Login
+* email
+* pasword
+
+#### Register
+* email
+* name 
+* password
+* retype password
 
 ## Reach goals
 - [ ] implement avatars
@@ -37,23 +53,8 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
     - many to many with groups
 * Group
     - many to many with users
-* MsgFriend
-    - many to two users
-* MsgGroup
-    - many to one group
-
-#### Todo
-
-Check if a two person group already exists
-```SQL
-SELECT * FROM 
-(
-    SELECT * FROM "user_entity_groups_group_entity" "ug"
-    WHERE "ug"."userEntityId"=1 OR "ug"."userEntityId"=2
-) as "ug" WHERE "ug"."userEntityId"=2;
-```
-
-* Check if a multiperson group already exsists.
+* Message
+    - many to one with groups
 
 ## Chat websocket
 
@@ -65,19 +66,6 @@ SELECT * FROM
 - [ ] friend chat handler
 - [x] group chat authenticator
 - [ ] friend chat authenticator
-
-#### ** Handle groups and friends the same way.
-
-- There can be groups of two people.
-- If a third person is added then create a new group chat with seperate history.
-- All groups are tracked using a `Map<groupdId, Array<[userId, Websocket]>`
-- Friendships are unrealated to managing chat groups
-
-### Current issues:
-
-- fix the friend tracker and friend handler
-- allow a user to connect multiple times to the same chat room.
-    - this means they are connecting from different devices which should be allows.
 
 ## API
 
@@ -99,7 +87,7 @@ SELECT * FROM
 - [x] POST: login a new user and send back their jwt
 - [x] POST: register a new user
 
-## Tests
+# Tests
 
 The database can be seeded with test users and test groups using `./server/src/__test__/entity/seed.ts`.
 * testuser0 through testuser9

@@ -71,25 +71,28 @@ export class GroupEntity extends BaseEntity{
       if(index !== userIds.length-1) str += ",";
       return str;
     }, "");
-    const createComparisonTableName = () => `does_group_exist_${Math.floor(Math.random() * Math.floor(1000000))}`;
+    const generateTableName = () => `does_group_exist_${Math.floor(Math.random() * Math.floor(1000000))}`;
     const createComparisonTable = () => 
-      connection.query(
-        `BEGIN;
+      connection.query(`
+        BEGIN;
         CREATE TABLE "${tableName}" (id INTEGER);
         INSERT INTO "${tableName}" VALUES ${strArr};
-        COMMIT;`);
-    // SubQuery: taking all groupIds and groupMemberCount that any of our users are a part of
+        COMMIT;
+      `);
+    // SubQuery: taking [groupIds and groupMemberCount] that include all of our users     
     // MainQuery: finding the groupId that corresponds to the number of users we are looking for
     const queryComparison = async () => 
-      connection.query(
-        `SELECT "g"."groupEntityId" as "groupId" FROM (
+      connection.query(`
+        SELECT "g"."groupEntityId" as "groupId" FROM (
           SELECT COUNT("ug"."groupEntityId") as "memberCount", "ug"."groupEntityId"
           FROM "${tableName}" LEFT OUTER JOIN "user_entity_groups_group_entity" "ug"
           ON "ug"."userEntityId" = "${tableName}"."id"
           GROUP BY "ug"."groupEntityId"
-        ) AS "g" WHERE "memberCount"=${userIds.length};`
-      );
-    const dropComparisonTable = () => connection.query(`DROP TABLE \"${tableName}\";`);
+        ) AS "g" WHERE "memberCount"=${userIds.length};
+      `);
+    const dropComparisonTable = () => connection.query(`
+      DROP TABLE \"${tableName}\";
+    `);
 
     const onBadShape = (errors: t.Errors):number => {
       throw Error('A bad object shape was returned from a raw query at GroupEntity.doesGroupExist()');
@@ -101,7 +104,7 @@ export class GroupEntity extends BaseEntity{
     }
     // main function starts here
     const strArr = createQueryString();
-    const tableName = createComparisonTableName();
+    const tableName = generateTableName();
     const connection = getConnection();
     try{
       await createComparisonTable();

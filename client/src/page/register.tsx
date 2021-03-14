@@ -35,7 +35,12 @@ interface RegisterFormData {
   username: string;
   password: string;
   rePassword: string;
-  name: string;
+  email: string;
+}
+interface RequestData {
+  username: string;
+  password: string;
+  email: string;
 }
 
 interface ResponseData {
@@ -50,8 +55,14 @@ const RegisterForm = () =>  {
 
   const toastMessage = useToast();
 
-  const onSubmit = (data: RegisterFormData) =>{
-    axios.post(REGISTER, data)
+  const onSubmit = (formData: RegisterFormData) =>{
+    // reformat data!!
+    const reqData: RequestData = {
+      username: formData.username,
+      password: formData.password,
+      email: formData.email,
+    }
+    axios.post(REGISTER, reqData)
       .then((res) => res.data as ResponseData)
       .then((data) => {
         if (data.message.toLowerCase().includes("successful")){
