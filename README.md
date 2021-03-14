@@ -42,6 +42,19 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
 * MsgGroup
     - many to one group
 
+#### Todo
+
+Check if a two person group already exists
+```SQL
+SELECT * FROM 
+(
+    SELECT * FROM "user_entity_groups_group_entity" "ug"
+    WHERE "ug"."userEntityId"=1 OR "ug"."userEntityId"=2
+) as "ug" WHERE "ug"."userEntityId"=2;
+```
+
+* Check if a multiperson group already exsists.
+
 ## Chat websocket
 
 - [ ] Log websocket messages into db
