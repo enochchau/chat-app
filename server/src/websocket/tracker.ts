@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 
 type userId = number;
-export type ChatGroup = Map<userId, WebSocket>;
+export type ChatGroup = Set<WebSocket>;
 
 // Map<groupId, Array<IdWs>>
-export type GroupTracker = Map<number, Map<number, WebSocket>>;
+export type GroupTracker = Map<number, ChatGroup>;

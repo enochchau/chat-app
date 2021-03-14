@@ -1,18 +1,30 @@
 import WebSocket from "ws"
-import { ChatGroup, GroupTracker } from '../tracker';
-import { GenericHandler } from './generic';
+import { ChatGroup, GroupTracker } from './tracker';
 
-import { jwtToJwtUser } from '../../auth/jwt';
-import { WsAuthenticator } from '../auth';
+import { jwtToJwtUser } from '../auth/jwt';
+import { WsAuthenticator } from './auth';
 
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-import { ChatMessage, AuthMessage, ServerMessage } from '../message';
+import { ChatMessage, AuthMessage, ServerMessage } from './message';
 
-export class WsHandler extends GenericHandler{
+interface HandlerIds {
+  group: number;
+  user: number;
+}
+export class WsHandler {
+  private id: HandlerIds;
+  private ws: WebSocket;
+  private groupTracker: GroupTracker;
+
   constructor(ws: WebSocket, groupTracker: GroupTracker){
-    super(ws, groupTracker);
+    this.ws = ws;
+    this.groupTracker = groupTracker;
+    this.id = {
+      group: -1,
+      user: -1,
+    };
 
     // send new messages to the handler to parse out topic and payload
     this.ws.on('message', this.toEvent); 
@@ -24,6 +36,7 @@ export class WsHandler extends GenericHandler{
 
     // authenticate user and add them to a group
     this.ws.on('auth', async (message: AuthMessage) => {
+      this.onAuth(message);
     });
     // send a group chat message to other users that are connected
     this.ws.on('chat', (message: ChatMessage) => {
@@ -34,12 +47,10 @@ export class WsHandler extends GenericHandler{
       this.onClose();
     });
   }
-// ----- general helpers
-  private isAuthed(): boolean{
-    if(this.id.group === -1 || this.id.user === -1) return false;
-    return true;
-  }
 
+  private getGroup = (groupId: number): ChatGroup | undefined => this.groupTracker.get(groupId);
+
+// ------ on message helper
   private toEvent = (message: string) => {
     try{
       const event = JSON.parse(message);
@@ -68,64 +79,60 @@ export class WsHandler extends GenericHandler{
 // -------CLOSIng the websocket
 
   private onClose(){
+    const removeUserFromGroup = (currentGroup: ChatGroup) => {
+      currentGroup.delete(this.ws);
+    }
+    const deleteEmptyGroup = () => {
+      this.groupTracker.delete(this.id.group);
+    }
+
     // remove the user from the room
     const currentGroup = this.groupTracker.get(this.id.group);
     if (currentGroup){
-      this.removeUserFromGroup(this.id.user, currentGroup);
+      removeUserFromGroup(currentGroup);
 
-      if (currentGroup.size === 0) this.deleteEmptyGroup(this.id.group, this.groupTracker);
+      if (currentGroup.size === 0) deleteEmptyGroup();
     }
     console.log(`[WEBSOCKET] Closing websocket for UserId: ${this.id.user} on GroupId: ${this.id.group}`);
   }
 
-  private deleteEmptyGroup(groupId: number, groupTracker: GroupTracker){
-    groupTracker.delete(groupId);
-  }
-
-  private removeUserFromGroup(userId: number, group: ChatGroup){
-    group.delete(userId);
-  }
-
 //--------------------- When a new chat message is sent out
   public onChat(message: ChatMessage){
-    // verify the user is authenticated before allowing to chat
-    if(this.isAuthed()) {
-      const group = this.groupTracker.get(this.id.group);
-      if (!group) {
-        this.ws.send(JSON.stringify(ServerMessage.badRequest()));
-        return;
-      }
-
-      // LOG MESSAGE HERE
-      this.dispersePayloadToGroup(group, message);
-
-    } else {
-      this.ws.send(JSON.stringify(ServerMessage.notAuthenticated()));
+    const isAuthed = (): boolean => !(this.id.group === -1 || this.id.user === -1);
+    const dispersePayload = (group: ChatGroup) => {
+      group.forEach( ws => {
+        if(ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(message))
+      });
     }
-  }
-  private dispersePayloadToGroup(group: ChatGroup, message: ChatMessage){
-    group.forEach( ws => {
-      if(ws.readyState === WebSocket.OPEN){
-        ws.send(JSON.stringify(message));
-      }
-    });
+
+    if(isAuthed()) {
+      const group = this.getGroup(this.id.group);
+
+      if (group) {
+        dispersePayload(group);
+//TODO!!!      // LOG MESSAGE HERE
+      } else this.ws.send(JSON.stringify(ServerMessage.badRequest()));
+    } else this.ws.send(JSON.stringify(ServerMessage.notAuthenticated()));
   }
 
 // --------- authentication
-  public async onJoin(message: ChatMesage){
+  public async onAuth(message: AuthMessage){
     const payload = message.payload;
 
     const jwtUserInfo = jwtToJwtUser(payload.token);
     const userId = jwtUserInfo.id;
-    const groupId = payload.chatId;
+    const groupId = payload.groupId;
     try {
       // verify the group and user and in the DB
       const inDatabase = await WsAuthenticator.verifyGroup(userId, groupId);
       if(inDatabase){
-        this.addUserToGroupTracker(userId, groupId);
+        this.addUserToGroupTracker(this.ws, groupId);
         this.id.group = groupId;
         this.id.user = userId;
         // send group chat history
+
+// TODO!!!!
+
       } else {
         // else tell the user it was a bad request
         this.ws.send(JSON.stringify(ServerMessage.badRequest()));
@@ -136,23 +143,16 @@ export class WsHandler extends GenericHandler{
     }
   }
   
-  private isGroupActive(groupId: number): boolean{
-    if(this.groupTracker.has(groupId)) return true;
-    return false;
-  }
+  private addUserToGroupTracker(ws: WebSocket, groupId: number){
+    const groupExsitsInTracker = (): boolean => this.groupTracker.has(groupId);
+    const createNewGroupWithWebSocket = () => this.groupTracker.set(groupId, new Set([ws]));
 
-  private addUserToGroupTracker(userId: number, groupId: number){
-    // verify the group is currently active
-    if (this.groupTracker.has(groupId)){
-      const group = this.groupTracker.get(groupId);
-      // check if the user is already in the group
-      if(group){
-        if(!group.find(idws => idws.id === userId)){
-          group.push(userIdWs);
-        }
-      } else { // group is not active so we have to create it
-        this.groupTracker.set(groupId, [userIdWs])
-      }
+    if (groupExsitsInTracker()){
+      const group = this.getGroup(groupId);
+      if(group) group.add(ws);
+    } else { 
+      // group is not active so we have to create it
+      createNewGroupWithWebSocket();
     }
   }
 }
