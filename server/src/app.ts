@@ -2,7 +2,7 @@ import { config } from './config';
 // typeORM
 import "reflect-metadata";
 import {createConnection} from "typeorm";
-// server stuff
+// server middleware
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';

@@ -1,7 +1,7 @@
 import { MsgFriendEntity } from '../../entity/msgfriend';
 import { GroupEntity } from '../../entity/group';
 import { UserEntity } from '../../entity/user';
-import { MsgGroupEntity } from '../../entity/msggroup';
+import { MsgGroupEntity } from '../../entity/message';
 import { DBConnect } from '../connection';
 
 interface TestUser {

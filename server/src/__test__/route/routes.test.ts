@@ -34,7 +34,7 @@ describe('Testing API routes', () => {
           .send(testUser)
           .expect(200)
           .then((res) => {
-            expect(res.body.message).toBe("Registration successful");
+            expect(res.body.message).toBe("Registration successful.");
           });
       } catch(error) {
         console.error(error);

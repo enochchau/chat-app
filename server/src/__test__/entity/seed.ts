@@ -26,6 +26,15 @@ async function main() {
   for(let i=1; i<users.length; i++){
     await GroupEntity.createGroupWithUsers([users[0], users[i]]);
   }
+  for(let i=2; i<users.length; i++){
+    await GroupEntity.createGroupWithUsers([users[0], users[1], users[i]]);
+  }
+  for(let i=3; i<users.length; i++){
+    await GroupEntity.createGroupWithUsers([users[1], users[2], users[i]]);
+  }
+  for(let i=4; i<users.length; i++){
+    await GroupEntity.createGroupWithUsers([users[2], users[3], users[i]]);
+  }
 
   await setup.afterEach();
 }

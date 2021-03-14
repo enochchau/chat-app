@@ -10,7 +10,7 @@ import {
 import { GroupEntity } from "./group";
 
 @Entity()
-export class MsgGroupEntity extends BaseEntity{
+export class MessageEntity extends BaseEntity{
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -30,7 +30,7 @@ export class MsgGroupEntity extends BaseEntity{
   group: GroupEntity;
 
   public static addMessage(groupId: number, message: string){
-    const msg = new MsgGroupEntity();
+    const msg = new MessageEntity();
     msg.groupId = groupId;
     msg.message = message;
     return this.save(msg);

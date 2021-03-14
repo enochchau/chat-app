@@ -40,7 +40,7 @@ if (NODE_ENV === "test"){
     "username": "test_user",
     "password": "test123",
     "synchronize": true,
-    "logging": false,
+    "logging": true,
     "entities": [
       "./src/entity/**/*.ts"
     ]

@@ -2,6 +2,11 @@ import express from 'express';
 import { GroupEntity } from '../entity/group';
 import { UserEntity } from '../entity/user';
 
+import { pipe } from 'fp-ts/lib/function';
+import { fold } from 'fp-ts/Either';
+import * as t from 'io-ts';
+
+
 export class GroupRouter {
   public router = express.Router();
 
@@ -12,22 +17,32 @@ export class GroupRouter {
 
   private postNewGroup(){
     this.router.post("/", async (req, res, next) => {
-      if (!req.body.userId || req.body.userId.length < 1) return res.sendStatus(400);
-      const userIds = req.body.userId as Array<number>; 
-      // check if the group already exists...
+      const NewGroupReq = t.type({
+        userIds: t.array(t.number),
+        groupName: t.string,
+      });
+      type NewGroupReq = t.TypeOf<typeof NewGroupReq>;
 
-      try {
-        const users: Array<UserEntity> = await UserEntity.findByIds(userIds);
-        // check that all the users exist
-        if (users.length !== userIds.length) return res.sendStatus(400);
+      const onLeft = (errors: t.Errors) => { res.sendStatus(400); };
+      const onRight = async (body: NewGroupReq) => {
+        const userIds = body.userIds;        
+        try {
+          const users: Array<UserEntity> = await UserEntity.findByIds(userIds);
 
-        let group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
+          // if all users are found
+          if (users.length === userIds.length) { 
+            let group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
+            res.json(group);
 
-        res.json(group);
-      } catch(err) {
-        next(err);
+          } else res.sendStatus(400);
+
+        } catch(err) {
+          next(err);
+        }
       }
-    })
+
+      pipe(NewGroupReq.decode(req.body), fold(onLeft, onRight));
+    });
   }
   
   private getGroupsForUser(){
