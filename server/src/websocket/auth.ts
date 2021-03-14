@@ -21,9 +21,4 @@ export class WsAuthenticator{
     });
     return false;
   }
-
-  static async verifyFriend(userId: number, friendId: number): Promise<boolean> {
-    const friendStatus = await UserEntity.areFriends(userId, friendId);
-    return friendStatus;
-  }
 }
