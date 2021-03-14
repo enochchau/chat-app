@@ -56,27 +56,7 @@ export class GroupPayloadHandler extends GenericHandler {
 
   // ------- GROUP CHATTING
   
-  public onChatGroup(message: ChatMessage){
-    // verify the user is authenticated before allowing to chat
-    if(this.isAuthedForGroupChat()) {
-      const group = this.groupTracker.get(this.id.group);
-      if (!group) return;
 
-      // LOG MESSAGE HERE
-      this.dispersePayloadToGroup(group, message);
-
-    } else {
-      this.ws.send(JSON.stringify(ServerMessage.notAuthenticated()));
-    }
-  }
-
-  private dispersePayloadToGroup(group: Tracker.IdWebsocket[], message: ChatMessage){
-    group.forEach( idws => {
-      if(idws.ws.readyState === WebSocket.OPEN){
-        idws.ws.send(JSON.stringify(message))
-      }
-    });
-  }
 
   private isAuthedForGroupChat(): boolean{
     if(this.id.group === -1 || this.id.user === -1) return false;

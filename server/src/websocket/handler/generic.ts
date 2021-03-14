@@ -1,24 +1,20 @@
 import WebSocket from "ws"
-import * as Tracker from '../tracker/index';
+import { GroupTracker }from '../tracker';
 
 export interface HandlerIds {
   group: number;
   user: number;
-  friend: number;
 }
 export class GenericHandler{
-  protected id: HandlerIds
+  protected id: HandlerIds;
   protected ws: WebSocket;
-  protected groupTracker: Tracker.ActiveGroups;
-  protected friendTracker: Tracker.ActiveFriends;
+  protected groupTracker: GroupTracker;
 
-  constructor(ws: WebSocket, groupTracker: Tracker.ActiveGroups, friendTracker: Tracker.ActiveFriends){
+  constructor(ws: WebSocket, groupTracker: GroupTracker){
     this.ws = ws;
     this.groupTracker = groupTracker;
-    this.friendTracker = friendTracker;
     this.id = {
       group: -1,
-      friend: -1,
       user: -1,
     };
   }
