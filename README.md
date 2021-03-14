@@ -53,6 +53,13 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
 - [x] group chat authenticator
 - [ ] friend chat authenticator
 
+#### ** Handle groups and friends the same way.
+
+- There can be groups of two people.
+- If a third person is added then create a new group chat with seperate history.
+- All groups are tracked using a `Map<groupdId, Array<[userId, Websocket]>`
+- Friendships are unrealated to managing chat groups
+
 ### Current issues:
 
 - fix the friend tracker and friend handler
