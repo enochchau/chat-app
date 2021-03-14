@@ -23,20 +23,25 @@ export class GroupRouter {
     });
     type NewGroupReq = t.TypeOf<typeof NewGroupReq>;
 
-    this.router.post("/", async (req, res, next) => {
-      const onLeft = (errors: t.Errors) => { res.sendStatus(400); };
+    this.router.post("/", (req, res, next) => {
+      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
       const onRight = async (body: NewGroupReq) => {
         const userIds = body.userIds;        
+        // check if the group already exists
+        try {
+          const existingGroupId = await GroupEntity.doesGroupExist(userIds);
+          if(existingGroupId) return res.json({groupId: existingGroupId});
+        } catch (err) { 
+          next(err); 
+        }
+        // else create the group
         try {
           const users: Array<UserEntity> = await UserEntity.findByIds(userIds);
-
+          if(users.length !== userIds.length) return res.sendStatus(400);
+          
           // if all users are found
-          if (users.length === userIds.length) { 
-            let group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
-            res.json(group);
-
-          } else res.sendStatus(400);
-
+          let group = await GroupEntity.createGroupWithUsers(users, req.body.groupName ? req.body.groupName: null);
+          res.json(group);
         } catch(err) {
           next(err);
         }
