@@ -58,40 +58,40 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
 
 ## Chat websocket
 
-- [ ] Log websocket messages into db
-- [ ] send message history when a user connects to the websocket
+- [x] Log websocket messages into db
+- [x] send message history when a user connects to the websocket
 - [x] chat tracker for groups
-- [x] chat tracker for friends
 - [x] group chat handler
-- [ ] friend chat handler
 - [x] group chat authenticator
-- [ ] friend chat authenticator
 
 ## API
-
-* Check if a group already exists before creating the group
 
 ### Group
 
 - [x] GET: get groups for a user
 - [x] POST: create a new group
-- [ ] DELETE: delete a group
-- [ ] PATCH: update the members of the group
+- [x] PATCH: leave a group
+- [x] PATCH: add a user to a group
 
 ### Friendship
 - [x] POST: add a new friend to the current user
 - [x] DELETE: remove a friend for the current user
-- [x] GET: geta all the friends for the current user
+- [x] GET: get all the friends for the current user
 
 ### Auth
 - [x] POST: login a new user and send back their jwt
 - [x] POST: register a new user
 
-# Tests
+### User
+- [x] PATCH: change password
+- [x] PATCH: change name 
+- [x] PATCH: change email 
 
-The database can be seeded with test users and test groups using `./server/src/__test__/entity/seed.ts`.
-* testuser0 through testuser9
-* groups between testuser0 and all other testusers.
+### Message (stretch goals)
+- [ ] PATCH: edit a message
+- [ ] DELETE: remove a message
+
+# Tests
 
 ### Databse testing
 
