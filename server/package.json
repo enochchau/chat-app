@@ -9,7 +9,8 @@
     "dev": "ts-node-dev --respawn src/app.ts",
     "build": "tsc --build",
     "clean": "tsc --build --clean",
-    "seed-db": "ts-node src/__test__/entity/seed.ts"
+    "seed-db": "ts-node src/__test__/entity/seed.ts",
+    "type-check": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
