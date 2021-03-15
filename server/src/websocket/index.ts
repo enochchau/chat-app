@@ -13,7 +13,7 @@ export class ChatRoom{
 
   public setup () {
     this.wss.on('connection', (ws) => {
-      console.log("opening websocket");
+      console.log("[WEBSOCKET] Opening new connection.");
       const wsHandler = new WsHandler(ws, this.groupTracker);
     });
   }

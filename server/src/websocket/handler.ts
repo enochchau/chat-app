@@ -32,7 +32,7 @@ export class WsHandler {
     this.ws.on('message', this.toEvent); 
     // error handler
     this.ws.on('message error', ()=> {
-      console.log('message error');
+      console.log('[WEBSOCKET] message error');
       ws.send(JSON.stringify(ServerMessage.badRequest()));
     });
 
@@ -71,6 +71,7 @@ export class WsHandler {
         this.ws.emit(event.topic, event);
       }
 
+      // start here
       pipe(ChatMessage.decode(event), fold(onChatLeft, onChatRight));
     } catch(err) {
       console.error("RX messsge on websocket was not a valid json: ", err);
@@ -130,9 +131,21 @@ export class WsHandler {
 
 // --------- authentication
   public async onAuth(message: AuthMessage){
-    const payload = message.payload;
+    const sendValidTokenMsg = () => this.ws.send(JSON.stringify(ServerMessage.validToken()));
+    const sendInvalidTokenMsg = () => this.ws.send(JSON.stringify(ServerMessage.invalidToken()));
+    const storeIds = () => {
+      this.id.group = groupId;
+      this.id.user = userId;
+    }
 
+    const payload = message.payload;
     const jwtUserInfo = jwtToJwtUser(payload.token);
+
+    if(!jwtUserInfo) {
+      sendInvalidTokenMsg();
+      return;
+    }
+
     const userId = jwtUserInfo.id;
     const groupId = payload.groupId;
     try {
@@ -140,19 +153,19 @@ export class WsHandler {
       const inDatabase = await WsAuthenticator.verifyGroup(userId, groupId);
       if(inDatabase){
         this.addUserToGroupTracker(this.ws, groupId);
-        this.id.group = groupId;
-        this.id.user = userId;
-        // send group chat history
+        storeIds();
+        sendValidTokenMsg();
 
-// TODO!!!!
-        this.ws.send(JSON.stringify(ServerMessage.validToken()));
+        // send group chat history
+        const messageHistory = await MessageEntity.findMessagesOfGroupId(groupId, 50, new Date());
+        this.ws.send(JSON.stringify({topic: "history", payload: messageHistory}));
 
       } else {
         // else tell the user it was a bad request
-        this.ws.send(JSON.stringify(ServerMessage.invalidToken()));
+        this.ws.send(JSON.stringify(ServerMessage.badRequest()));
       }
     } catch(error) {
-      console.error("Error verifying websocket user: ", error);
+      console.error(`Error verifying websocket UserId: ${userId}, GroupId: ${groupId}: `, error);
       this.ws.send(JSON.stringify(ServerMessage.serverError()));
     }
   }

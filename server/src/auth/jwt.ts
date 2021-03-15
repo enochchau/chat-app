@@ -11,7 +11,11 @@ export interface JwtContentInterface{
   iat: number;
 }
 
-export function jwtToJwtUser(jwt: string): JwtUserInterface{
-  const decode = jwt_decode(jwt) as JwtContentInterface;
-  return decode.user as JwtUserInterface;
+export function jwtToJwtUser(jwt: string): JwtUserInterface | undefined{
+  try{
+    const decode = jwt_decode<JwtContentInterface>(jwt);
+    return decode.user as JwtUserInterface;
+  } catch(error) {
+    return undefined;
+  }
 }

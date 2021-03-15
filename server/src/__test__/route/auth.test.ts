@@ -47,7 +47,9 @@ describe ('API: /api/auth', () => {
         .then((res) => {
           testUser.jwt = res.body.token;
 
-          const jwtUser: JwtUserInterface = jwtToJwtUser(testUser.jwt);
+          const jwtUser = jwtToJwtUser(testUser.jwt);
+          expect(jwtUser).toBeTruthy();
+          if(!jwtUser) return;
 
           testUser.id = jwtUser.id;
           expect(testUser.id).toBeGreaterThan(0);

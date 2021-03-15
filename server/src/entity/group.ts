@@ -114,4 +114,18 @@ export class GroupEntity extends BaseEntity{
       .take(count)
       .getMany();
   }
+
+  // return the index of the user if they are in the group
+  // else return -1 if the user is not in the group
+  public static getUserIndexInGroup(userId: number, group: GroupEntity): number{
+    for(let [i, user] of group.users.entries()){
+      if(user.id === userId){
+        return i;
+      }
+    }
+    return -1;
+  }
+  public static isUserInGroup(userId: number, group: GroupEntity): boolean{
+    return this.getUserIndexInGroup(userId, group) !== -1
+  }
 }
