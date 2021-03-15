@@ -5,7 +5,7 @@ let config =  {
   "type": "postgres",
   "host": "localhost",
   "port": 5432,
-  "database": "chat_app_test",
+  "database": "chat_app_dev",
   "username": "test_user",
   "password": "test123",
   "synchronize": true,
@@ -20,7 +20,7 @@ if (NODE_ENV === 'prod'){
     "type": "postgres",
     "host": "localhost",
     "port": 5432,
-    "database": "chat_app_test",
+    "database": "chat_app_dev",
     "username": "test_user",
     "password": "test123",
     "synchronize": false,
@@ -40,6 +40,7 @@ if (NODE_ENV === "test"){
     "username": "test_user",
     "password": "test123",
     "synchronize": true,
+    "dropSchema": false,
     "logging": false,
     "entities": [
       "./src/entity/**/*.ts"

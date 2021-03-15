@@ -1,5 +1,5 @@
 // These tests have to run sequentially to properly create and use users.
-import supertest from 'supertest';
+import request from 'supertest';
 import { JwtUserInterface, jwtToJwtUser } from '../../auth/jwt';
 import { RouteSetup } from './setup';
 
@@ -16,7 +16,7 @@ describe('Testing API routes', () => {
   });
 
   test("GET /", async () => {
-    await supertest(runner.server) 
+    await request(runner.server) 
       .get("/")
       .expect(200)
       .then((res) => {
@@ -29,12 +29,12 @@ describe('Testing API routes', () => {
   test("POST /api/auth/register: register all test users", async () => {
     for (let testUser of runner.testUsers){
       try{
-        await supertest(runner.server)
+        await request(runner.server)
           .post("/api/auth/register")
           .send(testUser)
           .expect(200)
           .then((res) => {
-            expect(res.body.message).toBe("Registration successful");
+            expect(res.body.message).toBe("Registration successful.");
           });
       } catch(error) {
         console.error(error);
@@ -46,18 +46,18 @@ describe('Testing API routes', () => {
   test("POST /api/auth/login: login all test users", async () => {
     for (let testUser of runner.testUsers){
       try {
-        await supertest(runner.server)
+        await request(runner.server)
           .post("/api/auth/login")
           .send(testUser)
           .expect(200)
           .then((res) => {
-            testUser.jwt = res.body;
+            testUser.jwt = res.body.token;
 
             const jwtUser: JwtUserInterface = jwtToJwtUser(testUser.jwt);
 
             testUser.id = jwtUser.id;
             expect(testUser.id).toBeGreaterThan(0);
-            expect(jwtUser.username).toBe(testUser.username);
+            expect(jwtUser.email).toBe(testUser.email);
           });
       } catch(err) {
         console.error(err);
@@ -68,12 +68,12 @@ describe('Testing API routes', () => {
 // ------ FRIENDS ----- //
 
   test("POST /api/friend: runner.testUsers[0] adds runner.testUsers[1] and runner.testUsers[2] as friends", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[1].id})
       .expect(200);
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -81,7 +81,7 @@ describe('Testing API routes', () => {
   });
 
   test("DELETE /api/friend: runner.testUsers[0] removes runner.testUsers[2] as friend", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .delete("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -89,7 +89,7 @@ describe('Testing API routes', () => {
   });
 
   test("POST /api/friend: runner.testUsers[0] tries to add themself as a friend", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[0].id})
@@ -97,7 +97,7 @@ describe('Testing API routes', () => {
   });
 
   test("POST /api/friend: runner.testUsers[0] tries to remove runner.testUsers[2] as friend when not friends", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .delete("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -105,7 +105,7 @@ describe('Testing API routes', () => {
   });
 
   test("GET /api/friend: get friends of runner.testUsers[0]", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .get('/api/friend')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .expect(200)
@@ -113,7 +113,7 @@ describe('Testing API routes', () => {
         expect(res.body.friends.length).toBe(1);
         expect(res.body.id).toBe(runner.testUsers[0].id);
         expect(res.body.name).toBe(runner.testUsers[0].name);
-        expect(res.body.username).toBe(runner.testUsers[0].username);
+        expect(res.body.email).toBe(runner.testUsers[0].email);
       });
   });
 
@@ -123,14 +123,14 @@ describe('Testing API routes', () => {
     for(let i=1; i<runner.testUsers.length; i++){
       let userId: Array<number> = [runner.testUsers[0].id, runner.testUsers[i].id];
 
-      await supertest(runner.server)
+      await request(runner.server)
         .post('/api/group')
         .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
-        .send({userId: userId})
+        .send({userIds: userId, groupName: "test group"})
         .expect(200)
         .then((res) => {
           expect(res.body.users.length).toBe(userId.length);
-          expect(res.body.name).toBeNull();
+          expect(res.body.name).toBe("test group");
         });
     }
   });
@@ -138,12 +138,13 @@ describe('Testing API routes', () => {
   test("GET /api/group: get the latest 3 groupIds for runner.testUsers[0]", async () => {
     const count = 3;
     const date = new Date();
-    await supertest(runner.server)
+    await request(runner.server)
       .get('/api/group')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .query({count: count, date: date}) 
       .expect(200)
       .then((res) => {
+        console.log(res.body);
         // check the count
         expect(res.body.length).toBeLessThanOrEqual(count);
         // check the timestamps

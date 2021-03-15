@@ -1,22 +1,14 @@
 import { Server } from "http";
-import { App } from "../../app";
-import { DBConnect } from "../connection";
-import { TestUserSetup } from "../testusers";
+import { ServerSetup } from '../server';
 
-export class RouteSetup extends TestUserSetup{
+export class RouteSetup extends ServerSetup{
 
-  public app: App;
-  public server: Server;
-  public connection: DBConnect;
-
-  constructor(numberOfTestUsers: number, randomUsername: boolean = false){
-    super(numberOfTestUsers, randomUsername);
-    this.app = new App();
-    this.connection = new DBConnect();
+  constructor(n: number, random: boolean = false){
+    super(n, random);
   }
 
   public async buildUp(cb: () => void, truncateTables: boolean = false){
-    await this.connection.create('sqlite');
+    await this.connection.create('postgres');
     if (truncateTables) await this.connection.truncateTables();
     this.server = this.app.createServer();
     this.server.listen(cb)

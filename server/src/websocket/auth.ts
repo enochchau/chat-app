@@ -16,14 +16,9 @@ export class WsAuthenticator{
   }
 
   private static findGroupInUserGroups(user: UserEntity, groupId: number): boolean {
-    user.groups.forEach((group) => {
-      if(group.id === groupId) return true;
-    });
+    for (let group of user.groups){
+      if (group.id === groupId) return true
+    }
     return false;
-  }
-
-  static async verifyFriend(userId: number, friendId: number): Promise<boolean> {
-    const friendStatus = await UserEntity.areFriends(userId, friendId);
-    return friendStatus;
   }
 }

@@ -4,10 +4,8 @@ import * as tt from 'io-ts-types';
 // join is for authentication
 // chat is for distributing messges
 const UserTopic = t.union([
-  t.literal("join group"),
-  t.literal('chat group'),
-  t.literal('join friend'),
-  t.literal('chat friend')
+  t.literal("chat"),
+  t.literal('auth'),
 ]);
 
 const GenericMessage = <C extends t.Mixed>(codec: C) => 
@@ -17,15 +15,15 @@ const GenericMessage = <C extends t.Mixed>(codec: C) =>
   });
 
 const ChatPayload = t.type({
-  timestamp: tt.date,
+  timestamp: tt.DateFromISOString,
   message: t.string,
-  chatId: t.number,
+  groupId: t.number,
   userId: t.number,
 });
 
 const AuthPayload = t.type({
-  timestamp: tt.date,
-  chatId: t.number,
+  timestamp: tt.DateFromISOString,
+  groupId: t.number,
   token: t.string,
 });
 

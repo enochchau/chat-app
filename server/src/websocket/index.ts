@@ -1,12 +1,11 @@
 import * as WebSocket from 'ws';
-import * as Tracker from './tracker/index';
+import { GroupTracker } from './tracker';
 import { WsHandler } from './handler';
 
 
 export class ChatRoom{
   public wss: WebSocket.Server;
-  private groupMap: Tracker.ActiveGroups = new Map();
-  private friendMap: Tracker.ActiveFriends = new Tracker.ActiveFriends();
+  private groupTracker: GroupTracker = new Map();
   constructor(wss:WebSocket.Server){
     this.wss = wss;
     this.setup();
@@ -15,7 +14,7 @@ export class ChatRoom{
   public setup () {
     this.wss.on('connection', (ws) => {
       console.log("opening websocket");
-      const wsHandler = new WsHandler(ws, this.groupMap, this.friendMap);
+      const wsHandler = new WsHandler(ws, this.groupTracker);
     });
   }
 }

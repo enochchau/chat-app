@@ -2,7 +2,7 @@ import { config } from './config';
 // typeORM
 import "reflect-metadata";
 import {createConnection} from "typeorm";
-// server stuff
+// server middleware
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -16,6 +16,7 @@ import { ChatRoom } from './websocket';
 import { AuthRouter } from './routes/auth';
 import { FriendRouter } from './routes/friendship';
 import { GroupRouter } from './routes/group';
+import { UserRouter } from './routes/user';
 
 export class App {
   public app = express();
@@ -36,6 +37,8 @@ export class App {
     this.app.use('/api/friend', passport.authenticate("jwt", { session: false }), friendRoutes.router);
     const groupRoutes = new GroupRouter();
     this.app.use('/api/group', passport.authenticate("jwt", { session: false }), groupRoutes.router);
+    const userRoutes = new UserRouter();
+    this.app.use('/api/user', passport.authenticate("jwt", { session: false }), userRoutes.router);
 
     // test route
     this.app.get("/", (req , res) => {
