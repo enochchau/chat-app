@@ -10,10 +10,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   BaseEntity,
-  FindOneOptions,
+  OneToMany,
 } from 'typeorm';
 import { GroupEntity } from './group';
 import * as bcrypt from "bcrypt";
+import { MessageEntity } from './message';
 
 const SALTROUNDS = 10;
 
@@ -68,7 +69,12 @@ export class UserEntity extends BaseEntity{
     cascade: true
   })
   @JoinTable()
-  groups: GroupEntity[]
+  groups: GroupEntity[];
+
+  @OneToMany(type => MessageEntity, message => message.user, {
+    cascade: true
+  })
+  messages: MessageEntity[];
 
   // used to check if the password changed and rehash it
   private tempPassword?: string;
@@ -141,16 +147,5 @@ export class UserEntity extends BaseEntity{
       .getCount();
     
     return Boolean(areFriends);
-  }
-
-  public static findGroupsOfUserId(userId: number, count: number, fromDate: Date){
-    return this
-      .createQueryBuilder("user")
-      .leftJoinAndSelect("user.groups", "groups")
-      .where("user.id = :id", {id: userId})
-      .andWhere("groups.updated <= :date", {date: fromDate})
-      .orderBy("groups.updated", "DESC")
-      .take(count)
-      .getOne()
   }
 }

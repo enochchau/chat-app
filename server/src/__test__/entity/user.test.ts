@@ -3,28 +3,40 @@ import { UserEntitySetup } from './setup';
 
 describe ('New UserEntity', () => {
 
-  let setup = new UserEntitySetup();
   
+  let setup = new UserEntitySetup();
+  const testUser = setup.testUsers[0];
+
   beforeEach(async () => {
-    await setup.beforeEach();
+    await setup.connectDatabase();
   })
 
   afterEach( async () => {
-    await setup.afterEach();
+    await setup.disconnectDatabase();
   })
 
   it("creates a new user", async () => {
-    const testUser = setup.testUsers[0];
     const user = new UserEntity();
     user.name = testUser.name;
-    user.username = testUser.username;
+    user.email = testUser.email;
     user.password = testUser.password;
     await UserEntity.save(user);
 
 
-    const reuser = await UserEntity.findOneByUsername(user.username);
+    const reuser = await UserEntity.findOne({where: {email: testUser.email}});
     expect(reuser?.name).toBe(testUser.name);
-    expect(reuser?.username).toBe(testUser.username);
+    expect(reuser?.email).toBe(testUser.email);
   });
+
+  it("tests the user's password", async () => {
+    const user = await UserEntity.findOne({where: {email: testUser.email}});
+    expect(user).toBeTruthy();
+
+    if(!user)return;
+
+    user.checkPassword(testUser.password, (err, result) => {
+      expect(result).toBe(true);
+    })
+  })
 
 })

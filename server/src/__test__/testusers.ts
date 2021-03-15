@@ -1,22 +1,22 @@
-
-export interface testUserInterface {
-  name: string;
-  username: string;
-  password: string;
-  jwt: string;
-  id: number;
+export type TestUser = {
+  email: string,
+  name: string,
+  password: string,
+  id: number,
+  jwt: string,
 }
 
-// setup test users in memory
+// setup test users 
 export class TestUserSetup{
-  public testUsers: Array<testUserInterface>;
-  constructor(numberOfTestUsers: number, randomUsername: boolean = false){
+  public testUsers: Array<TestUser>;
+
+  constructor(n: number, random: boolean = false){
     this.testUsers = new Array();
 
-    for (let i=0; i<numberOfTestUsers; i++){
-      let user: testUserInterface = {
+    for (let i=0; i<n; i++){
+      let user: TestUser = {
         name: "Test User" + i.toString(),
-        username: "test" + (randomUsername ? Math.floor(Math.random()*Math.floor(9999999999)) : i).toString(),
+        email: `test${(random? Math.floor(Math.random()*Math.floor(9999999999)) : i)}@test.com`,
         password: "test123",
         jwt: "",
         id: 0,

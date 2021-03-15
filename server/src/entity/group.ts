@@ -15,7 +15,6 @@ import { MessageEntity } from './message';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-import * as tt from 'io-ts-types';
 
 @Entity()
 export class GroupEntity extends BaseEntity{
@@ -25,7 +24,6 @@ export class GroupEntity extends BaseEntity{
 
   @Column({
     length: 128,
-    nullable: true,
   })
   name: string;
 
@@ -41,7 +39,7 @@ export class GroupEntity extends BaseEntity{
   @OneToMany(() => MessageEntity , message => message.group)
   messages: MessageEntity[];
 
-  public static createGroupWithUsers(users: Array<UserEntity>, name: string | null = null){
+  public static createGroupWithUsers(users: Array<UserEntity>, name: string){
     const newGroup = new GroupEntity();
     if (name) newGroup.name = name;
     newGroup.users = users;
@@ -55,7 +53,7 @@ export class GroupEntity extends BaseEntity{
       .where("group.id = :id", {id: groupId})
       .andWhere("messages.updated <= :date", {date: fromDate})
       .orderBy("messages.updated", "DESC")
-      .limit(count)
+      .take(count)
       .getOne()
   }
 
@@ -109,7 +107,6 @@ export class GroupEntity extends BaseEntity{
     try{
       await createComparisonTable();
       const result = await queryComparison();
-      console.log(result);
       await dropComparisonTable(); // we don't have to await this when running on an actual server
 
       return pipe(QueryShape.decode(result), fold(onBadShape, onGoodShape));
@@ -117,5 +114,15 @@ export class GroupEntity extends BaseEntity{
       console.error(error);
     }
     return -1;
+  }
+
+  public static findGroupsOfUserId(userId: number, count: number, fromDate: Date){
+    return this.createQueryBuilder("group")
+      .leftJoinAndSelect("group.users", "users")
+      .where("users.id = :id", {id: userId})
+      .andWhere("group.updated <= :date", {date: fromDate})
+      .orderBy("group.updated", "DESC")
+      .take(count)
+      .getMany();
   }
 }

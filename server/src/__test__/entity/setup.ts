@@ -7,18 +7,18 @@ export class EntitySetup extends TestUserSetup{
   constructor(numberOfUsers: number, randomUsers: boolean){
     super(numberOfUsers, randomUsers);
   }
-  public async beforeAll(drop: boolean=false, truncate: boolean=false){
+  public async clearDatabase(drop: boolean=false, truncate: boolean=false){
     await this.connector.create('postgres');
     if(drop) await this.connector.dropTables();
     if(truncate) await this.connector.truncateTables();
     await this.connector.close();
   }
 
-  public async beforeEach(){
+  public async connectDatabase(){
     await this.connector.create('postgres');
   }
 
-  public async afterEach(){
+  public async disconnectDatabase(){
     await this.connector.close();
   }
 }

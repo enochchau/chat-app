@@ -9,14 +9,14 @@ export class RouteSetup extends TestUserSetup{
   public server: Server;
   public connection: DBConnect;
 
-  constructor(numberOfTestUsers: number, randomUsername: boolean = false){
-    super(numberOfTestUsers, randomUsername);
+  constructor(n: number, random: boolean = false){
+    super(n, random);
     this.app = new App();
     this.connection = new DBConnect();
   }
 
   public async buildUp(cb: () => void, truncateTables: boolean = false){
-    await this.connection.create('sqlite');
+    await this.connection.create('postgres');
     if (truncateTables) await this.connection.truncateTables();
     this.server = this.app.createServer();
     this.server.listen(cb)

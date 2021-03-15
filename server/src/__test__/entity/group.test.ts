@@ -16,4 +16,4 @@ describe("Group Entity", () => {
     console.log(result);
     expect(result).toBeGreaterThan(-1);
   });
-})
+});

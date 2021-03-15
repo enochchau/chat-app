@@ -51,13 +51,13 @@ describe('Testing API routes', () => {
           .send(testUser)
           .expect(200)
           .then((res) => {
-            testUser.jwt = res.body;
+            testUser.jwt = res.body.token;
 
             const jwtUser: JwtUserInterface = jwtToJwtUser(testUser.jwt);
 
             testUser.id = jwtUser.id;
             expect(testUser.id).toBeGreaterThan(0);
-            expect(jwtUser.username).toBe(testUser.username);
+            expect(jwtUser.email).toBe(testUser.email);
           });
       } catch(err) {
         console.error(err);
@@ -113,7 +113,7 @@ describe('Testing API routes', () => {
         expect(res.body.friends.length).toBe(1);
         expect(res.body.id).toBe(runner.testUsers[0].id);
         expect(res.body.name).toBe(runner.testUsers[0].name);
-        expect(res.body.username).toBe(runner.testUsers[0].username);
+        expect(res.body.email).toBe(runner.testUsers[0].email);
       });
   });
 
@@ -126,11 +126,11 @@ describe('Testing API routes', () => {
       await supertest(runner.server)
         .post('/api/group')
         .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
-        .send({userId: userId})
+        .send({userIds: userId, groupName: "test group"})
         .expect(200)
         .then((res) => {
           expect(res.body.users.length).toBe(userId.length);
-          expect(res.body.name).toBeNull();
+          expect(res.body.name).toBe("test group");
         });
     }
   });
@@ -144,6 +144,7 @@ describe('Testing API routes', () => {
       .query({count: count, date: date}) 
       .expect(200)
       .then((res) => {
+        console.log(res.body);
         // check the count
         expect(res.body.length).toBeLessThanOrEqual(count);
         // check the timestamps
