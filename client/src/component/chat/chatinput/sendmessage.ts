@@ -1,5 +1,5 @@
 import { NodeTypes } from './placeholder';
-import { ChatMessage, ChatTopics } from '../../../api/validators/websocket'
+import { TxChatMessage, ChatTopics } from '../../../api/validators/websocket'
 
 // util function: parse child text nodes or br nodes to string
 const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
@@ -12,20 +12,20 @@ const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {
   return outString;
 }
 
-function prepareMessageForWs(topic: ChatTopics, childNodes: NodeListOf<ChildNode>, userId: number, chatId: number): ChatMessage{
+function prepareMessageForWs(topic: ChatTopics, childNodes: NodeListOf<ChildNode>, userId: number, chatId: number): TxChatMessage{
   const inputText = parseHtmlToString(childNodes);
   return {
     topic: topic,
     payload:{
       timestamp: new Date(),
       message: inputText,
-      chatId: chatId,
+      groupId: chatId,
       userId: userId
     }
-  } as ChatMessage
+  } as TxChatMessage
 }
 
-export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, topic: ChatTopics, userId: number, chatId: number): ChatMessage | undefined{
+export function processSendMessageEvent(event: React.KeyboardEvent<HTMLDivElement>, topic: ChatTopics, userId: number, chatId: number): TxChatMessage | undefined{
   if(event.currentTarget.textContent){
     const childNodes = event.currentTarget.childNodes;
     return prepareMessageForWs(topic, childNodes, userId, chatId);

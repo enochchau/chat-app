@@ -96,6 +96,7 @@ The database can be seeded with test users and test groups using `./server/src/_
 ### Databse testing
 
 - [ ] Per Entity Testing
+- [ ] Message and group testing
 
 ### Websocket
 

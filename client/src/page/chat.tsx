@@ -11,7 +11,7 @@ import { processSendMessageEvent } from '../component/chat/chatinput';
 import  { parseStringToHtml } from '../component/chat/htmlchatmessage';
 
 import { rxFriendMessage, rxGroupMessage, demoDisplayMessage } from '../api/demodata';
-import { ChatMessage, ServerMessage } from '../api/validators/websocket';
+import { TxChatMessage, RxChatMessage, ServerMessage } from '../api/validators/websocket';
 import { DisplayableMessage } from '../component/chat/messagelist/index';
 
 import { pipe } from 'fp-ts/lib/function';
@@ -58,10 +58,10 @@ export const ChatPage = () => {
     setToggleInfo(!toggleInfo);
   }
 
-  const handleNewMessage = (newMessage: any) => {
+  const handleNewMessage = (newMessage: RxChatMessage) => {
 
     const onLeft = (errors: t.Errors) => console.error("Bad rx at websocket", errors);
-    const onRight = (newMessage: ChatMessage) => {
+    const onRight = (newMessage: RxChatMessage) => {
       // messages are recieved as strings but must be displayed as HTML
       const html = parseStringToHtml(newMessage.payload.message);
 
@@ -77,15 +77,29 @@ export const ChatPage = () => {
       }
     }
     // check the message here
-    pipe(ChatMessage.decode(newMessage), fold(onLeft, onRight));
+    pipe(RxChatMessage.decode(newMessage), fold(onLeft, onRight));
   }
 
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
-    const newMessage = processSendMessageEvent(e, "chat friend", storeState.id, 33);
+    const newMessage = processSendMessageEvent(e, "chat", storeState.id, 33);
     if(newMessage) {
-      handleNewMessage(newMessage);
+
+      const mockMessage: RxChatMessage = {
+        topic: newMessage.topic,
+        payload: {
+          timestamp: newMessage.payload.timestamp,
+          groupId: newMessage.payload.groupId,
+          userId: newMessage.payload.userId,
+          message: newMessage.payload.message,
+          id: 234,
+          created: new Date(),
+          updated: new Date()
+        }
+      }
+
+      handleNewMessage(mockMessage);
       // setTimeout(() => {handleNewMessage(rxFriendMessage)}, 500);
 
       // reset the chat box
