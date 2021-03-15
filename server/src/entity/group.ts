@@ -46,17 +46,6 @@ export class GroupEntity extends BaseEntity{
     return this.save(newGroup);
   }
 
-  public static findMessagesOfGroupId(groupId: number, count: number, fromDate: Date){
-    return this
-      .createQueryBuilder("group")
-      .leftJoinAndSelect("group.messages", "messages")
-      .where("group.id = :id", {id: groupId})
-      .andWhere("messages.updated <= :date", {date: fromDate})
-      .orderBy("messages.updated", "DESC")
-      .take(count)
-      .getOne()
-  }
-
   // returns -1 if group not found
   // returns groupId if group is found
   public static async doesGroupExist(userIds: Array<number>): Promise<number>{

@@ -38,4 +38,13 @@ export class MessageEntity extends BaseEntity{
 
   @ManyToOne(() => UserEntity, user => user.messages)
   user: UserEntity;
+
+  public static findMessagesOfGroupId(groupId: number, count: number, fromDate: Date){
+    return this.createQueryBuilder("message")
+      .where("message.groupId = :id", {id: groupId})
+      .andWhere("message.timestamp <= :date", {date: fromDate})
+      .orderBy("message.timestamp", "DESC")
+      .take(count)
+      .getMany();
+  }
 }

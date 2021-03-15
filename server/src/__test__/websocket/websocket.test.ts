@@ -131,7 +131,7 @@ describe("Chat Websocket", () => {
         actual.payload.message === "hello there!" && 
         actual.payload.groupId === 1 && 
         actual.payload.userId === runner.testUsers[0].id &&
-        actual.payload.id &&
+        actual.payload.id === 1 &&
         actual.payload.created && 
         actual.payload.updated
       ));

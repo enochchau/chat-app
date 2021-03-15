@@ -8,7 +8,8 @@
     "test": "ts-node src/__test__/entity/seed.ts && jest",
     "dev": "ts-node-dev --respawn src/app.ts",
     "build": "tsc --build",
-    "clean": "tsc --build --clean"
+    "clean": "tsc --build --clean",
+    "seed-db": "ts-node src/__test__/entity/seed.ts"
   },
   "repository": {
     "type": "git",
