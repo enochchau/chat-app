@@ -1,4 +1,4 @@
-import supertest from 'supertest';
+import request from 'supertest';
 import { RouteSetup } from './setup';
 import { JwtUserInterface, jwtToJwtUser } from '../../auth/jwt';
 
@@ -18,7 +18,7 @@ describe ('API: /api/auth', () => {
   // register all test users
   test("POST /api/auth/register: register all test users", async () => {
     for (let testUser of runner.testUsers){
-      await supertest(runner.server)
+      await request(runner.server)
         .post("/api/auth/register")
         .send({
           name: testUser.name,
@@ -37,7 +37,7 @@ describe ('API: /api/auth', () => {
   test("POST /api/auth/login: login all test users", async () => {
     // for (let testUser of runner.testUsers){
       const testUser = runner.testUsers[0];
-      await supertest(runner.server)
+      await request(runner.server)
         .post("/api/auth/login")
         .send({
           email: testUser.email,

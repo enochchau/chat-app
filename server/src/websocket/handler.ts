@@ -145,10 +145,11 @@ export class WsHandler {
         // send group chat history
 
 // TODO!!!!
+        this.ws.send(JSON.stringify(ServerMessage.validToken()));
 
       } else {
         // else tell the user it was a bad request
-        this.ws.send(JSON.stringify(ServerMessage.badRequest()));
+        this.ws.send(JSON.stringify(ServerMessage.invalidToken()));
       }
     } catch(error) {
       console.error("Error verifying websocket user: ", error);

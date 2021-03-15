@@ -1,5 +1,5 @@
 // These tests have to run sequentially to properly create and use users.
-import supertest from 'supertest';
+import request from 'supertest';
 import { JwtUserInterface, jwtToJwtUser } from '../../auth/jwt';
 import { RouteSetup } from './setup';
 
@@ -16,7 +16,7 @@ describe('Testing API routes', () => {
   });
 
   test("GET /", async () => {
-    await supertest(runner.server) 
+    await request(runner.server) 
       .get("/")
       .expect(200)
       .then((res) => {
@@ -29,7 +29,7 @@ describe('Testing API routes', () => {
   test("POST /api/auth/register: register all test users", async () => {
     for (let testUser of runner.testUsers){
       try{
-        await supertest(runner.server)
+        await request(runner.server)
           .post("/api/auth/register")
           .send(testUser)
           .expect(200)
@@ -46,7 +46,7 @@ describe('Testing API routes', () => {
   test("POST /api/auth/login: login all test users", async () => {
     for (let testUser of runner.testUsers){
       try {
-        await supertest(runner.server)
+        await request(runner.server)
           .post("/api/auth/login")
           .send(testUser)
           .expect(200)
@@ -68,12 +68,12 @@ describe('Testing API routes', () => {
 // ------ FRIENDS ----- //
 
   test("POST /api/friend: runner.testUsers[0] adds runner.testUsers[1] and runner.testUsers[2] as friends", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[1].id})
       .expect(200);
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -81,7 +81,7 @@ describe('Testing API routes', () => {
   });
 
   test("DELETE /api/friend: runner.testUsers[0] removes runner.testUsers[2] as friend", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .delete("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -89,7 +89,7 @@ describe('Testing API routes', () => {
   });
 
   test("POST /api/friend: runner.testUsers[0] tries to add themself as a friend", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .post("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[0].id})
@@ -97,7 +97,7 @@ describe('Testing API routes', () => {
   });
 
   test("POST /api/friend: runner.testUsers[0] tries to remove runner.testUsers[2] as friend when not friends", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .delete("/api/friend")
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .send({friendId: runner.testUsers[2].id})
@@ -105,7 +105,7 @@ describe('Testing API routes', () => {
   });
 
   test("GET /api/friend: get friends of runner.testUsers[0]", async () => {
-    await supertest(runner.server)
+    await request(runner.server)
       .get('/api/friend')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .expect(200)
@@ -123,7 +123,7 @@ describe('Testing API routes', () => {
     for(let i=1; i<runner.testUsers.length; i++){
       let userId: Array<number> = [runner.testUsers[0].id, runner.testUsers[i].id];
 
-      await supertest(runner.server)
+      await request(runner.server)
         .post('/api/group')
         .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
         .send({userIds: userId, groupName: "test group"})
@@ -138,7 +138,7 @@ describe('Testing API routes', () => {
   test("GET /api/group: get the latest 3 groupIds for runner.testUsers[0]", async () => {
     const count = 3;
     const date = new Date();
-    await supertest(runner.server)
+    await request(runner.server)
       .get('/api/group')
       .set('Authorization', 'bearer ' + runner.testUsers[0].jwt)
       .query({count: count, date: date}) 

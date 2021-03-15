@@ -16,9 +16,9 @@ export class WsAuthenticator{
   }
 
   private static findGroupInUserGroups(user: UserEntity, groupId: number): boolean {
-    user.groups.forEach((group) => {
-      if(group.id === groupId) return true;
-    });
+    for (let group of user.groups){
+      if (group.id === groupId) return true
+    }
     return false;
   }
 }
