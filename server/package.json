@@ -10,7 +10,9 @@
     "build": "tsc --build",
     "clean": "tsc --build --clean",
     "seed-db": "ts-node src/__test__/entity/seed.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "dev-db": "psql -d chat_app_dev -U test_user -W -h 127.0.0.1",
+    "test-db": "psql -d chat_app_test -U test_user -W -h 127.0.0.1"
   },
   "repository": {
     "type": "git",
