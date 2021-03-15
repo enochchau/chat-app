@@ -13,6 +13,8 @@ export class GroupRouter {
   constructor(){
     this.postNewGroup();
     this.getGroupsForUser();
+    this.patchLeaveGroup();
+    this.patchAddToGroup();
   }
 
   private postNewGroup(){
@@ -79,5 +81,69 @@ export class GroupRouter {
       }
       pipe(GetGroupsReq.decode(req.query), fold(onLeft, onRight));
     });
+  }
+
+  private patchLeaveGroup(){
+    const PatchLeaveReq = t.type({
+      groupId: t.number
+    });
+    type PatchLeaveReq = t.TypeOf<typeof PatchLeaveReq>;
+
+    const removeUserFromGroup = (userId: number, group:GroupEntity): boolean => {
+      const index = GroupEntity.getUserIndexInGroup(userId, group);
+      if(index !== -1){
+        group.users.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+
+    this.router.patch('/leave', async (req, res, next) => {
+      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
+      const onRight = async (body: PatchLeaveReq) => {
+        if(!req.user) return res.sendStatus(400);
+
+        const group = await GroupEntity.findOne({where: {id: body.groupId}, relations: ["users"]});
+
+        if(!group) return res.sendStatus(400);
+        
+        if(!removeUserFromGroup(req.user.id, group)) return res.sendStatus(400);
+
+        await GroupEntity.save(group);
+
+        res.sendStatus(200);
+      }
+      pipe(PatchLeaveReq.decode(req.body), fold(onLeft, onRight));
+    });
+  }
+
+  private patchAddToGroup(){
+    const PatchAddReq = t.type({
+      userId: t.number,
+      groupId: t.number,
+    });
+    type PatchAddReq = t.TypeOf<typeof PatchAddReq>;
+
+    this.router.patch("/add", (req, res, next) => {
+      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
+      const onRight = async (body: PatchAddReq) => {
+        if(!req.user) return res.sendStatus(400);
+
+        const group = await GroupEntity.findOne({where: {id: body.groupId}, relations: ["users"]});
+        if(!group) return res.sendStatus(400);
+
+        if (GroupEntity.isUserInGroup(req.user.id, group)) return res.sendStatus(400);
+        
+        const user = await UserEntity.findOne({where: {id: req.user.id}});
+        if(!user) return res.sendStatus(400);
+
+        group.users.push(user);
+        const reGroup = await GroupEntity.save(group);
+
+        return res.send(reGroup);
+      }
+
+      pipe(PatchAddReq.decode(req.body), fold(onLeft, onRight));
+    })
   }
 }
