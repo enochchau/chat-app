@@ -8,6 +8,7 @@ import {
   UpdateDateColumn
 } from "typeorm";
 import { GroupEntity } from "./group";
+import { UserEntity } from "./user";
 
 @Entity()
 export class MessageEntity extends BaseEntity{
@@ -16,6 +17,9 @@ export class MessageEntity extends BaseEntity{
 
   @Column()
   message: string;
+
+  @Column()
+  timestamp: Date;
 
   @CreateDateColumn()
   created: Date;
@@ -26,13 +30,12 @@ export class MessageEntity extends BaseEntity{
   @Column()
   groupId: number;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => GroupEntity, group => group.messages)
   group: GroupEntity;
 
-  public static addMessage(groupId: number, message: string){
-    const msg = new MessageEntity();
-    msg.groupId = groupId;
-    msg.message = message;
-    return this.save(msg);
-  }
+  @ManyToOne(() => UserEntity, user => user.messages)
+  user: UserEntity;
 }

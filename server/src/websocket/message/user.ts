@@ -15,14 +15,14 @@ const GenericMessage = <C extends t.Mixed>(codec: C) =>
   });
 
 const ChatPayload = t.type({
-  timestamp: tt.date,
+  timestamp: tt.DateFromISOString,
   message: t.string,
   groupId: t.number,
   userId: t.number,
 });
 
 const AuthPayload = t.type({
-  timestamp: tt.date,
+  timestamp: tt.DateFromISOString,
   groupId: t.number,
   token: t.string,
 });

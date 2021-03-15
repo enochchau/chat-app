@@ -1,6 +1,8 @@
 import WebSocket from "ws"
 import { ChatGroup, GroupTracker } from './tracker';
 
+import { MessageEntity } from '../entity/message';
+
 import { jwtToJwtUser } from '../auth/jwt';
 import { WsAuthenticator } from './auth';
 
@@ -97,7 +99,7 @@ export class WsHandler {
   }
 
 //--------------------- When a new chat message is sent out
-  public onChat(message: ChatMessage){
+  public async onChat(message: ChatMessage){
     const isAuthed = (): boolean => !(this.id.group === -1 || this.id.user === -1);
     const dispersePayload = (group: ChatGroup) => {
       group.forEach( ws => {
@@ -109,8 +111,19 @@ export class WsHandler {
       const group = this.getGroup(this.id.group);
 
       if (group) {
+        // logg the message into the database
+        const loggedMsg = new MessageEntity();
+        loggedMsg.timestamp = message.payload.timestamp;
+        loggedMsg.userId = message.payload.userId;
+        loggedMsg.groupId = message.payload.groupId;
+        loggedMsg.message = message.payload.message;
+        const reMsg = await MessageEntity.save(loggedMsg);
+
+        // send out the logged message
+        // the databse is the single source of truth
+        message.payload = reMsg;
+
         dispersePayload(group);
-//TODO!!!      // LOG MESSAGE HERE
       } else this.ws.send(JSON.stringify(ServerMessage.badRequest()));
     } else this.ws.send(JSON.stringify(ServerMessage.notAuthenticated()));
   }
