@@ -17,7 +17,7 @@ import { LeftPanel } from './leftpanel';
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 // websocket message interfaces
-import { RxChatMessage } from '../../api/validators/websocket';
+import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // api
 import { WSURL } from '../../api/api';
@@ -81,43 +81,70 @@ export const ChatPage = () => {
     setToggleInfo(!toggleInfo);
   }
 
-  const handleNewMessage = (newMessage: RxChatMessage) => {
-
-    const onLeft = (errors: t.Errors) => console.error("Bad rx at websocket", errors);
-    const onRight = (newMessage: RxChatMessage) => {
-      // messages are recieved as strings but must be displayed as HTML
-      const html = parseStringToHtml(newMessage.payload.message);
-
-      const sender = connectedUsers.get(newMessage.payload.userId);
-      if(sender){
-        const displayableMessage = createDisplayableMessage(newMessage.payload.userId, sender, html, newMessage);
-        const updatedMessages = [...messages];
-        // array is displayed backwards, later messages should come first
-        updatedMessages.unshift(displayableMessage);
-        setMessages(updatedMessages);
-      } else {
-        // do a fetch request to get the data since we've evidently lost it
-      }
-    }
-    // check the message here
-    pipe(RxChatMessage.decode(newMessage), fold(onLeft, onRight));
-  }
-
+  // WEBSOCKET stuff happens here
   React.useEffect(() => {
-    function unmount(){
-      if(ws.current !== null){
-        ws.current.close();
-      }
+    function disconnect(){
+      if(ws.current !== null) ws.current.close();
     }
 
     ws.current = new WebSocket(WSURL);
 
-    if(!groupId) return unmount();
+    if(!groupId) {
+      console.log('No groupId url parameter detected. Unable to open websocket.');
+      return disconnect();
+    }
     const authGroupId = parseInt(groupId);
 
     const token = getToken();
-    if(!token) return unmount();
+    if(!token) {
+      console.log('No token found. Unable to open websocket.');
+      return disconnect();
+    }
 
+    // setup the message handler
+    ws.current.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+
+      const onBadMessage = (errors: t.Errors) => {
+        console.log('Server message validation error: ', errors);
+        // all message validation failed.
+        console.log("Unable to validate recieved message at websocket.");
+      }
+      const handleServerMessage = (message: ServerMessage) => {
+        console.log('Server Message: ', message)
+      }
+
+      // if ChatMessage decode fails, pipe into ServerMessage
+      const tryServerMessage = (errors: t.Errors) => {
+        console.log('Chat message validation error: ', errors);
+        pipe(ServerMessage.decode(message), fold(onBadMessage, handleServerMessage));
+      }
+
+      const handleNewMessage = (message: RxChatMessage) => {
+        const insertIntoMessageList = (sender: ConnectedUser) => {
+          const displayableMessage = createDisplayableMessage(message.payload.userId, sender, html, message);
+          const updatedMessages = [...messages];
+          // array is displayed backwards, later messages should come first
+          updatedMessages.unshift(displayableMessage);
+          setMessages(updatedMessages);
+        }
+
+        console.log("Chat Message: ", message);
+        // messages are recieved as strings but must be displayed as HTML
+        const html = parseStringToHtml(message.payload.message);
+        const sender = connectedUsers.get(message.payload.userId);
+
+        if(sender){
+          insertIntoMessageList(sender);
+        } else {
+          // do a fetch request to get the data since we've evidently lost it
+        }
+      }
+      // start here!
+      pipe(RxChatMessage.decode(message), fold(tryServerMessage, handleNewMessage));
+    }
+
+    // send the first message to get authenticated
     const authMessage: AuthMessage = {
       topic: "auth",
       payload: {
@@ -128,23 +155,19 @@ export const ChatPage = () => {
     }
     ws.current.send(JSON.stringify(authMessage));
 
-    return unmount();
-  }, [])
+    // disconnect from WS on unmount
+    return disconnect();
+  }, []);
 
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
     const newMessage = processSendMessageEvent(e, "chat", storeState.id, 33);
-    if(newMessage) {
-
+    if(newMessage && ws.current) {
+      ws.current.send(JSON.stringify(newMessage));
     }
-
-      handleNewMessage(mockMessage);
-      setTimeout(() => {handleNewMessage(RxDemoMessage)}, 500);
-
-      // reset the chat box
-      e.currentTarget.textContent = "";
-    }
+    // reset the chat box
+    e.currentTarget.textContent = "";
   }
 
   return(
