@@ -1,5 +1,3 @@
-import * as React from "react";
-
 export type NodeTypes = "[object Text]" | "[object HTMLBRElement]"
 
 // helper function for countNodeChildren

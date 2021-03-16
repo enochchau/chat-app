@@ -1,29 +1,22 @@
 import { DisplayableMessage } from 'component/chat/messagelist';
-import { ChatMessage, ServerMessage } from './validators/websocket';
+import { RxChatMessage, ServerMessage } from './validators/websocket';
 
-export const rxFriendMessage: ChatMessage ={
-  topic: "chat friend",
+export const RxDemoMessage: RxChatMessage = {
+  topic: "chat",
   payload: {
-    chatId: 33,
     timestamp: new Date(),
     message: "Some chat message here.",
+    groupId: 33,
     userId: 2,
+    id: 2,
+    created: new Date(),
+    updated: new Date(),
   }
 }
 
-export const rxGroupMessage: ChatMessage = {
-  topic: 'chat group',
-  payload: {
-    chatId: 33,
-    timestamp: new Date(),
-    message: "some group chat message",
-    userId: 2,
-  }
-}
-
-export const demoDisplayMessage: DisplayableMessage = {
-  userId: 2,
+export const DisplayDemoMessage: DisplayableMessage = {
+  userId: 1,
+  name: "Bobby user",
+  message: "Hello there fellow human.",
   timestamp: new Date(),
-  name: "Hi Me 5Cents",
-  message: "Hello there ",
 }

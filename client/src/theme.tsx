@@ -1,4 +1,4 @@
-import { ComponentStyleConfig } from '@chakra-ui/react'
+import { ComponentMultiStyleConfig, ComponentStyleConfig } from '@chakra-ui/react'
 export const Message: ComponentStyleConfig = {
   parts: ["message", "text", "sideButtons"],
   baseStyle: {
@@ -72,6 +72,22 @@ export const Tooltip: ComponentStyleConfig = {
   },
   variants: {
     sideMsgButton: {
+    }
+  }
+}
+
+export const Form: ComponentStyleConfig = {
+  parts: ["form", "title", "altLink"],
+  baseStyle: {
+    form: {
+      padding: "20px",
+      boxShadow: "base"
+    },
+    title: {
+      size: "lg",
+    },
+    altLink: {
+      fontSize:"xs"
     }
   }
 }

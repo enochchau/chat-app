@@ -3,7 +3,8 @@ import {
   Center,
   chakra, 
   Heading, 
-  VStack
+  VStack,
+  useMultiStyleConfig,
 } from '@chakra-ui/react';
 import { Link } from '../route';
 
@@ -12,21 +13,23 @@ interface FormProps extends React.FormHTMLAttributes<HTMLFormElement>{
   title?: string;
   altLink?:string;
   linkText?:string;
+  size?: string;
+  variant? : string;
 }
 
-export const Form = ({children, title, altLink, linkText, ...rest}: FormProps) => {
+export const Form = ({children, title, altLink, linkText, size, variant, ...rest}: FormProps) => {
+  const styles = useMultiStyleConfig("Form", {size, variant})
   return(
     <chakra.form 
       {...rest}
-      padding="20px"
-      boxShadow="base"
+      sx={styles.form}
     >
       <VStack align="stretch">
-        {title && <Heading size="lg">{title}</Heading>}
+        {title && <Heading sx={styles.title}>{title}</Heading>}
         {children}
         {altLink && linkText && 
           <Center>
-            <Link fontSize="xs" to={altLink}>{linkText}</Link>
+            <Link sx={styles.altLink} to={altLink}>{linkText}</Link>
           </Center>
         }
       </VStack>

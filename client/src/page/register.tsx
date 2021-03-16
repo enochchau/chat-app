@@ -7,7 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 
 import * as Auth from '../component/auth';
 import axios from 'axios';
-import { REGISTER } from '../api';
+import { REGISTER } from '../api/api';
 
 import { BadRegister, GoodRegister, ServerError } from '../component/toast';
 import { Redirect } from 'react-router-dom';

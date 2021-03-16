@@ -16,10 +16,6 @@ const RegisterJson = t.type({
 });
 type RegisterJson = t.TypeOf<typeof RegisterJson>;
 
-function isEmail(email: string): boolean{
-  const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return regex.test(email.toLowerCase());
-}
 
 const JWTstrategy = passportJWT.Strategy;
 const LocalStrategy = passportLocal.Strategy;
@@ -32,6 +28,7 @@ export class PassportStrategy {
     this.handleJwt();
   }
 
+
   private static register() {
     passport.use("register", new LocalStrategy(
       {usernameField: 'email', passwordField: 'password', passReqToCallback: true},
@@ -42,13 +39,25 @@ export class PassportStrategy {
           if(user) return true;
           return false;
         }
+        const isEmail = (email: string): boolean => {
+          const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return regex.test(email.toLowerCase());
+        }
+        const isPassword = (password: string): boolean => password.length >= 6;
+        const isName = (username: string): boolean => {
+          // https://stackoverflow.com/questions/2385701/regular-expression-for-first-and-last-name
+          const regex = /^[\w'\-,.][^0-9_!¡?÷?¿/\\+=@#$%ˆ&*(){}|~<>;:[\]]{2,}$/;
+          return regex.test(username);
+        }
 
         const onLeft = (errors: t.Errors) => { return done(null, false, {message: "Invalid json recieved."}); }
         const onRight = async (body: RegisterJson) => {
-          if(!isEmail(body.email)) return done(null, false, {message: "That is not a valid email address."});
+          if(!isEmail(username)) return done(null, false, {message: "That is not a valid email address."});
+          if(!isPassword(password)) return done(null, false, {message: "Your password must be at least 6 characters."});
+          if(!isName(body.name)) return done(null, false, {message: "Special characters are not allowed in your name."})
 
           try{
-            if(await doesUserExist()) return done(null, false, {message: "That username is already taken."});
+            if(await doesUserExist()) return done(null, false, {message: "That email is already being used."});
 
             let newUser = new UserEntity();
             newUser.email = username;
@@ -104,7 +113,10 @@ export class PassportStrategy {
 
   private static handleJwt(){
     passport.use( new JWTstrategy(
-      {secretOrKey: config.SECRETKEY, jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken()},
+      {
+        secretOrKey: config.SECRETKEY, 
+        jwtFromRequest: passportJWT.ExtractJwt.fromAuthHeaderAsBearerToken()
+      },
       async (token, done) => {
         try{
           const user = await UserEntity.findOne({where: {id: token.user.id}});
