@@ -93,6 +93,11 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
 
 # Tests
 
+## Todo
+
+1. Get all the tests to run together.
+1. Disconnect entity testing from requiring a seeded database
+
 ### Databse testing
 
 - [ ] Per Entity Testing

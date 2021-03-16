@@ -10,16 +10,18 @@ import { MessageList } from '../component/chat/messagelist';
 import { processSendMessageEvent } from '../component/chat/chatinput';
 import  { parseStringToHtml } from '../component/chat/htmlchatmessage';
 
-import { rxFriendMessage, rxGroupMessage, demoDisplayMessage } from '../api/demodata';
-import { TxChatMessage, RxChatMessage, ServerMessage } from '../api/validators/websocket';
+import { RxChatMessage } from '../api/validators/websocket';
+import { RxDemoMessage, DisplayDemoMessage } from '../api/demodata';
 import { DisplayableMessage } from '../component/chat/messagelist/index';
 
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 
+import { WSURL } from '../api/api';
 import { BottomPanel } from '../component/panel/bottompanel';
 
+// demo data
 type ConnectedUserTracker = Map<number, ConnectedUser>
 const demoNameTracker = new Map();
 demoNameTracker.set(-1,{name:"Demo User"});
@@ -31,7 +33,7 @@ type ConnectedUser = {
 };
 
 
-function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, htmlMessage: React.ReactNode, message: ChatMessage){
+function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, htmlMessage: React.ReactNode, message: RxChatMessage){
   return {
     userId: userId,
     name: connectedUser.name,
@@ -46,7 +48,8 @@ function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, 
 // the middle box should have flex
 export const ChatPage = () => {
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-  const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([demoDisplayMessage, demoDisplayMessage, demoDisplayMessage]);
+  const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([DisplayDemoMessage, DisplayDemoMessage, DisplayDemoMessage]);
+  const ws = React.useRef<WebSocket | null>(null);
 
   // this map should be populated when the user enters a new chat room
   // use the REST API
@@ -80,6 +83,15 @@ export const ChatPage = () => {
     pipe(RxChatMessage.decode(newMessage), fold(onLeft, onRight));
   }
 
+  React.useEffect(() => {
+    ws.current = new WebSocket(WSURL);
+    return function unmount(){
+      if(ws.current !== null){
+        ws.current.close();
+      }
+    }
+  }, [])
+
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
@@ -100,7 +112,7 @@ export const ChatPage = () => {
       }
 
       handleNewMessage(mockMessage);
-      // setTimeout(() => {handleNewMessage(rxFriendMessage)}, 500);
+      setTimeout(() => {handleNewMessage(RxDemoMessage)}, 500);
 
       // reset the chat box
       e.currentTarget.textContent = "";

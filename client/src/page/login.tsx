@@ -6,7 +6,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import axios from 'axios';
-import { LOGIN } from '../api';
+import { LOGIN } from '../api/api';
 import { decodeToJwtUser, saveToken } from '../api/token';
 import { StoreContext } from '../store';
 

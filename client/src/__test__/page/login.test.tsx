@@ -9,7 +9,7 @@ import { render, fireEvent, screen, waitFor } from "../test-utils";
 import { LoginPage } from '../../page/login';
 import { testUser, handler } from '../testapi';
 
-import { URL, LOGIN } from '../../api/index';
+import { URL, LOGIN } from '../../api/api';
 
 describe("<LoginPage/>", () => {
 
