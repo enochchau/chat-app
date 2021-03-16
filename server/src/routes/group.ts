@@ -144,6 +144,6 @@ export class GroupRouter {
       }
 
       pipe(PatchAddReq.decode(req.body), fold(onLeft, onRight));
-    })
+    });
   }
 }

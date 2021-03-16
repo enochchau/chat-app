@@ -21,7 +21,11 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
 - [ ] Add Friends
 - [ ] Create Groups
 - [ ] Chat page
-    - For text input, use overflow-wrap
+    - [ ] handle incoming websocket messages
+        - [x] handle chat messages
+        - [ ] handle server messages
+    - [x] handle outgoing websocket messages
+    - [ ] get group meta data
 - [ ] Remove Demo user placeholder data
 - [ ] User dashboard for changing user information (i.e. Name and password)
 
@@ -55,6 +59,8 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
     - many to many with users
 * Message
     - many to one with groups
+
+- [ ] Create an event handler on the group to update the `updated` column whenever a new message is created that is associated with that group.
 
 ## Chat websocket
 

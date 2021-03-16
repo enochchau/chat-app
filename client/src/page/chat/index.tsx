@@ -20,7 +20,7 @@ import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // api
-import { WSURL } from '../../api/api';
+import { WSURL, axiosAuth } from '../../api/api';
 import { AuthMessage } from '../../api/validators/websocket';
 // router
 import { useParams } from 'react-router';
@@ -143,6 +143,15 @@ export const ChatPage = () => {
       // start here!
       pipe(RxChatMessage.decode(message), fold(tryServerMessage, handleNewMessage));
     }
+
+    // get group meta data
+    // todo
+    axiosAuth.get('/api/group', {
+      params: {
+        count: 15,
+        date: new Date(),
+      }
+    })
 
     // send the first message to get authenticated
     const authMessage: AuthMessage = {

@@ -107,4 +107,23 @@ export class UserRouter {
       pipe(EmailReq.decode(req.body), fold(onLeft, onRight));
     });
   }
+
+  private getUser(){
+    const UserReq = t.type({
+      userId: t.number
+    });
+    type UserReq = t.TypeOf<typeof UserReq>;
+    this.router.get('/', (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
+      const onRight = async (body: UserReq) => {
+        const user = await UserEntity.findOne({where: {id: body.userId}});
+        if(!user) return res.sendStatus(400);
+
+        res.json(user);
+      }
+
+      pipe(UserReq.decode(req.body), fold(onLeft, onRight));
+    })
+  }
 }
