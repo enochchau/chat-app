@@ -7,7 +7,7 @@ type ACTIONTYPE =
 // REMEBER TO REMOVE THIS LATER
 // initial reducer state
 const initialState = {
-  username: 'demo_user',
+  email: 'demo_user@demo.com',
   id: -1,
   name: 'demo name',
   avatar: "", // currently unused
@@ -22,7 +22,7 @@ export const StoreContext = React.createContext<{
 function reducer(state:typeof initialState, action:ACTIONTYPE){
   switch(action.type){
     case 'store current user':
-      return {...state, username: action.payload.username, id: action.payload.id, name: action.payload.name};
+      return {...state, email: action.payload.email, id: action.payload.id, name: action.payload.name};
     default: 
       return state;
   }

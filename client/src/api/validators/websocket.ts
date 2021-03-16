@@ -6,12 +6,12 @@ const ChatTopics = t.union([
   t.literal('auth'),
 ]);
 export type ChatTopics = t.TypeOf<typeof ChatTopics>;
+
 const ServerTopics = t.union([
   t.literal('okay'),
   t.literal('error')
 ]);
 export type ServerTopics = t.TypeOf<typeof ServerTopics>;
-
 
 export const RxChatMessage = t.type({
   topic: ChatTopics,
@@ -44,6 +44,14 @@ export const ServerMessage = t.type({
   })
 })
 
+export type AuthMessage = {
+  topic: "auth",
+  payload: {
+    timestamp: Date,
+    groupId: number,
+    token: string
+  }
+}
 export type RxChatMessage= t.TypeOf<typeof RxChatMessage>;
 export type RxChatPayload = RxChatMessage["payload"];
 export type ServerMessage = t.TypeOf<typeof ServerMessage>;

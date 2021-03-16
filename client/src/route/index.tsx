@@ -14,7 +14,7 @@ export const Routes = () => {
   return(
     <Router>
       <Switch>
-        <PrivateRoute path="/chat">
+        <PrivateRoute path="/chat/:groupId">
           <ChatPage/>
         </PrivateRoute>
         <Route path="/login">

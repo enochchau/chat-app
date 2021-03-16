@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { ChatInput } from '../chat/chatinput'
+import { ChatInput } from '../../component/chat/chatinput'
 import { Flex, Box } from '@chakra-ui/react';
-import { ClickOutside } from '../clickoutside';
-import { Picker } from '../chat/emojipicker';
-import { SmileIcon } from '../icon';
+import { ClickOutside } from '../../component/clickoutside';
+import { Picker } from '../../component/chat/emojipicker';
+import { SmileIcon } from '../../component/icon';
 import { BaseEmoji } from 'emoji-mart';
 
 interface BottomPanelProps {

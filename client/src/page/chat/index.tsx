@@ -1,38 +1,39 @@
 import * as React from 'react';
-import { StoreContext } from '../store';
-import { Box, Flex } from '@chakra-ui/react';
-import { Link } from '../component/route';
-
-import { SidePanel } from '../component/panel/sidepanel';
-import { TopAvatarPanel } from '../component/panel/toppanel';
-
-import { MessageList } from '../component/chat/messagelist';
-import { processSendMessageEvent } from '../component/chat/chatinput';
-import  { parseStringToHtml } from '../component/chat/htmlchatmessage';
-
-import { RxChatMessage } from '../api/validators/websocket';
-import { RxDemoMessage, DisplayDemoMessage } from '../api/demodata';
-import { DisplayableMessage } from '../component/chat/messagelist/index';
-
+// store
+import { StoreContext } from '../../store';
+// validators
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
+// chakra
+import { Box, Flex } from '@chakra-ui/react';
+// page panel
+import { SidePanel } from '../../component/panel/sidepanel';
+import { TopAvatarPanel } from './toppanel';
+import { MessageList } from '../../component/chat/messagelist';
+import { BottomPanel } from './bottompanel';
+import { LeftPanel } from './leftpanel';
+// processing functions
+import { processSendMessageEvent } from '../../component/chat/chatinput';
+import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
+// websocket message interfaces
+import { RxChatMessage } from '../../api/validators/websocket';
+import { DisplayableMessage } from '../../component/chat/messagelist/index';
+// api
+import { WSURL } from '../../api/api';
+import { AuthMessage } from '../../api/validators/websocket';
+// router
+import { useParams } from 'react-router';
+import { getToken } from 'api/token';
 
-import { WSURL } from '../api/api';
-import { BottomPanel } from '../component/panel/bottompanel';
 
-// demo data
 type ConnectedUserTracker = Map<number, ConnectedUser>
-const demoNameTracker = new Map();
-demoNameTracker.set(-1,{name:"Demo User"});
-demoNameTracker.set(2, {name:"Demo Friend"});
-
 type ConnectedUser = {
   name: string,
   avatar?: string,
 };
 
-
+// When a user connects to a room
 function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, htmlMessage: React.ReactNode, message: RxChatMessage){
   return {
     userId: userId,
@@ -42,21 +43,40 @@ function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, 
     message: htmlMessage,
   } as DisplayableMessage
 }
-// <Picker
-// />
+
+interface Params{
+  groupId?: string
+}
+
+// LEFT PANEL
+// a list of potential groups that a user can join.
+
+// CENTRAL CHAT APP
+// 1. the user clicks on the side bar to pick a group
+// 2. they are redirected to the central chat component
+// 3. a GET request is sent to retrieve the group's meta data (names, avatars, etc.)
+// 4. The websocket is authenticated
+// 5. the user can begin chatting
+
+// RIGHT PANEL
+// shows meta data on the current group
 
 // the middle box should have flex
 export const ChatPage = () => {
-  const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-  const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([DisplayDemoMessage, DisplayDemoMessage, DisplayDemoMessage]);
+  const { storeState, storeDispatch} = React.useContext(StoreContext);
+  // messages to be displayed
+  const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
+
+  // websocket
   const ws = React.useRef<WebSocket | null>(null);
 
+  // the groupId the user is requesting
+  const { groupId } = useParams<Params>(); 
   // this map should be populated when the user enters a new chat room
   // use the REST API
-  const [connectedUsers, setConnectedUsers] = React.useState<ConnectedUserTracker>(demoNameTracker || new Map());
+  const [connectedUsers, setConnectedUsers] = React.useState<ConnectedUserTracker>(new Map());
 
-  const { storeState, storeDispatch} = React.useContext(StoreContext);
-
+  const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
   const handleInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     setToggleInfo(!toggleInfo);
   }
@@ -84,12 +104,31 @@ export const ChatPage = () => {
   }
 
   React.useEffect(() => {
-    ws.current = new WebSocket(WSURL);
-    return function unmount(){
+    function unmount(){
       if(ws.current !== null){
         ws.current.close();
       }
     }
+
+    ws.current = new WebSocket(WSURL);
+
+    if(!groupId) return unmount();
+    const authGroupId = parseInt(groupId);
+
+    const token = getToken();
+    if(!token) return unmount();
+
+    const authMessage: AuthMessage = {
+      topic: "auth",
+      payload: {
+        timestamp: new Date(),
+        groupId: authGroupId,
+        token: token,
+      }
+    }
+    ws.current.send(JSON.stringify(authMessage));
+
+    return unmount();
   }, [])
 
   // send message here essentially
@@ -98,18 +137,7 @@ export const ChatPage = () => {
     const newMessage = processSendMessageEvent(e, "chat", storeState.id, 33);
     if(newMessage) {
 
-      const mockMessage: RxChatMessage = {
-        topic: newMessage.topic,
-        payload: {
-          timestamp: newMessage.payload.timestamp,
-          groupId: newMessage.payload.groupId,
-          userId: newMessage.payload.userId,
-          message: newMessage.payload.message,
-          id: 234,
-          created: new Date(),
-          updated: new Date()
-        }
-      }
+    }
 
       handleNewMessage(mockMessage);
       setTimeout(() => {handleNewMessage(RxDemoMessage)}, 500);
@@ -132,14 +160,13 @@ export const ChatPage = () => {
     >
 
       <Box>
-        <SidePanel width={{sm: '84px', md:"360px"}} boxShadow="base">
-          <Box height="1300px">
-            <Link to="/">Home</Link>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-            <Link to="/chat">Chat</Link>
-          </Box>
-        </SidePanel>
+        <LeftPanel
+          username={storeState.name}
+          avatarSrc={storeState.avatar}
+          moreOptionsClick={(e) => {return}}
+          newGroupClick={(e) => {return}}
+          groupData={new Array()}
+        />
       </Box>
 
       <Flex 
@@ -149,7 +176,7 @@ export const ChatPage = () => {
         height="100vh"
       >
         <Box>
-          <TopAvatarPanel name="Enoch" onInfoClick={handleInfoClick}/>
+          <TopAvatarPanel username={storeState.name} onInfoClick={handleInfoClick}/>
         </Box>
         <Box
           overflowY="auto"

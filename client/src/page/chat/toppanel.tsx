@@ -1,13 +1,13 @@
 import { Heading, Avatar, Flex, HStack, IconButton } from '@chakra-ui/react';
-import { InfoIcon } from '../icon';
+import { InfoIcon } from '../../component/icon';
 import * as React from 'react';
 
 interface TopAvatarPanelProps {
-  name: string;
+  username: string;
   avatarSrc?: string;
   onInfoClick: React.MouseEventHandler<HTMLButtonElement>;
 }
-export const TopAvatarPanel = ({name, avatarSrc, onInfoClick}: TopAvatarPanelProps) => {
+export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPanelProps) => {
   return(
     <Flex
       align="center"
@@ -16,9 +16,9 @@ export const TopAvatarPanel = ({name, avatarSrc, onInfoClick}: TopAvatarPanelPro
       boxShadow="base"
     >
       <HStack padding="5px">
-        <Avatar name={name} src={avatarSrc} size="sm"/>
+        <Avatar name={username} src={avatarSrc} size="sm"/>
         <Heading size="sm">
-          {name}
+          {username}
         </Heading>
       </HStack>
       <HStack padding="5px">
