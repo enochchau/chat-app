@@ -1,12 +1,18 @@
 import * as React from 'react';
-import { Box } from '@chakra-ui/react';
+import { Box, useStyleConfig } from '@chakra-ui/react';
 
-export const SidePanel:typeof Box = ({children, ...rest}) => {
+interface SidePanelProps{
+  children?: React.ReactNode,
+  size?: string,
+  variant?: string,
+}
+export const SidePanel = ({children, size, variant}: SidePanelProps) => {
+  const styles = useStyleConfig("SidePanel", {size, variant});
   return(
     <Box 
       maxHeight="100vh" 
       overflowY="auto"
-      {...rest}
+      sx={styles}
     >
       {children}
     </Box>

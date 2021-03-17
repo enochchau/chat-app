@@ -91,3 +91,23 @@ export const Form: ComponentStyleConfig = {
     }
   }
 }
+
+export const SidePanel: ComponentStyleConfig = {
+  baseStyle: {
+    maxHeight: "100vh",
+    overflowY: "auto"
+  },
+  variants:{
+    leftPanel: {
+      width: {
+        sm: '84px',
+        md: '360px'
+      },
+      boxShadow: "base"
+    },
+    rightPanel: {
+      width: "320px",
+      boxShadow: "base"
+    }
+  }
+}

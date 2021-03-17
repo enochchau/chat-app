@@ -6,7 +6,13 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { Routes } from './route/index';
 import { createBreakpoints } from "@chakra-ui/theme-tools";
 import { extendTheme } from "@chakra-ui/react";
-import { Icon, Message, Tooltip, Form } from './theme'
+import { 
+  Icon, 
+  Message, 
+  Tooltip, 
+  Form, 
+  SidePanel 
+} from './theme'
 
 // there is only 1 break point for the left panel
 const breakpoints = createBreakpoints({
@@ -19,7 +25,11 @@ const breakpoints = createBreakpoints({
 const theme = extendTheme({
   breakpoints,
   components: {
-    Icon, Message, Tooltip, Form
+    Icon, 
+    Message, 
+    Tooltip, 
+    Form,
+    SidePanel
   }
 });
 

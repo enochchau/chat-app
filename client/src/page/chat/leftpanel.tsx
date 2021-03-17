@@ -22,7 +22,7 @@ export const LeftPanel = ({
   groupData,
 }: LeftPanelProps) => {
   return(
-    <SidePanel width={{sm: '84px', md:"360px"}} boxShadow="base">
+    <SidePanel variant="leftPanel">
       <Flex
         flexDir="row"
       >

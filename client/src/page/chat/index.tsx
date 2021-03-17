@@ -228,7 +228,7 @@ export const ChatPage = () => {
 
       { toggleInfo && 
         <Box>
-          <SidePanel width="320px" boxShadow="base">
+          <SidePanel variant="rightPanel">
             <Box height="1300px"></Box>
           </SidePanel>
         </Box>
