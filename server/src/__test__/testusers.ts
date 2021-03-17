@@ -15,7 +15,7 @@ export class TestUserSetup{
 
     for (let i=0; i<n; i++){
       let user: TestUser = {
-        name: "Test User" + i.toString(),
+        name: "Test User",
         email: `test${(random? Math.floor(Math.random()*Math.floor(9999999999)) : i)}@test.com`,
         password: "test123",
         jwt: "",

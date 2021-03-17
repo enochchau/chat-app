@@ -20,7 +20,7 @@ export class UserRouter {
     this.patchName();
     this.patchEmail();
     this.getUser();
-    this.getManyUsers();
+    this.getSearchUsers();
   }
 
   private patchPassword(){
@@ -131,7 +131,7 @@ export class UserRouter {
     })
   }
 
-  private getManyUsers(){
+  private getSearchUsers(){
     const ManyQuery = t.type({
       count: tt.NumberFromString,
       search: t.string,

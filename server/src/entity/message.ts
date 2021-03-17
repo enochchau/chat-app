@@ -47,4 +47,26 @@ export class MessageEntity extends BaseEntity{
       .take(count)
       .getMany();
   }
+
+// `
+// SELECT * FROM "message_entity" "m"
+// WHERE "m"."timestamp" IN
+// (SELECT MAX(timestamp) FROM "message_entity" "m"
+// GROUP BY "m"."groupId")
+// AND "m"."groupId" IN (1,2,3);
+// `
+  public static findLastMessageOfGroupIds(groupIds: Array<number>){
+    return this.createQueryBuilder("message")
+      .where( qb => {
+        const subQuery = qb.subQuery()
+          .select("MAX(message.timestamp)")
+          .from(MessageEntity, "message")
+          .groupBy("message.groupId")
+          .getQuery();
+        return "message.timestamp IN " + subQuery;
+      })
+      .andWhere("message.groupId IN (:...ids)", {ids: groupIds})
+      .getMany();
+  }
 }
+

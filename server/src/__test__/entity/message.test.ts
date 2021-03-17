@@ -20,7 +20,6 @@ describe("Message Entity", () => {
   test("Create 1 messages between user1 and user2 through group1", async () => {
     const user1 = await UserEntity.findOne({where:{id:1}, relations: ["groups"]});
     const user2 = await UserEntity.findOne({where:{id:2}, relations: ["groups"]});
-    console.log(user1, user2);
     
     if(!user1 || !user2) throw Error("user1 or user2 was not found.");
 
@@ -34,18 +33,15 @@ describe("Message Entity", () => {
     newMsg.timestamp = timestamp;
 
     const reMsg = await MessageEntity.save(newMsg);
-    console.log(reMsg);
     expect(reMsg.userId).toBe(user1.id);
     expect(reMsg.message).toBe('hello there!');
     expect(reMsg.timestamp).toBe(timestamp);
-    expect(reMsg.id).toBe(1);
   });
 
   test("create 10 msg and retrieve 5 msg between user1 and user2 on group1", async () => {
     const COUNT = 5;
     const user1 = await UserEntity.findOne({where:{id:1}, relations: ["groups"]});
     const user2 = await UserEntity.findOne({where:{id:2}, relations: ["groups"]});
-    console.log(user1, user2);
     
     if(!user1 || !user2) throw Error("user1 or user2 was not found.");
 
@@ -66,4 +62,17 @@ describe("Message Entity", () => {
 
     expect(messages.length).toBe(COUNT);
   });
+
+  test("find last messages of group ids", async () => {
+    const user1 = await UserEntity.findOne({
+      where: {id: 1},
+      relations: ["groups"],
+    });
+
+    expect(user1).toBeTruthy();
+    if(!user1) return;
+    const groupIds = user1?.groups.map((group) => group.id);
+    const messages = await MessageEntity.findLastMessageOfGroupIds(groupIds);
+    expect(messages[0].message).toBe('9 hello there!');
+  })
 })
