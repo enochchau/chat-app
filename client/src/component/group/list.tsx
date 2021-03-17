@@ -1,9 +1,10 @@
 import { Flex } from '@chakra-ui/react';
 import { GroupItem } from './item';
 import * as React from 'react';
+import { GroupDataArr } from '../../api/api';
 
 interface GroupListProps{
-  groupData: Array<any>; // change this later
+  groupData: GroupDataArr; // change this later
 }
 export const GroupList = ({groupData}: GroupListProps) => {
   return(

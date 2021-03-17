@@ -60,16 +60,16 @@ interface PremadeFormInputProps {
   errorMessage?: string;
 
 }
-export const UsernameFormInput = ({isInvalid, register, errorMessage}: PremadeFormInputProps) => {
+export const EmailFormInput = ({isInvalid, register, errorMessage}: PremadeFormInputProps) => {
   return(
     <FormInput
-      id="username"
-      label="Username"
+      id="email"
+      label="Email"
       isInvalid={isInvalid}
-      type="text"
-      placeholder="Username"
+      type="email"
+      placeholder="Email"
       register={register}
-      name="username"
+      name="email"
       errorMessage={errorMessage}
       icon={<UserIcon/>}
     />

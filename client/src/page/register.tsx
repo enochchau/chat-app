@@ -23,7 +23,7 @@ export const RegisterPage = () => {
 }
 
 const schema = yup.object().shape({
-  username: yup.string().required("Username is required"),
+  email: yup.string().email("Please enter a valid email.").required("Email is required."),
   password: yup.string().required("Password is required."),
   rePassword: yup.string()
     .required("Please confirm your password.")
@@ -32,13 +32,13 @@ const schema = yup.object().shape({
 })
 
 interface RegisterFormData {
-  username: string;
+  name: string;
   password: string;
   rePassword: string;
   email: string;
 }
 interface RequestData {
-  username: string;
+  name: string;
   password: string;
   email: string;
 }
@@ -58,7 +58,7 @@ const RegisterForm = () =>  {
   const onSubmit = (formData: RegisterFormData) =>{
     // reformat data!!
     const reqData: RequestData = {
-      username: formData.username,
+      name: formData.name,
       password: formData.password,
       email: formData.email,
     }
@@ -100,10 +100,10 @@ const RegisterForm = () =>  {
           icon={<FontIcon/>}
         />
 
-        <Auth.UsernameFormInput
-          isInvalid={Boolean(errors.username)}
+        <Auth.EmailFormInput
+          isInvalid={Boolean(errors.email)}
           register={register}
-          errorMessage={errors.username?.message}
+          errorMessage={errors.email?.message}
         />
         
         <Auth.PasswordFormInput

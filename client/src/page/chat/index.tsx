@@ -5,6 +5,7 @@ import { StoreContext } from '../../store';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
+import * as tt from 'io-ts-types';
 // chakra
 import { Box, Flex } from '@chakra-ui/react';
 // page panel
@@ -12,7 +13,8 @@ import { SidePanel } from '../../component/panel/sidepanel';
 import { TopAvatarPanel } from './toppanel';
 import { MessageList } from '../../component/chat/messagelist';
 import { BottomPanel } from './bottompanel';
-import { LeftPanel } from './leftpanel';
+import { GroupPanel } from './grouppanel';
+import { InfoPanel } from './infopanel';
 // processing functions
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
@@ -20,25 +22,35 @@ import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // api
-import { WSURL, axiosAuth } from '../../api/api';
+import { WSURL } from '../../api/api';
 import { AuthMessage } from '../../api/validators/websocket';
+import { 
+  fetchGroups, 
+  searchUsers,
+  GroupData,
+  GroupDataArr,
+} from '../../api/api';
 // router
 import { useParams } from 'react-router';
-import { getToken } from 'api/token';
+import { getToken } from '../../api/token';
+// use debounce for search
+import { useDebounce } from '../../util';
 
 
-type ConnectedUserTracker = Map<number, ConnectedUser>
-type ConnectedUser = {
+// users in the current group
+// caches the user data after we GET request it
+export type GroupUsers = Map<number, GroupUser>
+export type GroupUser = {
   name: string,
   avatar?: string,
 };
 
 // When a user connects to a room
-function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, htmlMessage: React.ReactNode, message: RxChatMessage){
+function createDisplayableMessage(userId: number, groupUser: GroupUser, htmlMessage: React.ReactNode, message: RxChatMessage){
   return {
     userId: userId,
-    name: connectedUser.name,
-    avatarSrc: connectedUser.avatar,
+    name: groupUser.name,
+    avatarSrc: groupUser.avatar,
     timestamp: message.payload.timestamp,
     message: htmlMessage,
   } as DisplayableMessage
@@ -46,6 +58,29 @@ function createDisplayableMessage(userId: number, connectedUser: ConnectedUser, 
 
 interface Params{
   groupId?: string
+}
+
+// handle searching
+type SEARCHACTIONTYPE = 
+  | {type: 'setSearchValue', payload: string}
+  | {type: 'setIsSearching', payload: boolean}
+  | {type: 'setSearchResults', payload: []}
+const searchInitialState = {
+  searchValue: "",
+  isSearching: false,
+  searchResults: [],
+}
+function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYPE){
+  switch(action.type){
+    case 'setSearchValue':
+      return {...state, searchValue: action.payload};
+    case 'setIsSearching':
+      return {...state, isSearching: action.payload};
+    case 'setSearchResults':
+      return {...state, searchResults: action.payload};
+    defualt: 
+      return state;
+  }
 }
 
 // LEFT PANEL
@@ -63,23 +98,64 @@ interface Params{
 
 // the middle box should have flex
 export const ChatPage = () => {
+  // websocket
+  const ws = React.useRef<WebSocket | null>(null);
+  // the groupId the user is requesting
+  const { groupId } = useParams<Params>(); 
+
   const { storeState, storeDispatch} = React.useContext(StoreContext);
   // messages to be displayed
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
+  // groups to be displayed on the group panel
+  const [groups, setGroups] = React.useState<Array<GroupData>>([]); 
+  // map for caching user data from the current group
+  const [groupUsers, setGroupUsers] = React.useState<GroupUsers>(new Map());
+  // search value in the group panel search box
+  const [searchState, searchDispatch] = React.useReducer(searchReducer, searchInitialState);
+  const debouncedSearchValue = useDebounce(searchState.searchValue, 1000);
 
-  // websocket
-  const ws = React.useRef<WebSocket | null>(null);
-
-  // the groupId the user is requesting
-  const { groupId } = useParams<Params>(); 
-  // this map should be populated when the user enters a new chat room
-  // use the REST API
-  const [connectedUsers, setConnectedUsers] = React.useState<ConnectedUserTracker>(new Map());
-
+  // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-  const handleInfoClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setToggleInfo(!toggleInfo);
-  }
+
+  // handle searching
+  React.useEffect(() => {
+    // https://usehooks.com/useDebounce/
+    if(debouncedSearchValue) {
+      searchDispatch({type: 'setIsSearching', payload: true});
+      searchUsers(debouncedSearchValue)
+        .then(res => res.data)
+        .then(data => {
+          console.log(data);
+          searchDispatch({type: 'setIsSearching', payload: false});
+        })
+        .catch(err => {
+          console.error(err)
+          searchDispatch({type: 'setIsSearching', payload: false});
+        });
+    } else {
+      searchDispatch({type: 'setSearchResults', payload: []});
+    }
+  }, [debouncedSearchValue]);
+
+  // fetch stuff on mount
+  React.useEffect(() => {
+    fetchGroups()
+      .then(res => res.data)
+      .then(data => {
+        // VALIDATE THE SHAPE OF THE GROUP DATA
+        const onLeft = (errors: t.Errors) => console.error("Bad data recieved on trying to fetch groups: ", errors);
+        const onRight = (data: GroupDataArr) => {
+          setGroups(data);
+        }
+        pipe(GroupDataArr.decode(data), fold(onLeft, onRight));
+        console.log(data);
+      })
+      .catch(err => {
+        console.error(err);
+        return [];
+      });
+
+  }, []);
 
   // WEBSOCKET stuff happens here
   React.useEffect(() => {
@@ -121,7 +197,7 @@ export const ChatPage = () => {
       }
 
       const handleNewMessage = (message: RxChatMessage) => {
-        const insertIntoMessageList = (sender: ConnectedUser) => {
+        const insertIntoMessageList = (sender: GroupUser) => {
           const displayableMessage = createDisplayableMessage(message.payload.userId, sender, html, message);
           const updatedMessages = [...messages];
           // array is displayed backwards, later messages should come first
@@ -132,7 +208,7 @@ export const ChatPage = () => {
         console.log("Chat Message: ", message);
         // messages are recieved as strings but must be displayed as HTML
         const html = parseStringToHtml(message.payload.message);
-        const sender = connectedUsers.get(message.payload.userId);
+        const sender = groupUsers.get(message.payload.userId);
 
         if(sender){
           insertIntoMessageList(sender);
@@ -144,29 +220,21 @@ export const ChatPage = () => {
       pipe(RxChatMessage.decode(message), fold(tryServerMessage, handleNewMessage));
     }
 
-    // get group meta data
-    // todo
-    axiosAuth.get('/api/group', {
-      params: {
-        count: 15,
-        date: new Date(),
+    ws.current.onopen = (event) => {
+      // send the first message to get authenticated
+      const authMessage: AuthMessage = {
+        topic: "auth",
+        payload: {
+          timestamp: new Date(),
+          groupId: authGroupId,
+          token: token,
+        }
       }
-    })
-
-    // send the first message to get authenticated
-    const authMessage: AuthMessage = {
-      topic: "auth",
-      payload: {
-        timestamp: new Date(),
-        groupId: authGroupId,
-        token: token,
-      }
-    }
-    ws.current.send(JSON.stringify(authMessage));
-
+      if(ws.current) ws.current.send(JSON.stringify(authMessage));
+    };
     // disconnect from WS on unmount
     return disconnect();
-  }, []);
+  }, [groupId]); // connect to a new chat room everytime we get a new groupid
 
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
@@ -174,7 +242,7 @@ export const ChatPage = () => {
     const newMessage = processSendMessageEvent(e, "chat", storeState.id, 33);
     if(newMessage && ws.current) {
       ws.current.send(JSON.stringify(newMessage));
-    }
+    } else console.error(`Unable to send websocket message\nWeboscket status: ${ws.current}`)
     // reset the chat box
     e.currentTarget.textContent = "";
   }
@@ -192,15 +260,16 @@ export const ChatPage = () => {
     >
 
       <Box>
-        <LeftPanel
+        <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
           moreOptionsClick={(e) => {return}}
           newGroupClick={(e) => {return}}
-          groupData={new Array()}
+          groupData={groups}
+          onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
+          searchValue={searchState.searchValue}
         />
       </Box>
-
       <Flex 
         width="100%"
         flexDir="column"
@@ -208,7 +277,7 @@ export const ChatPage = () => {
         height="100vh"
       >
         <Box>
-          <TopAvatarPanel username={storeState.name} onInfoClick={handleInfoClick}/>
+          <TopAvatarPanel username={storeState.name} onInfoClick={(e) => setToggleInfo(!toggleInfo)}/>
         </Box>
         <Box
           overflowY="auto"
@@ -226,11 +295,9 @@ export const ChatPage = () => {
         />
       </Flex>
 
-      { toggleInfo && 
+      { toggleInfo &&
         <Box>
-          <SidePanel variant="rightPanel">
-            <Box height="1300px"></Box>
-          </SidePanel>
+          <InfoPanel/>
         </Box>
       }
 

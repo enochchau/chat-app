@@ -4,23 +4,28 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
+import { GroupDataArr } from '../../api/api'
 
-interface LeftPanelProps {
+interface GroupPanelProps{
   username: string;
   avatarSrc?: string;
   moreOptionsClick: React.MouseEventHandler<HTMLButtonElement>;
   newGroupClick: React.MouseEventHandler<HTMLButtonElement>;
-  groupData: Array<any>; // replace this later
+  groupData: GroupDataArr; // replace this later
+  onSearch: React.ChangeEventHandler<HTMLInputElement>
+  searchValue: string;
 }
 
 
-export const LeftPanel = ({
+export const GroupPanel = ({
   username, 
   avatarSrc, 
   moreOptionsClick, 
   newGroupClick,
   groupData,
-}: LeftPanelProps) => {
+  onSearch,
+  searchValue
+}: GroupPanelProps) => {
   return(
     <SidePanel variant="leftPanel">
       <Flex
@@ -36,6 +41,8 @@ export const LeftPanel = ({
         onEditClick={newGroupClick}
       />
       <SearchBar
+        onChange={onSearch}
+        value={searchValue}
         placeholder={"Search Messenger"}
       />
       <GroupList

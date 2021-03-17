@@ -23,12 +23,12 @@ export const LoginPage = () => {
 }
 
 const schema = yup.object().shape({
-  username: yup.string().required("Username is required."),
+  email: yup.string().email("Please enter a valid email.").required("Email is required."),
   password: yup.string().required("Password is required.")
 });
 
 interface LoginFormData {
-  username: string;
+  email: string;
   password: string;
   rememberMe: boolean;
 }
@@ -54,7 +54,7 @@ const LoginForm = () => {
     const rememberMe = data.rememberMe;
     // reformat data to post
     const postData = {
-      username: data.username,
+      email: data.email,
       password: data.password,
     };
     // post data
@@ -92,10 +92,10 @@ const LoginForm = () => {
       altLink="/register"
       linkText="Don't have an account?"
     >
-      <Auth.UsernameFormInput
-        isInvalid={Boolean(errors.username)}
+      <Auth.EmailFormInput
+        isInvalid={Boolean(errors.email)}
         register={register}
-        errorMessage={errors.username?.message}
+        errorMessage={errors.email?.message}
       />
       
       <Auth.PasswordFormInput

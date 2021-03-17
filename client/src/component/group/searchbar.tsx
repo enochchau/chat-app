@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  chakra,
   Input, 
   InputGroup, 
   InputLeftElement 
@@ -9,8 +8,10 @@ import { SearchIcon } from '../icon';
 
 interface SearchBarProps {
   placeholder: string,
+  value: string,
+  onChange: React.ChangeEventHandler<HTMLInputElement>,
 }
-export const SearchBar = ({placeholder}: SearchBarProps) => {
+export const SearchBar = ({placeholder, value, onChange}: SearchBarProps) => {
   const [showIcon, setShowIcon] = React.useState<boolean>(true);
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -30,7 +31,7 @@ export const SearchBar = ({placeholder}: SearchBarProps) => {
     <InputGroup>
       {showIcon &&
         <InputLeftElement
-          pointEvents="none"
+          pointevents="none"
           children={<SearchIcon/>}
         />
       }
@@ -40,6 +41,8 @@ export const SearchBar = ({placeholder}: SearchBarProps) => {
         onBlur={handleBlur}
         placeholder={placeholder}
         onKeyPress={handleKeyPress}
+        onChange={onChange}
+        value={value}
       />
     </InputGroup>
   );

@@ -40,16 +40,19 @@ export const TitleBar = ({
           aria-label="Account Options"
           icon={<EllipsisVIcon/>}
           onClick={onEllipsisClick}
+          isRound
         />
         <IconButton
           aria-label="Account Options"
           icon={<GithubIcon/>}
           onClick={onGithubClick}
+          isRound
         />
         <IconButton
           aria-label="Account Options"
           icon={<EditIcon/>}
           onClick={onEditClick}
+          isRound
         />
       </HStack>
     </Flex>
