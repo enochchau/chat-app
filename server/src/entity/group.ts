@@ -107,7 +107,7 @@ export class GroupEntity extends BaseEntity{
 
   public static findGroupsOfUserId(userId: number, count: number, fromDate: Date){
     return this.createQueryBuilder("group")
-      .leftJoinAndSelect("group.users", "users")
+      .leftJoin("group.users", "users")
       .where("users.id = :id", {id: userId})
       .andWhere("group.updated <= :date", {date: fromDate})
       .orderBy("group.updated", "DESC")
@@ -127,5 +127,13 @@ export class GroupEntity extends BaseEntity{
   }
   public static isUserInGroup(userId: number, group: GroupEntity): boolean{
     return this.getUserIndexInGroup(userId, group) !== -1
+  }
+
+  public static searchGroupByName(search: string, count: number){
+    return this.createQueryBuilder("group")
+      .orderBy("groups.updated", "DESC")
+      .where("LOWER(groups.name) LIKE LOWER(:name)", {name: `${search}%`})
+      .limit(count)
+      .getMany();
   }
 }

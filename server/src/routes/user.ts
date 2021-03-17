@@ -9,6 +9,8 @@ import { UserEntity } from '../entity/user';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
+import * as tt from 'io-ts-types';
+import { GroupEntity } from '../entity/group';
 
 export class UserRouter {
   public router = express.Router();
@@ -17,6 +19,8 @@ export class UserRouter {
     this.patchPassword();
     this.patchName();
     this.patchEmail();
+    this.getUser();
+    this.getManyUsers();
   }
 
   private patchPassword(){
@@ -124,6 +128,26 @@ export class UserRouter {
       }
 
       pipe(UserReq.decode(req.body), fold(onLeft, onRight));
+    })
+  }
+
+  private getManyUsers(){
+    const ManyQuery = t.type({
+      count: tt.NumberFromString,
+      search: t.string,
+    });
+    type ManyQuery = t.TypeOf<typeof ManyQuery>;
+
+    this.router.get('/many', (req, res, next) => {
+      const onLeft = async (errors: t.Errors) => { res.status(400).json(errors) };
+
+      const onRight = async (query: ManyQuery) => {
+        const groups = await GroupEntity.searchGroupByName(query.search, query.count);
+
+        res.json(groups);
+      }
+
+      pipe(ManyQuery.decode(req.query), fold(onLeft, onRight));
     })
   }
 }

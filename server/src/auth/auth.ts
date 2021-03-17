@@ -32,10 +32,10 @@ export class PassportStrategy {
   private static register() {
     passport.use("register", new LocalStrategy(
       {usernameField: 'email', passwordField: 'password', passReqToCallback: true},
-      async (req, username:string, password:string, done) => {
+      async (req, email:string, password:string, done) => {
 
         const doesUserExist = async (): Promise<boolean> => {
-          const user = await UserEntity.findOne({ where: {email: username}});
+          const user = await UserEntity.findOne({ where: {email: email}});
           if(user) return true;
           return false;
         }
@@ -52,7 +52,7 @@ export class PassportStrategy {
 
         const onLeft = (errors: t.Errors) => { return done(null, false, {message: "Invalid json recieved."}); }
         const onRight = async (body: RegisterJson) => {
-          if(!isEmail(username)) return done(null, false, {message: "That is not a valid email address."});
+          if(!isEmail(email)) return done(null, false, {message: "That is not a valid email address."});
           if(!isPassword(password)) return done(null, false, {message: "Your password must be at least 6 characters."});
           if(!isName(body.name)) return done(null, false, {message: "Special characters are not allowed in your name."})
 
@@ -60,7 +60,7 @@ export class PassportStrategy {
             if(await doesUserExist()) return done(null, false, {message: "That email is already being used."});
 
             let newUser = new UserEntity();
-            newUser.email = username;
+            newUser.email = email;
             newUser.name = body.name;
             newUser.password = password;
 
@@ -79,10 +79,10 @@ export class PassportStrategy {
   private static login() {
     passport.use("login", new LocalStrategy(
       {usernameField: 'email', passwordField: 'password'},
-      async (username:string, password: string, done) => {
+      async (email:string, password: string, done) => {
         try {
           const user = await UserEntity.findOne({ 
-            where: {email: username},
+            where: {email: email},
             select: [
               "id",
               "password",

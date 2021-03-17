@@ -63,7 +63,7 @@ export class GroupRouter {
     const countMaxLimiter = (count: number) => count > COUNTMAX ? COUNTMAX : count;
 
     this.router.get('/', async (req, res, next) => {
-      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
+      const onLeft = async (errors: t.Errors) => res.status(400).json(errors);
 
       const onRight = async (query: GetGroupsReq) => {
         if(!req.user) return res.sendStatus(400); // theoretically this should never happen b/c it's caught by passport

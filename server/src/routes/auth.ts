@@ -29,8 +29,7 @@ export class AuthRouter {
     this.router.post('/login', (req, res, next) => {
       passport.authenticate("login", (err: null | Error, user: UserEntity, info) => { 
         if(err){
-          const error = new Error("An error occurred while logging in: " + err.message);
-          return next(error);
+          return next(err);
         }
 
         if (!user){
