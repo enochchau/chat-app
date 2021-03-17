@@ -1,6 +1,5 @@
 import express from 'express';
-
-import { MessageEntity } from '../entity/group';
+import { MessageEntity } from '../entity/message';
 
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
