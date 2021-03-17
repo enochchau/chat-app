@@ -66,6 +66,7 @@ export class MessageEntity extends BaseEntity{
         return "message.timestamp IN " + subQuery;
       })
       .andWhere("message.groupId IN (:...ids)", {ids: groupIds})
+      .orderBy("message.timestamp", "ASC")
       .getMany();
   }
 }

@@ -131,8 +131,8 @@ export class GroupEntity extends BaseEntity{
 
   public static searchGroupByName(search: string, count: number){
     return this.createQueryBuilder("group")
-      .orderBy("groups.updated", "DESC")
-      .where("LOWER(groups.name) LIKE LOWER(:name)", {name: `${search}%`})
+      .orderBy("group.updated", "DESC")
+      .where("LOWER(group.name) LIKE LOWER(:name)", {name: `${search}%`})
       .limit(count)
       .getMany();
   }

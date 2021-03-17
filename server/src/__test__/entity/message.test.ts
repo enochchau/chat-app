@@ -73,6 +73,7 @@ describe("Message Entity", () => {
     if(!user1) return;
     const groupIds = user1?.groups.map((group) => group.id);
     const messages = await MessageEntity.findLastMessageOfGroupIds(groupIds);
+    console.log(messages);
     expect(messages[0].message).toBe('9 hello there!');
   })
 })

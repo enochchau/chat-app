@@ -148,4 +148,12 @@ export class UserEntity extends BaseEntity{
     
     return Boolean(areFriends);
   }
+
+  public static searchUserByName(search: string, count: number){
+    return this.createQueryBuilder("user")
+      .orderBy("user.name", "DESC")
+      .where("LOWER(user.name) LIKE LOWER(:name)", { name: `${search}%`})
+      .limit(count)
+      .getMany();
+  }
 }

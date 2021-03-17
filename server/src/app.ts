@@ -18,6 +18,7 @@ import { FriendRouter } from './routes/friendship';
 import { GroupRouter } from './routes/group';
 import { UserRouter } from './routes/user';
 import { MessageRouter } from './routes/message';
+import { SearchRouter } from './routes/search';
 
 export class App {
   public app = express();
@@ -42,6 +43,8 @@ export class App {
     this.app.use('/api/user', passport.authenticate("jwt", { session: false }), userRoutes.router);
     const msgRoutes = new MessageRouter();
     this.app.use('/api/msg', passport.authenticate("jwt", { session: false }), msgRoutes.router);
+    const searchRoutes = new SearchRouter();
+    this.app.use('/api/search', passport.authenticate("jwt", { session: false }), searchRoutes.router);
 
     // test route
     this.app.get("/", (req , res) => {

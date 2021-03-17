@@ -3,6 +3,7 @@
 import { EntitySetup } from './setup';
 import { UserEntity } from '../../entity/user';
 import { GroupEntity } from '../../entity/group';
+import { MessageEntity } from '../../entity/message';
 
 export async function seed() {
 
@@ -34,6 +35,23 @@ export async function seed() {
   }
   for(let i=4; i<users.length; i++){
     await GroupEntity.createGroupWithUsers([users[2], users[3], users[i]], `group3:${i}`);
+  }
+
+  for(let i=0; i< 10; i++){
+    const msg = new MessageEntity();
+    msg.groupId = 1;
+    msg.message = 'hi there!';
+    msg.userId = 1;
+    msg.timestamp = new Date();
+    await MessageEntity.save(msg);
+  }
+  for(let i=0; i< 10; i++){
+    const msg = new MessageEntity();
+    msg.groupId = 2;
+    msg.message = 'hi there!';
+    msg.userId = 1;
+    msg.timestamp = new Date();
+    await MessageEntity.save(msg);
   }
 
   await setup.disconnectDatabase();
