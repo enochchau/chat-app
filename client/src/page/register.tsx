@@ -11,7 +11,9 @@ import { BadRegister, GoodRegister, ServerError } from '../component/toast';
 import { Redirect } from 'react-router-dom';
 
 import { FontIcon , RedoIcon } from '../component/icon';
-import { postRegister } from '../api/auth';
+import { AuthRequest } from '../api/auth';
+import { AuthData } from 'api/validators/auth';
+import * as t from 'io-ts';
 
 export const RegisterPage = () => {
   return(
@@ -61,20 +63,26 @@ const RegisterForm = () =>  {
       password: formData.password,
       email: formData.email,
     }
-    postRegister(reqData)
-      .then((res) => res.data as ResponseData)
-      .then((data) => {
-        if (data.message.toLowerCase().includes("successful")){
-          toastMessage(GoodRegister);
-          setFormAccepted(true);
-        } else {
-          toastMessage(BadRegister(data.message));
-        }
-      })
-      .catch((err) => {
-        // console.error(err);
-        toastMessage(ServerError);
-      });
+
+    // post data
+    // on validation fail
+    const onLeft = (errors: t.Errors) => console.error("Error validating register response: ", errors);
+
+    // on validation success
+    const onRight = (data: AuthData) => {
+      if (data.message.toLowerCase().includes("successful")){
+        toastMessage(GoodRegister);
+        setFormAccepted(true);
+      } else {
+        toastMessage(BadRegister(data.message));
+      }
+    }
+    // on error
+    const onError = (error: Error) => {
+      toastMessage(ServerError);
+    }
+
+    AuthRequest.postRegister(reqData, onLeft, onRight, onError);
   }
 
   return(

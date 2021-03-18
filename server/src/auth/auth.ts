@@ -95,12 +95,12 @@ export class PassportStrategy {
           });
           // we have to explicitly select all values b/c password is set to `select: false`
           
-          if(!user) return done(null, false, {message: "That email does not exist."});
+          if(!user) return done(null, false, {message: "The combination of email and password do not exist."});
           
           user.checkPassword(password, (err, result) => {
             if(err) return done(err);
 
-            if (!result) return done(null, false, {message: "Your password is invalid."});
+            if (!result) return done(null, false, {message: "The combination of email and password do not exist."});
 
             return done(null, user, {message:"Logged in successfully."}) ;
           });

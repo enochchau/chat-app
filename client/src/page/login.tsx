@@ -1,17 +1,18 @@
 import * as React from 'react';
 import { Center, useToast } from '@chakra-ui/react';
-
+import * as t from 'io-ts';
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { postLogin } from '../api/auth';
+import { AuthRequest } from '../api/auth';
 import { decodeToJwtUser, saveToken } from '../api/token';
 import { StoreContext } from '../store';
 
 import * as Auth from '../component/auth';
 import { ServerError, BadLogin, GoodLogin } from '../component/toast';
 import { Redirect } from 'react-router-dom';
+import { AuthData, TokenData } from 'api/validators/auth';
 
 export const LoginPage = () => {
   return (
@@ -57,27 +58,30 @@ const LoginForm = () => {
       password: data.password,
     };
     // post data
-    postLogin(postData)
-      .then((res) => res.data as ResponseData)
-      .then(data => {
-        if(data.token){
-          const jwtUser = decodeToJwtUser(data.token);
-          if(jwtUser){
-            toastMessage(GoodLogin(data.message));
-            saveToken(data.token, rememberMe);
-            storeDispatch({type: 'store current user', payload: jwtUser});
-            setFormAccepted(true);
-          }
-        } else {
-          toastMessage(BadLogin(data.message));
-        }
 
-      })
-      .catch((error) => {
-        // console.error(error);
-        toastMessage(ServerError);
-      });
-      
+    // on validation fail
+    const onLeft = (errors: t.Errors) => console.error('Failed to validate login response: ',errors, '\nOne failure is ok as long as we are still authenticated.');
+
+    const onNoTokenRight = (data: AuthData) => {
+      toastMessage(BadLogin(data.message));
+    }
+
+    const onTokenRight = (data: TokenData) => {
+      const jwtUser = decodeToJwtUser(data.token);
+      if(jwtUser){
+        toastMessage(GoodLogin(data.message));
+        saveToken(data.token, rememberMe);
+        storeDispatch({type: 'store current user', payload: jwtUser});
+        setFormAccepted(true);
+      }
+    }
+
+    const onError = (error: Error) => {
+      toastMessage(ServerError);
+      console.error(error);
+    }
+
+    AuthRequest.postLogin(postData, onLeft, onNoTokenRight, onLeft, onTokenRight, onError);
   }
 
   // redirect link is currently a placeholder
