@@ -72,7 +72,7 @@ export class GroupRouter {
         query.count = countMaxLimiter(query.count);
 
         try{
-          const groups = await GroupMessageView.findRecent(req.user.id, query.count, query.date);
+          const groups = await GroupMessageView.findRecentByUserId(req.user.id, query.count, query.date);
           if(!groups) return res.sendStatus(400);
 
           res.json(groups);

@@ -66,11 +66,21 @@ export class GroupMessageView extends BaseEntity {
   @ViewColumn()
   lastUserId: string;
 
-  public static findRecent(userId: number, count: number, timeSince: Date){
+  public static findRecentByUserId(userId: number, count: number, timeSince: Date){
     return this.createQueryBuilder("g") 
       .where("g.lastTimestamp <= :date", {date: timeSince})
       .andWhere("g.userId = :id", {id: userId})
       .orderBy("g.lastTimestamp", "ASC")
+      .take(count)
+      .getMany();
+  }
+  // we don't care about userIds for this query
+  public static findRecentByGroupIds(groupIds: Array<number>, count: number, timeSince: Date){
+    return this.createQueryBuilder('g')
+      .distinctOn(['groupId'])
+      .where('g.lastTimestamp <= :date', {date: timeSince})
+      .andWhere("g.groupId IN (...ids)", {ids: groupIds})
+      .orderBy('g.lastTimestamp', 'ASC')
       .take(count)
       .getMany();
   }
