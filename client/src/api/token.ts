@@ -16,6 +16,11 @@ export function getToken(): null | string{
   return token;
 }
 
+export function deleteToken(){
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('token');
+}
+
 interface DecodedJwt extends JwtPayload {
   user?: DecodedJwtUser;
 }

@@ -21,7 +21,8 @@ import { AuthMessage } from '../../api/validators/websocket';
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // router
 import { useParams } from 'react-router';
-import { getToken } from '../../api/token';
+// token
+import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
 // api / validators
@@ -289,7 +290,7 @@ export const ChatPage = () => {
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
-          moreOptionsClick={(e) => {return}/* TODO */}
+          moreOptionsClick={(e) => {deleteToken()}/* TODO */}
           newGroupClick={(e) => {return}/* TODO */}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}

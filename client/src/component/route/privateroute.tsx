@@ -4,10 +4,11 @@ import {
   Redirect,
   RouteProps
 } from "react-router-dom";
+import { getToken } from '../../api/token';
 
 export const PrivateRoute = ({children, ...rest}:RouteProps) => {
-  function validate(){
-    return true;
+  function validate(): boolean{
+    return Boolean(getToken());
   }
   return(
     <Route  {...rest}

@@ -122,8 +122,7 @@ export class PassportStrategy {
           const user = await UserEntity.findOne({where: {id: token.user.id}});
 
           if(!user){
-            const error = new Error("A JWT had no user associated with it.");
-            done(error);
+            throw new Error("A JWT had no user associated with it.");
           }
 
           return done(null, user);
