@@ -10,6 +10,7 @@ import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 import { doesNotMatch } from 'node:assert';
+import { GroupEntity } from '../entity/group';
 
 export class UserRouter {
   public router = express.Router();
@@ -19,6 +20,7 @@ export class UserRouter {
     this.patchName();
     this.patchEmail();
     this.getUser();
+    this.getManyUsers();
   }
 
   private patchPassword(){
@@ -163,6 +165,31 @@ export class UserRouter {
         }
       }
       pipe(ReqParams.decode(req.query), fold(onLeft, onRight));
+    })
+  }
+
+  private getUsersForGroup(){
+    const Params = t.type({
+      groupId: t.number
+    });
+    type Params = t.TypeOf<typeof Params>;
+    this.router.get('/group', (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors) => res.status(400).json(errors);
+
+      const onRight = async (query: Params) => {
+        try{
+          const group = await GroupEntity.findOne({where: {id: query.groupId}, relations: ["users"]});
+          
+          if(!group) return res.sendStatus(400)
+          
+          res.json(group.users);
+        } catch (err) {
+          next(err);
+        }
+      }
+
+      pipe(Params.decode(req.query), fold(onLeft, onRight));
     })
   }
 }

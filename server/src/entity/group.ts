@@ -48,6 +48,11 @@ export class GroupEntity extends BaseEntity{
 
   // returns -1 if group not found
   // returns groupId if group is found
+  // Main idea:
+  // 1. create a new table and insert into it the userIds that form the group we are checking
+  // 2. as a sub query do a left outer join with this new table (left side) and the user groups joins table (right side)
+  // 3. on the main query, look for groups that have the same number as users
+  // 4. $$$
   public static async doesGroupExist(userIds: Array<number>): Promise<number>{
     // Shape of the object returned by querComparison
     const QueryShape = t.array(t.type({groupId: t.number}));
@@ -114,7 +119,7 @@ export class GroupEntity extends BaseEntity{
       .take(count)
       .getMany();
   }
-
+  
   // return the index of the user if they are in the group
   // else return -1 if the user is not in the group
   public static getUserIndexInGroup(userId: number, group: GroupEntity): number{
@@ -136,4 +141,5 @@ export class GroupEntity extends BaseEntity{
       .limit(count)
       .getMany();
   }
+
 }
