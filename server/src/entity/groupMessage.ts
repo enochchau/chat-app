@@ -1,4 +1,4 @@
-import { BaseEntity, Connection, ViewColumn, ViewEntity } from "typeorm";
+import { ViewColumn, ViewEntity, getManager, BaseEntity } from "typeorm";
 
 // expresion: (connection: Connection) => connection.createQueryBuilder()
 //   .select("group.id", "id")
@@ -27,28 +27,35 @@ import { BaseEntity, Connection, ViewColumn, ViewEntity } from "typeorm";
 @ViewEntity({
  expression: `
   SELECT 
-    "g"."id" as "id",
-    "g"."name" as "name",
+    "ug"."userEntityId" as "userId",
+    "g"."id" as "groupId",
+    "g"."name" as "groupName",
     "m"."timestamp" as "lastTimestamp",
-    "m"."message" as "lastMessage"
+    "m"."message" as "lastMessage",
+    "m"."userId" as "lastUserId"
   FROM "group_entity" "g"
   LEFT JOIN (
-    SELECT "m"."message", "m"."timestamp", "m"."groupId" 
+    SELECT "m"."message", "m"."timestamp", "m"."groupId", "m"."userId"
     FROM "message_entity" "m"
     WHERE "m"."timestamp" IN (
       SELECT MAX("timestamp") FROM "message_entity" "m"
       GROUP BY "m"."groupId" 
     )
   ) "m" ON "m"."groupId" = "g"."id"
+  LEFT JOIN "user_entity_groups_group_entity" "ug"
+  ON "ug"."groupEntityId" = "g"."id"
   ORDER BY "m"."timestamp" ASC;
 `
 })
-export class GroupMessageView extends BaseEntity{
+export class GroupMessageView extends BaseEntity {
   @ViewColumn()
-  id: number;
+  userId: number;
 
   @ViewColumn()
-  name: string;
+  groupId: number;
+
+  @ViewColumn()
+  groupName: string;
 
   @ViewColumn()
   lastTimestamp: Date;
@@ -56,9 +63,15 @@ export class GroupMessageView extends BaseEntity{
   @ViewColumn()
   lastMessage: string;
 
-  public static getGroupMessageByIds(groupIds: Array<number>){
-    this.createQueryBuilder("group")
-      .where("group.id IN (:...ids", {ids: groupIds})
+  @ViewColumn()
+  lastUserId: string;
+
+  public static findRecent(userId: number, count: number, timeSince: Date){
+    return this.createQueryBuilder("g") 
+      .where("g.lastTimestamp <= :date", {date: timeSince})
+      .andWhere("g.userId = :id", {id: userId})
+      .orderBy("g.lastTimestamp", "ASC")
+      .take(count)
       .getMany();
   }
 }

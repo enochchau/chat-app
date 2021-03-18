@@ -13,7 +13,8 @@ describe ("Group Message View", () => {
   });
 
   test('hows the view', async () => {
-    const view = await GroupMessageView.find();
+    const view = await GroupMessageView.findRecent(1, 100, new Date());
     console.log(view);
+    expect(view.length).toBe(2);
   });
 })

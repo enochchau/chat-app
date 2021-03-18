@@ -1,5 +1,6 @@
 import express from 'express';
 import { GroupEntity } from '../entity/group';
+import { GroupMessageView } from '../entity/groupMessage';
 import { UserEntity } from '../entity/user';
 
 import { pipe } from 'fp-ts/lib/function';
@@ -71,7 +72,7 @@ export class GroupRouter {
         query.count = countMaxLimiter(query.count);
 
         try{
-          const groups = await GroupEntity.findGroupsOfUserId(req.user.id, query.count, query.date);
+          const groups = await GroupMessageView.findRecent(req.user.id, query.count, query.date);
           if(!groups) return res.sendStatus(400);
 
           res.json(groups);
