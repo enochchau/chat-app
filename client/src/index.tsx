@@ -1,3 +1,5 @@
+import 'regenerator-runtime/runtime';
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import 'emoji-mart/css/emoji-mart.css'
@@ -13,6 +15,7 @@ import {
   Form, 
   SidePanel 
 } from './theme'
+
 
 // there is only 1 break point for the left panel
 const breakpoints = createBreakpoints({

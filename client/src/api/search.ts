@@ -8,7 +8,7 @@ import { UserGroupUnionArr } from './validators/entity';
 export class SearchRequest {
   private static API = '/api/user';
 
-  static async getSearchGroupsUsers(
+  static getSearchGroupsUsers(
     parameters: {count: number, search: string},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: UserGroupUnionArr) => void,

@@ -31,22 +31,18 @@ import { useParams } from 'react-router';
 import { getToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
-import { SearchRequest } from 'api/search';
-import { GroupMessageDataArr, UserGroupUnionArr } from 'api/validators/entity';
-import { GroupRequest } from 'api/group';
-import { UserRequest } from 'api/user';
+import { SearchRequest } from '../../api/search';
+import { GroupMessageDataArr, UserData, UserDataArr, UserGroupUnionArr } from '../../api/validators/entity';
+import { GroupRequest } from '../../api/group';
+import { UserRequest } from '../../api/user';
 
 
 // users in the current group
 // caches the user data after we GET request it
-export type GroupUsers = Map<number, GroupUser>
-export type GroupUser = {
-  name: string,
-  avatar?: string,
-};
+export type GroupUsers = Map<number, UserData>
 
 // When a user connects to a room
-function createDisplayableMessage(userId: number, groupUser: GroupUser, htmlMessage: React.ReactNode, message: RxChatMessage){
+function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, message: RxChatMessage){
   return {
     userId: userId,
     name: groupUser.name,
@@ -54,10 +50,6 @@ function createDisplayableMessage(userId: number, groupUser: GroupUser, htmlMess
     timestamp: message.payload.timestamp,
     message: htmlMessage,
   } as DisplayableMessage
-}
-
-interface Params{
-  groupId?: string
 }
 
 // handle searching
@@ -101,8 +93,8 @@ export const ChatPage = () => {
   // websocket
   const ws = React.useRef<WebSocket | null>(null);
   // the groupId the user is requesting
-  const { groupId } = useParams<Params>(); 
-
+  const { groupId } = useParams<{groupId?: string}>(); 
+  // global store
   const { storeState, storeDispatch} = React.useContext(StoreContext);
   // messages to be displayed
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
@@ -117,9 +109,33 @@ export const ChatPage = () => {
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
 
-  // fetch the info of ther users in the current group
+  // fetch the info of ther users in the current group everytime the groupId changes
   React.useEffect(() => {
-    UserRequest.getUsers({})
+    // check group id
+    if(groupId){
+      const intGroupId = parseInt(groupId);
+      if(intGroupId > 0){
+
+        const onLeft = (errors: t.Errors) => {
+          console.error("Failed to validate getUsersForGroup: ", errors);
+        }
+
+        const onRight = (data: UserDataArr) => {
+          const userMap:GroupUsers = data.reduce((map, user, i) => {
+            map.set(user.id, user);
+            return map;
+          }, new Map() as GroupUsers);
+
+          setGroupUsers(userMap);
+        }
+
+        const onError = (error: Error) => {
+          console.log(error);
+        }
+
+        UserRequest.getUsersForGroup({groupId: intGroupId}, onLeft, onRight, onError);
+      }
+    }
   }, [groupId])
 
   // handle searching
@@ -153,7 +169,7 @@ export const ChatPage = () => {
     }
   }, [debouncedSearchValue]);
 
-  // fetch stuff on mount
+  // fetch the user's groups on mount
   React.useEffect(() => {
 
     const onLeft = (errors: t.Errors) => {
@@ -275,8 +291,8 @@ export const ChatPage = () => {
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
-          moreOptionsClick={(e) => {return}}
-          newGroupClick={(e) => {return}}
+          moreOptionsClick={(e) => {return}/* TODO */}
+          newGroupClick={(e) => {return}/* TODO */}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}

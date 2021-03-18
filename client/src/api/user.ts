@@ -8,7 +8,7 @@ import { axiosAuth } from 'api';
 export class UserRequest{
   private static API = "/api/user";
 
-  static async getUser(
+  static getUser(
     params: {userId: number},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: UserData) => void,
@@ -21,7 +21,7 @@ export class UserRequest{
       .catch(err => {onError(err);})
   }
 
-  static async getUsers(
+  static getManyUsers(
     params: {userIds: Array<number>, count: number},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: UserDataArr) => void,
@@ -32,6 +32,19 @@ export class UserRequest{
         pipe(UserDataArr.decode(res.data), fold(onLeft, onRight));
       })
       .catch(err => {onError(err)})
+  }
+
+  static getUsersForGroup(
+    params: {groupId: number},
+    onLeft: (errors: t.Errors) => void,
+    onRight: (data: UserDataArr) => void,
+    onError: (err: Error) => void,
+  ){
+    axiosAuth.get(this.API + '/group', {params: params})
+      .then(res => {
+        pipe(UserDataArr.decode(res.data), fold(onLeft, onRight));
+      })
+      .catch(err => { onError(err); })
   }
 }
 

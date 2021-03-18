@@ -8,7 +8,7 @@ import { MessageDataArr } from './validators/entity';
 export class MessageRequest {
   private static API = '/api/msg';
 
-  static async getLastMessages(
+  static getLastMessages(
     parameters: {groupIds: number},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: MessageDataArr) => void,

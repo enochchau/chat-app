@@ -13,6 +13,8 @@ import * as Auth from '../component/auth';
 import { ServerError, BadLogin, GoodLogin } from '../component/toast';
 import { Redirect } from 'react-router-dom';
 import { AuthData, TokenData } from 'api/validators/auth';
+import { pipe } from 'fp-ts/lib/pipeable';
+import { fold } from 'fp-ts/lib/Either';
 
 export const LoginPage = () => {
   return (
@@ -59,29 +61,36 @@ const LoginForm = () => {
     };
     // post data
 
-    // on validation fail
-    const onLeft = (errors: t.Errors) => console.error('Failed to validate login response: ',errors, '\nOne failure is ok as long as we are still authenticated.');
+    AuthRequest.postLogin(postData)
+      .then(res => res.data)
+      .then(data => {
+        const onTokenLeft = (errors: t.Errors) => {
+          const onNoTokenRight = (data: AuthData) => {
+            toastMessage(BadLogin(data.message));
+          }
+          const onNoTokenLeft = (errors: t.Errors) => {
+            console.error('Validation error at post login: ', errors);
+          }
 
-    const onNoTokenRight = (data: AuthData) => {
-      toastMessage(BadLogin(data.message));
-    }
+          console.error('NO TOKEN Validation error at post login: ', errors);
+          pipe(AuthData.decode(data), fold(onNoTokenLeft, onNoTokenRight));
+        }
+        const onTokenRight = (data: TokenData) => {
+          const jwtUser = decodeToJwtUser(data.token);
+          if(jwtUser){
+            toastMessage(GoodLogin(data.message));
+            saveToken(data.token, rememberMe);
+            storeDispatch({type: 'store current user', payload: jwtUser});
+            setFormAccepted(true);
+          }
+        }
 
-    const onTokenRight = (data: TokenData) => {
-      const jwtUser = decodeToJwtUser(data.token);
-      if(jwtUser){
-        toastMessage(GoodLogin(data.message));
-        saveToken(data.token, rememberMe);
-        storeDispatch({type: 'store current user', payload: jwtUser});
-        setFormAccepted(true);
-      }
-    }
-
-    const onError = (error: Error) => {
-      toastMessage(ServerError);
-      console.error(error);
-    }
-
-    AuthRequest.postLogin(postData, onLeft, onNoTokenRight, onLeft, onTokenRight, onError);
+        pipe(TokenData.decode(data), fold(onTokenLeft, onTokenRight));
+      })
+      .catch(error => {
+        toastMessage(ServerError);
+        console.error(error);
+      });
   }
 
   // redirect link is currently a placeholder

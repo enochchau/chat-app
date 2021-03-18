@@ -7,7 +7,7 @@ import * as t from 'io-ts';
 export class GroupRequest {
   static API = '/api/group'
 
-  static async postNewGroup(
+  static postNewGroup(
     data: {userIds: number, groupName: string}, 
     onLeft: (errors: t.Errors) => void,
     onRight: (data: GroupData) => void,
@@ -23,7 +23,7 @@ export class GroupRequest {
       });
   }
 
-  static async getGroupsForUser(
+  static getGroupsForUser(
     parameters: {count: number, date: Date},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: GroupMessageDataArr) => void,
@@ -38,7 +38,7 @@ export class GroupRequest {
       });
   }
 
-  static async patchLeaveGroup(
+  static patchLeaveGroup(
     data: {groupId: number},
     onError: (err: Error) => void,
   ){
@@ -48,7 +48,7 @@ export class GroupRequest {
       });
   }
 
-  static async patchAddToGroup(
+  static patchAddToGroup(
     data: {groupId: number, userId: number},
     onLeft: (errors: t.Errors) => void,
     onRight: (data: GroupData) => void,
