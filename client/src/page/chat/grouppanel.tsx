@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
-import { GroupDataArr } from '../../api/api'
+import { GroupDataArr } from '../../api'
 
 interface GroupPanelProps{
   username: string;

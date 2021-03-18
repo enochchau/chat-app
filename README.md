@@ -26,6 +26,7 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
         - [ ] handle server messages
     - [x] handle outgoing websocket messages
     - [ ] get group meta data
+        - [ ] get last messages
 - [ ] Remove Demo user placeholder data
 - [ ] User dashboard for changing user information (i.e. Name and password)
 

@@ -22,14 +22,17 @@ import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // api
-import { WSURL } from '../../api/api';
+import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 import { 
-  fetchGroups, 
+  getGroups, 
   searchUsers,
   GroupData,
   GroupDataArr,
-} from '../../api/api';
+  getLastMessages,
+  MessageData,
+  MessageDataArr
+} from '../../api';
 // router
 import { useParams } from 'react-router';
 import { getToken } from '../../api/token';
@@ -139,13 +142,29 @@ export const ChatPage = () => {
 
   // fetch stuff on mount
   React.useEffect(() => {
-    fetchGroups()
+    getGroups()
       .then(res => res.data)
       .then(data => {
         // VALIDATE THE SHAPE OF THE GROUP DATA
-        const onLeft = (errors: t.Errors) => console.error("Bad data recieved on trying to fetch groups: ", errors);
-        const onRight = (data: GroupDataArr) => {
-          setGroups(data);
+        const onLeft = (errors: t.Errors) => console.error("Bad group data recieved on trying to fetch groups: ", errors);
+        const onRight = (groupData: GroupDataArr) => {
+          const getGroupIdsToQuery = ():Array<number> => groupData.map((group) => group.id);
+
+          const groupIdsToQuery = getGroupIdsToQuery();
+
+          getLastMessages(groupIdsToQuery)
+            .then(res => res.data)
+            .then(data => {
+
+              const onLeft = (errors: t.Errors) => console.error("Bad message data recieved on trying to fetch last messages: ", errors);
+              const onRight = (msgData: MessageDataArr) => {
+                                
+
+                setGroups(data);
+              }
+              pipe(MessageDataArr.decode(data), fold(onLeft, onRight));
+            })
+            .catch(err => console.error(err));
         }
         pipe(GroupDataArr.decode(data), fold(onLeft, onRight));
         console.log(data);

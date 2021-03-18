@@ -1,7 +1,7 @@
 import { Flex } from '@chakra-ui/react';
 import { GroupItem } from './item';
 import * as React from 'react';
-import { GroupDataArr } from '../../api/api';
+import { GroupDataArr } from '../../api';
 
 interface GroupListProps{
   groupData: GroupDataArr; // change this later

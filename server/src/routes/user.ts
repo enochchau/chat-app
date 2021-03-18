@@ -9,7 +9,7 @@ import { UserEntity } from '../entity/user';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-import * as tt from 'io-ts-types';
+import { doesNotMatch } from 'node:assert';
 
 export class UserRouter {
   public router = express.Router();
@@ -35,21 +35,25 @@ export class UserRouter {
       const onRight = async (body: PasswordReq) => {
         if(!req.user) return res.sendStatus(400);
 
-        const user = await UserEntity.findOne({
-          where: {id: req.user.id},
-          select:["password"]
-        });
+        try{
+          const user = await UserEntity.findOne({
+            where: {id: req.user.id},
+            select:["password"]
+          });
 
-        if(!user) return res.sendStatus(400);
+          if(!user) return res.sendStatus(400);
 
-        user.checkPassword(body.password, (err, result) => {
-          if(err) return next(err);
-          if(!result) return res.json({message: "Your current password does not match."});
+          user.checkPassword(body.password, (err, result) => {
+            if(err) return next(err);
+            if(!result) return res.json({message: "Your current password does not match."});
 
-          user.password = body.newPassword;
-          UserEntity.save(user);
-          res.json({message: "Your password was changed successfully."})
-        });
+            user.password = body.newPassword;
+            UserEntity.save(user);
+            res.json({message: "Your password was changed successfully."})
+          });
+        } catch(err){
+          next(err);
+        }
       }
       pipe(PasswordReq.decode(req.body), fold(onLeft, onRight));
     });
@@ -66,16 +70,19 @@ export class UserRouter {
 
       const onRight = async (body: NameReq) => {
         if(!req.user) return res.sendStatus(400);
+        try{
+          const user = await UserEntity.findOne({
+            where: {id: req.user.id}
+          });
 
-        const user = await UserEntity.findOne({
-          where: {id: req.user.id}
-        });
+          if(!user) return res.sendStatus(400);
 
-        if(!user) return res.sendStatus(400);
-
-        user.name = body.newName;
-        const reUser = await UserEntity.save(user);
-        res.json(reUser);
+          user.name = body.newName;
+          const reUser = await UserEntity.save(user);
+          res.json(reUser);
+        } catch(error) {
+          next(error);
+        }
       }
 
       pipe(NameReq.decode(req.body), fold(onLeft, onRight));
@@ -95,15 +102,19 @@ export class UserRouter {
       const onRight = async (body: EmailReq) => {
         if(!req.user) return res.sendStatus(400);
 
-        const user = await UserEntity.findOne({
-          where: {id: req.user.id}
-        });
+        try{
+          const user = await UserEntity.findOne({
+            where: {id: req.user.id}
+          });
 
-        if(!user) return res.sendStatus(400);
+          if(!user) return res.sendStatus(400);
 
-        user.email = body.newEmail;
-        const reUser = await UserEntity.save(user);
-        res.json(reUser);
+          user.email = body.newEmail;
+          const reUser = await UserEntity.save(user);
+          res.json(reUser);
+        } catch (err) {
+          next(err);
+        }
       }
 
       pipe(EmailReq.decode(req.body), fold(onLeft, onRight));
@@ -119,13 +130,39 @@ export class UserRouter {
 
       const onLeft = async (errors: t.Errors) => res.sendStatus(400);
       const onRight = async (body: UserReq) => {
-        const user = await UserEntity.findOne({where: {id: body.userId}});
-        if(!user) return res.sendStatus(400);
+        try{
+          const user = await UserEntity.findOne({where: {id: body.userId}});
+          if(!user) return res.sendStatus(400);
 
-        res.json(user);
+          res.json(user);
+        } catch(err) {
+          next(err);
+        }
       }
 
       pipe(UserReq.decode(req.body), fold(onLeft, onRight));
+    })
+  }
+
+  private getManyUsers(){
+    const ReqParams = t.type({
+      userIds: t.array(t.number),
+      count: t.number
+    });
+    type ReqParams = t.TypeOf<typeof ReqParams>;
+    this.router.get('/many', (req, res, next) => {
+      const onLeft = async (errors: t.Errors) => res.status(400).json(errors);
+      const onRight = async (query: ReqParams) => {
+        try{
+          const users = await UserEntity.findManyByIds(query.userIds,query.count);
+          if(!users) return res.sendStatus(400);
+
+          res.json(users);
+        } catch(error) {
+          next(error);
+        }
+      }
+      pipe(ReqParams.decode(req.query), fold(onLeft, onRight));
     })
   }
 }

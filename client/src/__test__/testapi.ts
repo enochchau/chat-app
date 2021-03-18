@@ -1,5 +1,5 @@
 import { rest } from 'msw';
-import { URL, LOGIN, REGISTER } from '../api/api';
+import { URL, LOGIN, REGISTER } from '../api';
 import jwt from 'jwt-simple';
 
 export interface TestUser {

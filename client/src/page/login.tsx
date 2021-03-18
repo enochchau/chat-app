@@ -5,8 +5,7 @@ import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import axios from 'axios';
-import { LOGIN } from '../api/api';
+import { postLogin } from '../api/auth';
 import { decodeToJwtUser, saveToken } from '../api/token';
 import { StoreContext } from '../store';
 
@@ -58,7 +57,7 @@ const LoginForm = () => {
       password: data.password,
     };
     // post data
-    axios.post(LOGIN, postData)
+    postLogin(postData)
       .then((res) => res.data as ResponseData)
       .then(data => {
         if(data.token){

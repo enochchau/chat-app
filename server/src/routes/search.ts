@@ -21,7 +21,7 @@ export class SearchRouter {
     });
     type ManyQuery = t.TypeOf<typeof ManyQuery>;
 
-    this.router.get('/many', (req, res, next) => {
+    this.router.get('/', (req, res, next) => {
       const onLeft = async (errors: t.Errors) => { res.status(400).json(errors) };
 
       const onRight = async (query: ManyQuery) => {

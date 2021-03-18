@@ -6,13 +6,12 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import * as Auth from '../component/auth';
-import axios from 'axios';
-import { REGISTER } from '../api/api';
 
 import { BadRegister, GoodRegister, ServerError } from '../component/toast';
 import { Redirect } from 'react-router-dom';
 
 import { FontIcon , RedoIcon } from '../component/icon';
+import { postRegister } from '../api/auth';
 
 export const RegisterPage = () => {
   return(
@@ -62,7 +61,7 @@ const RegisterForm = () =>  {
       password: formData.password,
       email: formData.email,
     }
-    axios.post(REGISTER, reqData)
+    postRegister(reqData)
       .then((res) => res.data as ResponseData)
       .then((data) => {
         if (data.message.toLowerCase().includes("successful")){

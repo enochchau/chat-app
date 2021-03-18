@@ -6,7 +6,7 @@ import { setupServer } from 'msw/node';
 
 import { render, fireEvent, screen, waitFor } from "../test-utils";
 import { handler, TestUser, testUser } from '../testapi';
-import { URL, REGISTER} from '../../api/api';
+import { URL, REGISTER} from '../../api';
 import { RegisterPage } from '../../page/register';
 
 describe("<RegisterPage/>", () => {

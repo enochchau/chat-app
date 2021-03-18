@@ -26,7 +26,7 @@ export class GroupRouter {
     type NewGroupReq = t.TypeOf<typeof NewGroupReq>;
 
     this.router.post("/", (req, res, next) => {
-      const onLeft = async (errors: t.Errors) => res.sendStatus(400);
+      const onLeft = async (errors: t.Errors) => res.status(400).json(errors);
       const onRight = async (body: NewGroupReq) => {
         const userIds = body.userIds;        
         // check if the group already exists

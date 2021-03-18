@@ -156,4 +156,11 @@ export class UserEntity extends BaseEntity{
       .limit(count)
       .getMany();
   }
+
+  public static findManyByIds(ids: Array<number>, count: number){
+    return this.createQueryBuilder("user")
+      .where("user.id IN (...:ids)", {ids: ids})
+      .take(count)
+      .getMany();
+  }
 }
