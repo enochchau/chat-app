@@ -1,18 +1,20 @@
 import * as React from 'react';
 import { Center, useToast } from '@chakra-ui/react';
-import * as t from 'io-ts';
+// token
+import { decodeToJwtUser, saveToken } from '../api/token';
+import { StoreContext } from '../store';
+// form
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-
-import { AuthRequest } from '../api/auth';
-import { decodeToJwtUser, saveToken } from '../api/token';
-import { StoreContext } from '../store';
-
 import * as Auth from '../component/auth';
-import { ServerError, BadLogin, GoodLogin } from '../component/toast';
+// user feedback action
 import { Redirect } from 'react-router-dom';
-import { AuthData, TokenData } from 'api/validators/auth';
+import { ServerError, BadLogin, GoodLogin } from '../component/toast';
+// API/ validators
+import { AuthRequest } from '../api';
+import { AuthData, TokenData } from '../api/validators/auth';
+import * as t from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
 

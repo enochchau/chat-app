@@ -9,6 +9,7 @@ let config =  {
   "username": "test_user",
   "password": "test123",
   "synchronize": true,
+  "dropSchema": false,
   "logging": false,
   "entities": [
     "./src/entity/**/*.ts"

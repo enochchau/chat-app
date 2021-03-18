@@ -1,19 +1,21 @@
 import * as React from 'react';
-import { Center, useToast } from '@chakra-ui/react';
-
+// auth form
 import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-
 import * as Auth from '../component/auth';
-
-import { BadRegister, GoodRegister, ServerError } from '../component/toast';
-import { Redirect } from 'react-router-dom';
-
 import { FontIcon , RedoIcon } from '../component/icon';
-import { AuthRequest } from '../api/auth';
-import { AuthData } from 'api/validators/auth';
+// toast messages
+import { BadRegister, GoodRegister, ServerError } from '../component/toast';
+import { Center, useToast } from '@chakra-ui/react';
+// redirect
+import { Redirect } from 'react-router-dom';
+// api/ validation
+import { AuthRequest } from '../api';
+import { AuthData } from '../api/validators/auth';
 import * as t from 'io-ts';
+import { pipe } from 'fp-ts/lib/pipeable';
+import { fold } from 'fp-ts/lib/Either';
 
 export const RegisterPage = () => {
   return(
@@ -65,24 +67,28 @@ const RegisterForm = () =>  {
     }
 
     // post data
-    // on validation fail
-    const onLeft = (errors: t.Errors) => console.error("Error validating register response: ", errors);
 
-    // on validation success
-    const onRight = (data: AuthData) => {
-      if (data.message.toLowerCase().includes("successful")){
-        toastMessage(GoodRegister);
-        setFormAccepted(true);
-      } else {
-        toastMessage(BadRegister(data.message));
-      }
-    }
-    // on error
-    const onError = (error: Error) => {
-      toastMessage(ServerError);
-    }
+    AuthRequest.postRegister(reqData)
+      .then(res => res.data)
+      .then(data => {
+        // on validation fail
+        const onLeft = (errors: t.Errors) => console.error("Validation error at post register: ", errors);
 
-    AuthRequest.postRegister(reqData, onLeft, onRight, onError);
+        // on validation success
+        const onRight = (data: AuthData) => {
+          if (data.message.toLowerCase().includes("successful")){
+            toastMessage(GoodRegister);
+            setFormAccepted(true);
+          } else {
+            toastMessage(BadRegister(data.message));
+          }
+        }
+        pipe(AuthData.decode(data), fold(onLeft, onRight));
+      })
+      .catch(err => {
+        toastMessage(ServerError);
+      })
+    
   }
 
   return(

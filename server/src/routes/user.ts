@@ -21,6 +21,7 @@ export class UserRouter {
     this.patchEmail();
     this.getUser();
     this.getManyUsers();
+    this.getUsersForGroup();
   }
 
   private patchPassword(){

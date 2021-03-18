@@ -1,13 +1,8 @@
 import * as React from 'react';
 // store
 import { StoreContext } from '../../store';
-// validators
-import { pipe } from 'fp-ts/lib/function';
-import { fold } from 'fp-ts/Either';
-import * as t from 'io-ts';
-import * as tt from 'io-ts-types';
 // chakra
-import { Box, Flex } from '@chakra-ui/react';
+import { Box, Flex, localStorageManager } from '@chakra-ui/react';
 // page panel
 import { SidePanel } from '../../component/panel/sidepanel';
 import { TopAvatarPanel } from './toppanel';
@@ -18,23 +13,23 @@ import { InfoPanel } from './infopanel';
 // processing functions
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
-// websocket message interfaces
+// websocket 
 import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
-import { DisplayableMessage } from '../../component/chat/messagelist/index';
-// api
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
-import { 
-} from '../../api';
+// websocket -> HTML
+import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // router
 import { useParams } from 'react-router';
 import { getToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
-import { SearchRequest } from '../../api/search';
+// api / validators
+import { UserRequest, SearchRequest, GroupRequest } from '../../api';
 import { GroupMessageDataArr, UserData, UserDataArr, UserGroupUnionArr } from '../../api/validators/entity';
-import { GroupRequest } from '../../api/group';
-import { UserRequest } from '../../api/user';
+import { pipe } from 'fp-ts/lib/function';
+import { fold } from 'fp-ts/Either';
+import * as t from 'io-ts';
 
 
 // users in the current group
@@ -116,24 +111,25 @@ export const ChatPage = () => {
       const intGroupId = parseInt(groupId);
       if(intGroupId > 0){
 
-        const onLeft = (errors: t.Errors) => {
-          console.error("Failed to validate getUsersForGroup: ", errors);
-        }
+        UserRequest.getUsersForGroup({groupId: intGroupId})
+          .then(res => res.data)
+          .then(data => {
 
-        const onRight = (data: UserDataArr) => {
-          const userMap:GroupUsers = data.reduce((map, user, i) => {
-            map.set(user.id, user);
-            return map;
-          }, new Map() as GroupUsers);
+            const onLeft = (errors: t.Errors) => {
+              console.error("Validation error at get Users For Group: ", errors);
+            }
 
-          setGroupUsers(userMap);
-        }
+            const onRight = (data: UserDataArr) => {
+              const userMap:GroupUsers = data.reduce((map, user, i) => {
+                map.set(user.id, user);
+                return map;
+              }, new Map() as GroupUsers);
 
-        const onError = (error: Error) => {
-          console.log(error);
-        }
-
-        UserRequest.getUsersForGroup({groupId: intGroupId}, onLeft, onRight, onError);
+              setGroupUsers(userMap);
+            }
+            pipe(UserDataArr.decode(data), fold(onLeft, onRight));
+          })
+          .catch(error => console.error(error));
       }
     }
   }, [groupId])
@@ -144,25 +140,26 @@ export const ChatPage = () => {
     if(debouncedSearchValue) {
       searchDispatch({type: 'setIsSearching', payload: true});
 
-      const onLeft = (errors: t.Errors) => {
-        console.error('Error validating search request: ', errors);
-        searchDispatch({type: 'setIsSearching', payload: false});
-      }
-
-      const onRight = (data: UserGroupUnionArr) => {
-        console.log(data);
-        searchDispatch({type: 'setIsSearching', payload: false});
-      }
-      
-      const onError = (err: Error) => {
-        console.error(err);
-        searchDispatch({type: 'setIsSearching', payload: false});
-      }
-
       SearchRequest.getSearchGroupsUsers({
         count: 30, 
         search: debouncedSearchValue
-      }, onLeft, onRight, onError);
+      })
+        .then(res => res.data)
+        .then(data => {
+          const onLeft = (errors: t.Errors) => {
+            console.error('Error validating search request: ', errors);
+          }
+          const onRight = (data: UserGroupUnionArr) => {
+            console.log(data);
+          }
+
+          pipe(UserGroupUnionArr.decode(data), fold(onLeft, onRight));
+          searchDispatch({type: 'setIsSearching', payload: false});
+        })
+        .catch(error => {
+          console.error(error);
+          searchDispatch({type: 'setIsSearching', payload: false});
+        })
 
     } else {
       searchDispatch({type: 'setSearchResults', payload: []});
@@ -171,18 +168,19 @@ export const ChatPage = () => {
 
   // fetch the user's groups on mount
   React.useEffect(() => {
+    GroupRequest.getGroupsForUser({count: 15, date: new Date()})
+      .then(res => res.data)
+      .then(data => {
+        const onLeft = (errors: t.Errors) => {
+          console.error('Error validating getting groups for user: ', errors);
+        }
 
-    const onLeft = (errors: t.Errors) => {
-      console.error('Error validating getting groups for user: ', errors);
-    }
-
-    const onRight = (data: GroupMessageDataArr) => {
-      setGroups(data);
-    }
-
-    const onError = (error: Error) => console.error(error);
-
-    GroupRequest.getGroupsForUser({count: 15, date: new Date()}, onLeft, onRight, onError);
+        const onRight = (data: GroupMessageDataArr) => {
+          setGroups(data);
+        }
+        pipe(GroupMessageDataArr.decode(data), fold(onLeft, onRight));
+      })
+      .catch(error => console.error(error));
   }, []);
 
   // WEBSOCKET stuff happens here
@@ -225,7 +223,7 @@ export const ChatPage = () => {
       }
 
       const handleNewMessage = (message: RxChatMessage) => {
-        const insertIntoMessageList = (sender: GroupUser) => {
+        const insertIntoMessageList = (sender: UserData) => {
           const displayableMessage = createDisplayableMessage(message.payload.userId, sender, html, message);
           const updatedMessages = [...messages];
           // array is displayed backwards, later messages should come first
