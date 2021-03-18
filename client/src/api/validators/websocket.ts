@@ -1,5 +1,6 @@
 import * as t from "io-ts";
 import * as tt from "io-ts-types";
+import { MessageData } from "./entity";
 
 const ChatTopics = t.union([
   t.literal('chat'),
@@ -15,15 +16,7 @@ export type ServerTopics = t.TypeOf<typeof ServerTopics>;
 
 export const RxChatMessage = t.type({
   topic: ChatTopics,
-  payload: t.type({
-    timestamp: tt.DateFromISOString,
-    message: t.string,
-    groupId: t.number,
-    userId: t.number,
-    id: t.number,
-    created: tt.DateFromISOString,
-    updated: tt.DateFromISOString,
-  })
+  payload: MessageData
 });
 
 export type TxChatMessage = {

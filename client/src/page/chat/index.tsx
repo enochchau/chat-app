@@ -25,19 +25,16 @@ import { DisplayableMessage } from '../../component/chat/messagelist/index';
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 import { 
-  getGroups, 
-  searchUsers,
-  GroupData,
-  GroupDataArr,
-  getLastMessages,
-  MessageData,
-  MessageDataArr
 } from '../../api';
 // router
 import { useParams } from 'react-router';
 import { getToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
+import { SearchRequest } from 'api/search';
+import { GroupMessageDataArr, UserGroupUnionArr } from 'api/validators/entity';
+import { GroupRequest } from 'api/group';
+import { UserRequest } from 'api/user';
 
 
 // users in the current group
@@ -110,7 +107,7 @@ export const ChatPage = () => {
   // messages to be displayed
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
   // groups to be displayed on the group panel
-  const [groups, setGroups] = React.useState<Array<GroupData>>([]); 
+  const [groups, setGroups] = React.useState<GroupMessageDataArr>([]); 
   // map for caching user data from the current group
   const [groupUsers, setGroupUsers] = React.useState<GroupUsers>(new Map());
   // search value in the group panel search box
@@ -120,21 +117,37 @@ export const ChatPage = () => {
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
 
+  // fetch the info of ther users in the current group
+  React.useEffect(() => {
+    UserRequest.getUsers({})
+  }, [groupId])
+
   // handle searching
   React.useEffect(() => {
     // https://usehooks.com/useDebounce/
     if(debouncedSearchValue) {
       searchDispatch({type: 'setIsSearching', payload: true});
-      searchUsers(debouncedSearchValue)
-        .then(res => res.data)
-        .then(data => {
-          console.log(data);
-          searchDispatch({type: 'setIsSearching', payload: false});
-        })
-        .catch(err => {
-          console.error(err)
-          searchDispatch({type: 'setIsSearching', payload: false});
-        });
+
+      const onLeft = (errors: t.Errors) => {
+        console.error('Error validating search request: ', errors);
+        searchDispatch({type: 'setIsSearching', payload: false});
+      }
+
+      const onRight = (data: UserGroupUnionArr) => {
+        console.log(data);
+        searchDispatch({type: 'setIsSearching', payload: false});
+      }
+      
+      const onError = (err: Error) => {
+        console.error(err);
+        searchDispatch({type: 'setIsSearching', payload: false});
+      }
+
+      SearchRequest.getSearchGroupsUsers({
+        count: 30, 
+        search: debouncedSearchValue
+      }, onLeft, onRight, onError);
+
     } else {
       searchDispatch({type: 'setSearchResults', payload: []});
     }
@@ -142,38 +155,18 @@ export const ChatPage = () => {
 
   // fetch stuff on mount
   React.useEffect(() => {
-    getGroups()
-      .then(res => res.data)
-      .then(data => {
-        // VALIDATE THE SHAPE OF THE GROUP DATA
-        const onLeft = (errors: t.Errors) => console.error("Bad group data recieved on trying to fetch groups: ", errors);
-        const onRight = (groupData: GroupDataArr) => {
-          const getGroupIdsToQuery = ():Array<number> => groupData.map((group) => group.id);
 
-          const groupIdsToQuery = getGroupIdsToQuery();
+    const onLeft = (errors: t.Errors) => {
+      console.error('Error validating getting groups for user: ', errors);
+    }
 
-          getLastMessages(groupIdsToQuery)
-            .then(res => res.data)
-            .then(data => {
+    const onRight = (data: GroupMessageDataArr) => {
+      setGroups(data);
+    }
 
-              const onLeft = (errors: t.Errors) => console.error("Bad message data recieved on trying to fetch last messages: ", errors);
-              const onRight = (msgData: MessageDataArr) => {
-                                
+    const onError = (error: Error) => console.error(error);
 
-                setGroups(data);
-              }
-              pipe(MessageDataArr.decode(data), fold(onLeft, onRight));
-            })
-            .catch(err => console.error(err));
-        }
-        pipe(GroupDataArr.decode(data), fold(onLeft, onRight));
-        console.log(data);
-      })
-      .catch(err => {
-        console.error(err);
-        return [];
-      });
-
+    GroupRequest.getGroupsForUser({count: 15, date: new Date()}, onLeft, onRight, onError);
   }, []);
 
   // WEBSOCKET stuff happens here
