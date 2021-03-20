@@ -6,6 +6,7 @@ import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
 import { GroupDataArr, GroupMessageDataArr } from '../../api/validators/entity'
 import { SearchList } from '../../component/search/list';
+import { SearchIcon } from '../../component/icon';
 
 interface GroupPanelProps{
   username: string;
@@ -50,6 +51,8 @@ export const GroupPanel = ({
         placeholder={"Search Messenger"}
         onFocus={(e) => setShowSearch(true)}
         onBlur={(e) => setShowSearch(false)}
+        icon={<SearchIcon/>}
+        variant="groupSearch"
       />
       {showSearch 
        ?<SearchList

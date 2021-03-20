@@ -27,15 +27,11 @@ import { getToken, deleteToken } from '../../api/token';
 import { useDebounce } from '../../util';
 // api / validators
 import { UserRequest, SearchRequest, GroupRequest } from '../../api';
-import { GroupMessageDataArr, UserData, UserDataArr, GroupDataArr } from '../../api/validators/entity';
+import { GroupMessageDataArr, UserData, UserDataArr, GroupData, GroupDataArr, GroupDataWithUsers, GroupMessageData } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 
-
-// users in the current group
-// caches the user data after we GET request it
-export type GroupUsers = Map<number, UserData>
 
 // When a user connects to a room
 function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, message: RxChatMessage){
@@ -52,7 +48,7 @@ function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessa
 type SEARCHACTIONTYPE = 
   | {type: 'setSearchValue', payload: string}
   | {type: 'setIsSearching', payload: boolean}
-  | {type: 'setSearchResults', payload: GroupDataArr}
+  | {type: 'setSearchResults', payload: GroupDataArr};
 const searchInitialState = {
   searchValue: "",
   isSearching: false,
@@ -67,6 +63,67 @@ function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYP
     case 'setSearchResults':
       return {...state, searchResults: action.payload};
     defualt: 
+      return state;
+  }
+}
+
+// caching current group meta data including users data
+export type GroupUsers = Map<number, UserData>
+type GROUPACTIONTYPE = {type: 'setGroupData', payload: GroupDataWithUsers};
+const groupInitialState ={
+  userMap: new Map() as GroupUsers,
+  data: {
+    id: -1,
+    name: 'New Message',
+    created: new Date(),
+    updated: new Date()
+  } as GroupData,
+}
+function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE){
+  switch(action.type){
+    case 'setGroupData':
+      const userMap = action.payload.users.reduce((map, user) => {
+        map.set(user.id, user);
+        return map;
+      }, new Map() as GroupUsers);
+
+      return{...state, 
+        userMap: userMap,
+        data: {
+          id: action.payload.id,
+          name: action.payload.name,
+          created: action.payload.created,
+          updated: action.payload.updated,
+        }
+      }
+    default:
+      return state;
+  }
+}
+
+// handling user search when creating a new group
+type USERSEARCHACTIONTYPE = 
+| {type: 'setCreateGroup', payload: boolean}
+| {type: 'setSearchString', payload: string}
+| {type: 'setUserList', payload: UserDataArr}
+| {type: 'setIsSearching', payload: boolean};
+const userSearchInitialState = {
+  creatingGroup: false,
+  searchString: "",
+  userList: [] as UserDataArr,
+  isSearching: false,
+}
+function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE){
+  switch(action.type){
+    case 'setCreateGroup': 
+      return {...state, creatingGroup: action.payload};
+    case 'setSearchString':
+      return {...state, searchString: action.payload};
+    case 'setUserList':
+      return {...state, userList: action.payload};
+    case 'setIsSearching':
+      return {...state, isSearching: action.payload};
+    default:
       return state;
   }
 }
@@ -96,11 +153,17 @@ export const ChatPage = () => {
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
   // groups to be displayed on the group panel
   const [groups, setGroups] = React.useState<GroupMessageDataArr>([]); 
-  // map for caching user data from the current group
-  const [groupUsers, setGroupUsers] = React.useState<GroupUsers>(new Map());
+
+  // stores meta data for the current chat group
+  const [groupState, groupDispatch] = React.useReducer(groupReducer, groupInitialState);
+
   // search value in the group panel search box
   const [searchState, searchDispatch] = React.useReducer(searchReducer, searchInitialState);
   const debouncedSearchValue = useDebounce(searchState.searchValue, 500);
+
+  // handle user search when creating new groups
+  const [userSearchState, userSearchDispatch] = React.useReducer(userSearchReducer, userSearchInitialState);
+  const debouncedUserSearch = useDebounce(userSearchState.searchString, 500);
 
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
@@ -209,7 +272,7 @@ export const ChatPage = () => {
         console.log("Chat Message: ", message);
         // messages are recieved as strings but must be displayed as HTML
         const html = parseStringToHtml(message.payload.message);
-        const sender = groupUsers.get(message.payload.userId);
+        const sender = groupState.userMap.get(message.payload.userId);
 
         if(sender){
           insertIntoMessageList(sender);
@@ -234,29 +297,23 @@ export const ChatPage = () => {
       if(ws.current) ws.current.send(JSON.stringify(authMessage));
     };
 
-    // fetch the info of ther users in the current group everytime the groupId changes
-    UserRequest.getUsersForGroup({groupId: intGroupId})
+    // populate the group meta data
+    GroupRequest.getGroupWithUsers({groupId: intGroupId})
       .then(res => res.data)
       .then(data => {
 
         const onLeft = (errors: t.Errors) => {
-          console.error("Validation error at get Users For Group: ", errors);
+          console.error("Validation error getting group data with users: ", errors);
         }
 
-        const onRight = (data: UserDataArr) => {
-
-          const createUserMap = (): GroupUsers => {
-            return data.reduce((map, user) => {
-              map.set(user.id, user);
-              return map;
-            }, new Map() as GroupUsers);
-          }
-
-          setGroupUsers(createUserMap());
+        const onRight = (data: GroupDataWithUsers) => {
+          groupDispatch({type: "setGroupData", payload: data});
         }
-        pipe(UserDataArr.decode(data), fold(onLeft, onRight));
+
+        pipe(GroupDataWithUsers.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
+
 
     // disconnect from WS on unmount
     return disconnect();
@@ -279,6 +336,52 @@ export const ChatPage = () => {
     e.currentTarget.textContent = "";
   }
 
+
+
+  React.useEffect(() => {
+    if (userSearchState.creatingGroup && debouncedUserSearch) {
+      userSearchDispatch({type: "setIsSearching", payload: true});
+
+      SearchRequest.getSearchUsers({
+        count: 15,
+        search: debouncedUserSearch 
+      })
+      .then(res => res.data)
+      .then(data => {
+
+        const onLeft = (errors: t.Errors) => {
+          console.error('Error validating create group search request: ', errors);
+        }
+
+        const onRight = (data: UserDataArr) => {
+          userSearchDispatch({type: 'setUserList', payload: data});
+        }
+        pipe(UserDataArr.decode(data), fold(onLeft, onRight));
+        userSearchDispatch({type: "setIsSearching", payload: false});
+      })
+      .catch(error => {
+        console.error(error);
+        userSearchDispatch({type: "setIsSearching", payload: false});
+      })
+    } else {
+      userSearchDispatch({type: 'setUserList', payload: []});
+    }
+  }, [userSearchState.creatingGroup]);
+
+  const handleCreateGroup = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    userSearchDispatch({type: 'setCreateGroup', payload: true});
+    const placeholderGroup = {
+      userId: -1,
+      groupId: -1,
+      groupName: 'New Message',
+      lastTimestamp: new Date(),
+      lastMessage: "",
+      lastUserId: -1,
+    } as GroupMessageData;
+
+    groups.unshift(placeholderGroup);
+  }
+
   return(
     <Flex
       height="100vh"
@@ -299,7 +402,7 @@ export const ChatPage = () => {
             deleteToken();
             return <Redirect to="/"/>
           }}
-          newGroupClick={(e) => {return}/* TODO */}
+          newGroupClick={(e) => {return}/* TODO: this should open another search bar to create a new group */}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
@@ -313,7 +416,10 @@ export const ChatPage = () => {
         height="100vh"
       >
         <Box>
-          <TopAvatarPanel username={storeState.name} onInfoClick={(e) => setToggleInfo(!toggleInfo)}/>
+          <TopAvatarPanel 
+            username={groupState.data.name} 
+            onInfoClick={(e) => setToggleInfo(!toggleInfo)}
+          />
         </Box>
         <Box
           overflowY="auto"

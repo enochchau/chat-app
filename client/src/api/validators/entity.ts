@@ -1,17 +1,6 @@
 import * as t from 'io-ts';
 import * as tt from 'io-ts-types';
 
-export const GroupData = t.type({
-  id: t.number,
-  name: t.string,
-  created: tt.DateFromISOString,
-  updated: tt.DateFromISOString,
-});
-export type GroupData = t.TypeOf<typeof GroupData>;
-// response validator
-export const GroupDataArr = t.array(GroupData);
-export type GroupDataArr = t.TypeOf<typeof GroupDataArr>;
-
 export const MessageData = t.type({
   id: t.number,
   message: t.string,
@@ -38,6 +27,23 @@ export type UserData = t.TypeOf<typeof UserData>;
 export const UserDataArr = t.array(UserData);
 export type UserDataArr = t.TypeOf<typeof UserDataArr>;
 
+export const GroupData = t.type({
+  id: t.number,
+  name: t.string,
+  created: tt.DateFromISOString,
+  updated: tt.DateFromISOString,
+});
+export type GroupData = t.TypeOf<typeof GroupData>;
+// response validator
+export const GroupDataArr = t.array(GroupData);
+export type GroupDataArr = t.TypeOf<typeof GroupDataArr>;
+
+export const GroupDataWithUsers = t.intersection([GroupData, 
+  t.type({users: UserDataArr})
+]);
+export type GroupDataWithUsers = t.TypeOf<typeof GroupDataWithUsers>;
+
+
 export const GroupMessageData = t.type({
   userId: t.number, // this value is essentially thown away...
   groupId: t.number,
@@ -49,6 +55,7 @@ export const GroupMessageData = t.type({
 export type GroupMessageData = t.TypeOf<typeof GroupMessageData>;
 export const GroupMessageDataArr = t.array(GroupMessageData);
 export type GroupMessageDataArr = t.TypeOf<typeof GroupMessageDataArr>;
+
 
 // export const UserGroupUnion = t.union([
 //   GroupData,

@@ -42,6 +42,10 @@ export class GroupRequest {
   static patchAddToGroup(data: {groupId: number, userId: number}){
     return axiosAuth.patch(this.API + '/add', data)
   }
+
+  static getGroupWithUsers(params: {groupId: number}){
+    return axiosAuth.get(this.API + "/single", {params: {params}});
+  }
 }
 
 export class MessageRequest {

@@ -1,6 +1,7 @@
-import { Heading, Avatar, Flex, HStack, IconButton } from '@chakra-ui/react';
+import { useStyleConfig, Heading, Avatar, Flex, HStack, IconButton } from '@chakra-ui/react';
 import { InfoIcon } from '../../component/icon';
 import * as React from 'react';
+import { TopPanel } from '../../component/panel/toppanel';
 
 interface TopAvatarPanelProps {
   username: string;
@@ -9,12 +10,7 @@ interface TopAvatarPanelProps {
 }
 export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPanelProps) => {
   return(
-    <Flex
-      align="center"
-      justify="space-between"
-      padding="10px"
-      boxShadow="base"
-    >
+    <TopPanel>
       <HStack padding="5px">
         <Avatar name={username} src={avatarSrc} size="sm"/>
         <Heading size="sm">
@@ -30,6 +26,8 @@ export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPane
           background="none"
         />
       </HStack>
-    </Flex>
+    </TopPanel>
   );
 }
+
+export const TopUserSearchPanel = ({}: TopUser

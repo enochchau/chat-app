@@ -13,7 +13,8 @@ import {
   Message, 
   Tooltip, 
   Form, 
-  SidePanel 
+  SidePanel,
+  TopPanel,
 } from './theme'
 
 
@@ -32,7 +33,8 @@ const theme = extendTheme({
     Message, 
     Tooltip, 
     Form,
-    SidePanel
+    SidePanel,
+    TopPanel
   }
 });
 

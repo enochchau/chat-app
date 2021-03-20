@@ -111,3 +111,28 @@ export const SidePanel: ComponentStyleConfig = {
     }
   }
 }
+
+export const TopPanel: ComponentStyleConfig = {
+  baseStyle: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px',
+    boxShadow: "base"
+  },
+  variants:{
+    userSearch: {
+      justifyContent: 'flex-start'
+    }
+  }
+}
+
+export const Input: ComponentStyleConfig = {
+  variants: {
+    groupSearch: {
+      borderRadius: 'md'
+    },
+    userSearch: {
+      backgroundColor: 'inherit'
+    }
+  }
+}
