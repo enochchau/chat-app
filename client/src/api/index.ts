@@ -57,8 +57,11 @@ export class MessageRequest {
 export class SearchRequest {
   static API = '/api/search';
 
-  static getSearchGroupsUsers(parameters: {count: number, search: string}){
-    return axiosAuth.get(`${this.API}`, { params: parameters})
+  static getSearchGroups(parameters: {count: number, search: string}){
+    return axiosAuth.get(`${this.API}/group`, { params: parameters});
+  }
+  static getSearchUsers(parameters: {count: number, search: string}){
+    return axios.get(`${this.API}/user`, { params: parameters});
   }
 }
 

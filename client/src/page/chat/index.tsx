@@ -20,14 +20,14 @@ import { AuthMessage } from '../../api/validators/websocket';
 // websocket -> HTML
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // router
-import { useParams } from 'react-router';
+import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
 // api / validators
 import { UserRequest, SearchRequest, GroupRequest } from '../../api';
-import { GroupMessageDataArr, UserData, UserDataArr, UserGroupUnionArr } from '../../api/validators/entity';
+import { GroupMessageDataArr, UserData, UserDataArr, GroupDataArr } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
@@ -52,11 +52,11 @@ function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessa
 type SEARCHACTIONTYPE = 
   | {type: 'setSearchValue', payload: string}
   | {type: 'setIsSearching', payload: boolean}
-  | {type: 'setSearchResults', payload: []}
+  | {type: 'setSearchResults', payload: GroupDataArr}
 const searchInitialState = {
   searchValue: "",
   isSearching: false,
-  searchResults: [],
+  searchResults: [] as GroupDataArr,
 }
 function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYPE){
   switch(action.type){
@@ -100,40 +100,10 @@ export const ChatPage = () => {
   const [groupUsers, setGroupUsers] = React.useState<GroupUsers>(new Map());
   // search value in the group panel search box
   const [searchState, searchDispatch] = React.useReducer(searchReducer, searchInitialState);
-  const debouncedSearchValue = useDebounce(searchState.searchValue, 1000);
+  const debouncedSearchValue = useDebounce(searchState.searchValue, 500);
 
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
-
-  // fetch the info of ther users in the current group everytime the groupId changes
-  React.useEffect(() => {
-    // check group id
-    if(groupId){
-      const intGroupId = parseInt(groupId);
-      if(intGroupId > 0){
-
-        UserRequest.getUsersForGroup({groupId: intGroupId})
-          .then(res => res.data)
-          .then(data => {
-
-            const onLeft = (errors: t.Errors) => {
-              console.error("Validation error at get Users For Group: ", errors);
-            }
-
-            const onRight = (data: UserDataArr) => {
-              const userMap:GroupUsers = data.reduce((map, user, i) => {
-                map.set(user.id, user);
-                return map;
-              }, new Map() as GroupUsers);
-
-              setGroupUsers(userMap);
-            }
-            pipe(UserDataArr.decode(data), fold(onLeft, onRight));
-          })
-          .catch(error => console.error(error));
-      }
-    }
-  }, [groupId])
 
   // handle searching
   React.useEffect(() => {
@@ -141,7 +111,7 @@ export const ChatPage = () => {
     if(debouncedSearchValue) {
       searchDispatch({type: 'setIsSearching', payload: true});
 
-      SearchRequest.getSearchGroupsUsers({
+      SearchRequest.getSearchGroups({
         count: 30, 
         search: debouncedSearchValue
       })
@@ -150,11 +120,12 @@ export const ChatPage = () => {
           const onLeft = (errors: t.Errors) => {
             console.error('Error validating search request: ', errors);
           }
-          const onRight = (data: UserGroupUnionArr) => {
+          const onRight = (data: GroupDataArr) => {
+            searchDispatch({type: 'setSearchResults', payload: data});
             console.log(data);
           }
 
-          pipe(UserGroupUnionArr.decode(data), fold(onLeft, onRight));
+          pipe(GroupDataArr.decode(data), fold(onLeft, onRight));
           searchDispatch({type: 'setIsSearching', payload: false});
         })
         .catch(error => {
@@ -185,8 +156,9 @@ export const ChatPage = () => {
   }, []);
 
   // WEBSOCKET stuff happens here
+  // handle group id changing: i.e. moving into a different chat room
   React.useEffect(() => {
-    function disconnect(){
+    const disconnect = () => {
       if(ws.current !== null) ws.current.close();
     }
 
@@ -194,14 +166,16 @@ export const ChatPage = () => {
 
     if(!groupId) {
       console.log('No groupId url parameter detected. Unable to open websocket.');
-      return disconnect();
+      disconnect();
+      return;
     }
-    const authGroupId = parseInt(groupId);
+    const intGroupId = parseInt(groupId);
 
     const token = getToken();
     if(!token) {
       console.log('No token found. Unable to open websocket.');
-      return disconnect();
+      disconnect();
+      return;
     }
 
     // setup the message handler
@@ -253,12 +227,37 @@ export const ChatPage = () => {
         topic: "auth",
         payload: {
           timestamp: new Date(),
-          groupId: authGroupId,
+          groupId: intGroupId,
           token: token,
         }
       }
       if(ws.current) ws.current.send(JSON.stringify(authMessage));
     };
+
+    // fetch the info of ther users in the current group everytime the groupId changes
+    UserRequest.getUsersForGroup({groupId: intGroupId})
+      .then(res => res.data)
+      .then(data => {
+
+        const onLeft = (errors: t.Errors) => {
+          console.error("Validation error at get Users For Group: ", errors);
+        }
+
+        const onRight = (data: UserDataArr) => {
+
+          const createUserMap = (): GroupUsers => {
+            return data.reduce((map, user) => {
+              map.set(user.id, user);
+              return map;
+            }, new Map() as GroupUsers);
+          }
+
+          setGroupUsers(createUserMap());
+        }
+        pipe(UserDataArr.decode(data), fold(onLeft, onRight));
+      })
+      .catch(error => console.error(error));
+
     // disconnect from WS on unmount
     return disconnect();
   }, [groupId]); // connect to a new chat room everytime we get a new groupid
@@ -266,11 +265,17 @@ export const ChatPage = () => {
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
-    const newMessage = processSendMessageEvent(e, "chat", storeState.id, 33);
-    if(newMessage && ws.current) {
-      ws.current.send(JSON.stringify(newMessage));
-    } else console.error(`Unable to send websocket message\nWeboscket status: ${ws.current}`)
-    // reset the chat box
+    if(groupId){
+      const intGroupId = parseInt(groupId);
+
+      const newMessage = processSendMessageEvent(e, "chat", storeState.id, intGroupId);
+
+      if(newMessage && ws.current) {
+        ws.current.send(JSON.stringify(newMessage));
+
+      } else console.error(`Unable to send websocket message\nWeboscket status: ${ws.current}`)
+      // reset the chat box
+    }
     e.currentTarget.textContent = "";
   }
 
@@ -290,11 +295,15 @@ export const ChatPage = () => {
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
-          moreOptionsClick={(e) => {deleteToken()}/* TODO */}
+          moreOptionsClick={(e) => {
+            deleteToken();
+            return <Redirect to="/"/>
+          }}
           newGroupClick={(e) => {return}/* TODO */}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
+          searchResults={searchState.searchResults}
         />
       </Box>
       <Flex 

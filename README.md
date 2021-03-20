@@ -112,8 +112,7 @@ Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
 
 ### Websocket
 
-- [ ] Group Chat testing
-- [ ] Friend chat testing
+- [x] Chat testing
 
 ### Route testing
 

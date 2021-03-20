@@ -4,7 +4,8 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
-import { GroupMessageDataArr } from '../../api/validators/entity'
+import { GroupDataArr, GroupMessageDataArr } from '../../api/validators/entity'
+import { SearchList } from '../../component/search/list';
 
 interface GroupPanelProps{
   username: string;
@@ -12,8 +13,9 @@ interface GroupPanelProps{
   moreOptionsClick: React.MouseEventHandler<HTMLButtonElement>;
   newGroupClick: React.MouseEventHandler<HTMLButtonElement>;
   groupData: GroupMessageDataArr; // replace this later
-  onSearch: React.ChangeEventHandler<HTMLInputElement>
+  onSearch: React.ChangeEventHandler<HTMLInputElement>;
   searchValue: string;
+  searchResults: GroupDataArr;
 }
 
 
@@ -24,8 +26,10 @@ export const GroupPanel = ({
   newGroupClick,
   groupData,
   onSearch,
-  searchValue
+  searchValue,
+  searchResults,
 }: GroupPanelProps) => {
+  const [showSearch, setShowSearch] = React.useState(false);
   return(
     <SidePanel variant="leftPanel">
       <Flex
@@ -44,10 +48,17 @@ export const GroupPanel = ({
         onChange={onSearch}
         value={searchValue}
         placeholder={"Search Messenger"}
+        onFocus={(e) => setShowSearch(true)}
+        onBlur={(e) => setShowSearch(false)}
       />
-      <GroupList
-        groupData={groupData}
-      />
+      {showSearch 
+       ?<SearchList
+            searchResults={searchResults}
+          />
+       :<GroupList
+          groupData={groupData}
+        />
+      }
     </SidePanel>
   );
 }

@@ -11,40 +11,48 @@ export class SearchRouter {
   public router = express.Router();
 
   constructor(){
-    this.getSearchGroupsUsers();
+    this.getSearchGroups();
+    this.getSearchUsers();
   }
 
-  private getSearchGroupsUsers(){
+  private getSearchGroups(){
     const ManyQuery = t.type({
       count: tt.NumberFromString,
       search: t.string,
     });
     type ManyQuery = t.TypeOf<typeof ManyQuery>;
 
-    this.router.get('/', (req, res, next) => {
+    this.router.get('/group', (req, res, next) => {
       const onLeft = async (errors: t.Errors) => { res.status(400).json(errors) };
 
       const onRight = async (query: ManyQuery) => {
         const groups = await GroupEntity.searchGroupByName(query.search, query.count);
-        const users = await UserEntity.searchUserByName(query.search, query.count);
 
-        const searchRes: Array<GroupEntity | UserEntity> = [];
-        searchRes.concat(users, groups);
-
-        const sortByName = (a: GroupEntity | UserEntity, b: GroupEntity | UserEntity) => {
-          const cmpA = a.name;
-          const cmpB = b.name;
-          if (cmpA > cmpB) return 1;
-          if (cmpA < cmpB) return -1;
-          return 0;
-        }
-
-        searchRes.sort(sortByName);
-
-        res.json(searchRes);
+        res.json(groups);
       }
 
       pipe(ManyQuery.decode(req.query), fold(onLeft, onRight));
+    })
+  }
+
+  private getSearchUsers(){
+    const Query = t.type({
+      count: tt.NumberFromString,
+      search: t.string,
+    });
+    type Query = t.TypeOf<typeof Query>;
+
+    this.router.get('/user', (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors) => { res.status(400).json(errors) };
+
+      const onRight = async (query: Query) => {
+        const users = await UserEntity.searchUserByName(query.search, query.count);
+
+        res.json(users);
+      }
+      
+      pipe(Query.decode(req.query), fold(onLeft, onRight));
     })
   }
 }

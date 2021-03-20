@@ -10,15 +10,19 @@ interface SearchBarProps {
   placeholder: string,
   value: string,
   onChange: React.ChangeEventHandler<HTMLInputElement>,
+  onFocus: React.FocusEventHandler<HTMLInputElement>,
+  onBlur: React.FocusEventHandler<HTMLInputElement>
 }
-export const SearchBar = ({placeholder, value, onChange}: SearchBarProps) => {
+export const SearchBar = ({placeholder, value, onChange, onFocus, onBlur}: SearchBarProps) => {
   const [showIcon, setShowIcon] = React.useState<boolean>(true);
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setShowIcon(false);
+    onFocus(e);
   }
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setShowIcon(true);
+    onBlur(e);
   }
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if(e.key === "Enter"){

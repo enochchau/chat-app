@@ -50,10 +50,10 @@ export type GroupMessageData = t.TypeOf<typeof GroupMessageData>;
 export const GroupMessageDataArr = t.array(GroupMessageData);
 export type GroupMessageDataArr = t.TypeOf<typeof GroupMessageDataArr>;
 
-export const UserGroupUnion = t.union([
-  GroupData,
-  UserData
-]);
-export type UserGroupUnion = t.TypeOf<typeof UserGroupUnion>;
-export const UserGroupUnionArr = t.array(UserGroupUnion);
-export type UserGroupUnionArr = t.TypeOf<typeof UserGroupUnionArr>;
+// export const UserGroupUnion = t.union([
+//   GroupData,
+//   UserData
+// ]);
+// export type UserGroupUnion = t.TypeOf<typeof UserGroupUnion>;
+// export const UserGroupUnionArr = t.array(UserGroupUnion);
+// export type UserGroupUnionArr = t.TypeOf<typeof UserGroupUnionArr>;
