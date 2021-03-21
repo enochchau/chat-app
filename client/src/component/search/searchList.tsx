@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react';
-import { UserDataArr, UserData, GroupDataWithUsers} from 'api/validators/entity';
+import { UserDataArr, UserData, GroupDataWithUsers, GroupData} from 'api/validators/entity';
 import * as React from 'react';
 import { ListItem } from '../listItem';
 
@@ -28,23 +28,19 @@ export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) =>
 }
 
 interface GroupSearchListProps{
-  searchResults: Array<GroupDataWithUsers>,
-  onClick: (e: React.MouseEvent<HTMLDivElement>, item: GroupDataWithUsers) => void,
+  searchResults: Array<GroupData>,
+  onClick: (e: React.MouseEvent<HTMLDivElement>, item: GroupData) => void,
 }
-export const GroupSearchLIst = ({searchResults, onClick}: GroupSearchListProps) => {
+export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) => {
   return(
     <Flex
       flexDir="column"
     >
       {
-        searchResults.map((item: GroupDataWithUsers, i: number) => 
+        searchResults.map((item: GroupData, i: number) => 
           <ListItem
             key={i}
-            title={item.name || item.users.reduce((acc, user) => {
-              acc += user.name.split(' ')[0]; // take the first name
-              return acc;
-            }, "")}
-            avatarSrc={item.avatar}
+            title={item.name} 
             onClick={(e) => {onClick(e, item)}}
           />
         )

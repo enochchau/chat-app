@@ -1,13 +1,13 @@
 import { Flex } from '@chakra-ui/react';
 import { GroupItem } from './item';
 import * as React from 'react';
-import { GroupMessageDataArr, UserData, UserDataArr } from '../../api/validators/entity';
+import { GroupMessageDataArr } from '../../api/validators/entity';
 
 interface GroupListProps{
-  groupData: GroupMessageDataArr; // change this later
-  userData: Array<UserData>;
+  groupData: GroupMessageDataArr;
+  onClick: (e: React.MouseEvent<HTMLDivElement>, groupId: number) => void;
 }
-export const GroupList = ({groupData, userData}: GroupListProps) => {
+export const GroupList = ({groupData, onClick}: GroupListProps) => {
   return(
     <Flex
       flexDir="column"
@@ -16,13 +16,11 @@ export const GroupList = ({groupData, userData}: GroupListProps) => {
         groupData.map((group, i) => 
           <GroupItem
             key={i}
-            title={group.groupName || userData.reduce((acc, user) => {
-              acc += user.name.split(' ')[0];
-              return acc;
-            }, "")}
+            title={group.groupName}
             avatarSrc={group.groupAvatar || undefined} 
             lastMessage={group.lastMessage || undefined}
             lastTimestamp={group.lastTimestamp || undefined}
+            onClick={(e) => {onClick(e, group.groupId)}}
           />
         )
       }

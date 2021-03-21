@@ -29,7 +29,7 @@ export type UserDataArr = t.TypeOf<typeof UserDataArr>;
 
 export const GroupData = t.type({
   id: t.number,
-  name: t.union([t.string, t.null]),
+  name: t.string,
   created: tt.DateFromISOString,
   updated: tt.DateFromISOString,
   avatar: t.union([t.string, t.null]),
@@ -45,14 +45,10 @@ export const GroupDataWithUsers = t.intersection([GroupData,
 ]);
 export type GroupDataWithUsers = t.TypeOf<typeof GroupDataWithUsers>;
 
-// we fill in the name after validating the data after an api call
-export type GroupDataWithUsersAndName = Omit<GroupDataWithUsers, "name"> & {name: string};
-
-
 export const GroupMessageData = t.type({
   userId: t.number, // this value is essentially thown away...
   groupId: t.number,
-  groupName: t.union([t.string, t.null]),
+  groupName: t.string, 
   groupAvatar: t.union([t.string, t.null]),
   lastTimestamp: t.union([tt.DateFromISOString, t.null]),
   lastMessage: t.union([t.string, t.null]),

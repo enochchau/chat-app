@@ -54,6 +54,7 @@ export class WsHandler {
 
 // ------ on message helper
   private toEvent = (message: string) => {
+    console.log('[WEBSOCKET] message: ', message);
     try{
       const event = JSON.parse(message);
 
@@ -158,7 +159,7 @@ export class WsHandler {
 
         // send group chat history
         const messageHistory = await MessageEntity.findMessagesOfGroupId(groupId, 50, new Date());
-        this.ws.send(JSON.stringify({topic: "history", payload: messageHistory}));
+        this.ws.send(JSON.stringify({topic: 'history', payload: messageHistory}));
 
       } else {
         // else tell the user it was a bad request

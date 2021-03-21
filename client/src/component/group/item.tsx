@@ -27,12 +27,14 @@ interface GroupItemProps {
   avatarSrc?: string;
   lastMessage?: string;
   lastTimestamp?: Date;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
 }
-export const GroupItem = ({title, avatarSrc, lastMessage, lastTimestamp}: GroupItemProps) => {
+export const GroupItem = ({title, avatarSrc, lastMessage, lastTimestamp, onClick}: GroupItemProps) => {
   return(
     <ListItem
       title={title}
       avatarSrc={avatarSrc}
+      onClick={onClick}
     >
       {lastMessage && lastTimestamp && 
         <Text>{lastMessage}·{timeSinceString(lastTimestamp)}</Text>

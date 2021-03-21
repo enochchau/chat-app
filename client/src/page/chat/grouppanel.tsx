@@ -4,8 +4,8 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
-import { GroupDataArr, GroupMessageDataArr } from '../../api/validators/entity'
-import { SearchList } from '../../component/search/groupList';
+import { GroupData, GroupMessageDataArr } from '../../api/validators/entity'
+import { GroupSearchList } from '../../component/search/searchList';
 import { SearchIcon } from '../../component/icon';
 
 interface GroupPanelProps{
@@ -16,7 +16,9 @@ interface GroupPanelProps{
   groupData: GroupMessageDataArr; // replace this later
   onSearch: React.ChangeEventHandler<HTMLInputElement>;
   searchValue: string;
-  searchResults: GroupDataArr;
+  searchResults: Array<GroupData>;
+  onSearchResultClick: (e: React.MouseEvent<HTMLDivElement>, item: GroupData) => void;
+  onGroupClick: (e: React.MouseEvent<HTMLDivElement>, id: number) => void;
 }
 
 
@@ -29,6 +31,8 @@ export const GroupPanel = ({
   onSearch,
   searchValue,
   searchResults,
+  onSearchResultClick,
+  onGroupClick
 }: GroupPanelProps) => {
   const [showSearch, setShowSearch] = React.useState(false);
   return(
@@ -55,10 +59,12 @@ export const GroupPanel = ({
         variant="groupSearch"
       />
       {showSearch 
-       ?<SearchList
+       ?<GroupSearchList
             searchResults={searchResults}
+            onClick={onSearchResultClick}
           />
        :<GroupList
+          onClick={onGroupClick}
           groupData={groupData}
         />
       }

@@ -48,3 +48,9 @@ export type AuthMessage = {
 export type RxChatMessage= t.TypeOf<typeof RxChatMessage>;
 export type RxChatPayload = RxChatMessage["payload"];
 export type ServerMessage = t.TypeOf<typeof ServerMessage>;
+
+export const ChatHistory = t.type({
+  topic: t.literal('history'),
+  payload: t.array(MessageData)
+})
+export type ChatHistory = t.TypeOf<typeof ChatHistory>;

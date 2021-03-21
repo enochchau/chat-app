@@ -14,7 +14,7 @@ import { InfoPanel } from './infopanel';
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 // websocket 
-import { RxChatMessage, ServerMessage } from '../../api/validators/websocket';
+import { ChatHistory, RxChatMessage, ServerMessage } from '../../api/validators/websocket';
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 // websocket -> HTML
@@ -35,20 +35,19 @@ import {
   GroupDataArr, 
   GroupDataWithUsers, 
   GroupMessageData, 
-  GroupDataWithUsersAndName 
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-
+import { PathReporter } from 'io-ts/PathReporter'
 
 // When a user connects to a room
-function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, message: RxChatMessage){
+function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, timestamp: Date){
   return {
     userId: userId,
     name: groupUser.name,
     avatarSrc: groupUser.avatar,
-    timestamp: message.payload.timestamp,
+    timestamp: timestamp,
     message: htmlMessage,
   } as DisplayableMessage
 }
@@ -57,7 +56,8 @@ function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessa
 type SEARCHACTIONTYPE = 
   | {type: 'setSearchValue', payload: string}
   | {type: 'setIsSearching', payload: boolean}
-  | {type: 'setSearchResults', payload: GroupDataArr};
+  | {type: 'setSearchResults', payload: GroupDataArr}
+  | {type: 'resetState'};
 const searchInitialState = {
   searchValue: "",
   isSearching: false,
@@ -71,6 +71,8 @@ function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYP
       return {...state, isSearching: action.payload};
     case 'setSearchResults':
       return {...state, searchResults: action.payload};
+    case 'resetState':
+      return searchInitialState;
     defualt: 
       return state;
   }
@@ -89,8 +91,7 @@ const groupInitialState ={
     created: new Date(),
     updated: new Date(),
     avatar: null,
-    users: [],
-  } as GroupDataWithUsersAndName,
+  } as GroupData,
 };
 
 function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
@@ -103,27 +104,12 @@ function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE):
           return map;
         }, new Map() as GroupUsers));
       }
-      
-      const collectUserNames = () => {
-        return( psuedoGroupName = action.payload.users.reduce((name, user) => {
-          name += user.name.split(' ')[0];
-          return name;
-        }, ""));
-      }
 
       const userMap = createUserMap();
 
-      let psuedoGroupName = "";
-      if(!action.payload.name){
-        psuedoGroupName = collectUserNames();
-      }
-
       return{...state, 
         userMap: userMap,
-        data: {
-          ...action.payload,
-          name: action.payload.name || psuedoGroupName,
-        }
+        data: action.payload,
       }
 
     default:
@@ -140,7 +126,6 @@ type USERSEARCHACTIONTYPE =
 | {type: 'appendNewGroup', payload: UserData}
 | {type: 'postingNewGroup', payload: boolean}
 | {type: 'resetState'}
-| {type: 'setNewGroupId', payload: number};
 
 const userSearchInitialState = {
   creatingGroup: false,
@@ -150,7 +135,6 @@ const userSearchInitialState = {
   newGroup: [] as UserDataArr,
   currentUserIds: new Set() as Set<number>,
   postingNewGroup: false,
-  newGroupId: -1
 }
 
 function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE): typeof userSearchInitialState{
@@ -189,8 +173,6 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
       };
     case 'postingNewGroup':
       return {...state, postingNewGroup: action.payload}
-    case 'setNewGroupId':
-      return {...state, newGroupId: action.payload};
     case 'resetState':
       return userSearchInitialState
     default:
@@ -222,7 +204,7 @@ export const ChatPage = () => {
   // messages to be displayed
   const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
   // groups to be displayed on the group panel
-  const [groups, setGroups] = React.useState<GroupMessageDataArr>([]); 
+  const [groups, setGroups] = React.useState<Array<GroupMessageData>>([]); 
 
   // stores meta data for the current chat group
   const [groupState, groupDispatch] = React.useReducer(groupReducer, groupInitialState);
@@ -237,6 +219,10 @@ export const ChatPage = () => {
 
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
+
+  // this is populated on load
+  const [currentGroupId, setCurrentGroupId] = React.useState<number>(-1);
+
 
   // handle searching
   React.useEffect(() => {
@@ -273,6 +259,10 @@ export const ChatPage = () => {
 
   // fetch the user's groups on mount
   React.useEffect(() => {
+    if(groupId){
+      setCurrentGroupId(parseInt(groupId));
+    }
+
     GroupRequest.getGroupsForUser({count: 15, date: new Date()})
       .then(res => res.data)
       .then(data => {
@@ -280,14 +270,14 @@ export const ChatPage = () => {
           console.error('Error validating getting groups for user: ', errors);
         }
 
-        const onRight = (data: GroupMessageDataArr) => {
+        const onRight = async  (data: GroupMessageDataArr) => {
           setGroups(data);
         }
         pipe(GroupMessageDataArr.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
   }, []);
-
+  
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
   React.useEffect(() => {
@@ -296,14 +286,7 @@ export const ChatPage = () => {
     }
 
     ws.current = new WebSocket(WSURL);
-
-    if(!groupId) {
-      console.log('No groupId url parameter detected. Unable to open websocket.');
-      disconnect();
-      return;
-    }
-    const intGroupId = parseInt(groupId);
-
+    
     const token = getToken();
     if(!token) {
       console.log('No token found. Unable to open websocket.');
@@ -313,12 +296,30 @@ export const ChatPage = () => {
 
     // setup the message handler
     ws.current.onmessage = (event) => {
+
       const message = JSON.parse(event.data);
 
       const onBadMessage = (errors: t.Errors) => {
-        console.log('Server message validation error: ', errors);
-        // all message validation failed.
+        console.log('Server message validation error: ', PathReporter.report(ServerMessage.decode(message)));
+
+        const onLeft = (errors: t.Errors) => {
+          console.log('Unable to validate chat history message', PathReporter.report(ChatHistory.decode(message)));
         console.log("Unable to validate recieved message at websocket.");
+        }
+
+        const onRight = (message: ChatHistory) => {
+          const displayMsg: Array<DisplayableMessage> = new Array();
+          message.payload.forEach((msg) => {
+            const html = parseStringToHtml(msg.message);
+            const sender = groupState.userMap.get(msg.userId);
+            if(sender){
+              displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
+            }
+          });
+          setMessages(messages => displayMsg);;
+        }
+
+        pipe(ChatHistory.decode(message), fold(onLeft, onRight));
       }
       const handleServerMessage = (message: ServerMessage) => {
         console.log('Server Message: ', message)
@@ -326,26 +327,35 @@ export const ChatPage = () => {
 
       // if ChatMessage decode fails, pipe into ServerMessage
       const tryServerMessage = (errors: t.Errors) => {
-        console.log('Chat message validation error: ', errors);
+        console.log('Chat message validation error: ', PathReporter.report(RxChatMessage.decode(message)));
         pipe(ServerMessage.decode(message), fold(onBadMessage, handleServerMessage));
       }
 
       const handleNewMessage = (message: RxChatMessage) => {
-        const insertIntoMessageList = (sender: UserData) => {
-          const displayableMessage = createDisplayableMessage(message.payload.userId, sender, html, message);
-          const updatedMessages = [...messages];
-          // array is displayed backwards, later messages should come first
-          updatedMessages.unshift(displayableMessage);
-          setMessages(updatedMessages);
-        }
 
+        const reorderGroups = () => {
+          for(let i=0; i<groups.length; i++){
+            if(groups[i].groupId === currentGroupId){
+              const copy = [...groups];
+              const insertGroup = copy.splice(i, 1);
+              copy.unshift(insertGroup[0]);
+              setGroups(groups => copy);
+              break;
+            }
+          }
+        }
         console.log("Chat Message: ", message);
         // messages are recieved as strings but must be displayed as HTML
         const html = parseStringToHtml(message.payload.message);
         const sender = groupState.userMap.get(message.payload.userId);
+        const id = message.payload.userId;
+        const timestamp= message.payload.timestamp;
 
         if(sender){
-          insertIntoMessageList(sender);
+          const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
+          // array is displayed backwards, later messages should come first
+          setMessages(messages => [displayMsg, ...messages]);
+          reorderGroups();
         } else {
           // do a fetch request to get the data since we've evidently lost it
         }
@@ -360,7 +370,7 @@ export const ChatPage = () => {
         topic: "auth",
         payload: {
           timestamp: new Date(),
-          groupId: intGroupId,
+          groupId: currentGroupId,
           token: token,
         }
       }
@@ -368,7 +378,7 @@ export const ChatPage = () => {
     };
 
     // populate the group meta data
-    GroupRequest.getGroupWithUsers({groupId: intGroupId})
+    GroupRequest.getGroupWithUsers({groupId: currentGroupId})
       .then(res => res.data)
       .then(data => {
 
@@ -386,18 +396,16 @@ export const ChatPage = () => {
 
 
     // disconnect from WS on unmount
-    return disconnect();
-  }, [groupId]); // connect to a new chat room everytime we get a new groupid
+    return () => disconnect();
+  }, [currentGroupId]); // connect to a new chat room everytime we get a new groupid
 
   // send message here essentially
   const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
     // hardcoded Demo data should be replaced later
-    if(groupId){
-      const intGroupId = parseInt(groupId);
+    if(currentGroupId !== -1){
+      const newMessage = processSendMessageEvent(e, "chat", storeState.id, currentGroupId);
 
-      const newMessage = processSendMessageEvent(e, "chat", storeState.id, intGroupId);
-
-      if(newMessage && ws.current) {
+      if(newMessage && ws.current && ws.current.readyState === 1) {
         ws.current.send(JSON.stringify(newMessage));
 
       } else console.error(`Unable to send websocket message\nWeboscket status: ${ws.current}`)
@@ -418,7 +426,7 @@ export const ChatPage = () => {
       .then(data => {
 
         const onLeft = (errors: t.Errors) => {
-          console.error('Error validating create group search request: ', errors);
+          console.error('Error validating create group search request: ', PathReporter.report(UserDataArr.decode(data)));
         }
 
         const onRight = (data: UserDataArr) => {
@@ -457,7 +465,7 @@ export const ChatPage = () => {
         }
 
         const onRight = (data: GroupData) => {
-          userSearchDispatch({type: 'setNewGroupId', payload: data.id});
+          setCurrentGroupId(data.id);
         }
         pipe(GroupData.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: 'resetState'});
@@ -479,7 +487,7 @@ export const ChatPage = () => {
       justify="space-between"
       align="flex-start"
     >
-      {(userSearchState.newGroupId !== -1) && <Redirect to={`/chat/${userSearchState.newGroupId}`}/>}
+      {(currentGroupId !== -1) && <Redirect to={`/chat/${currentGroupId}`}/>}
       <Box>
         <GroupPanel
           username={storeState.name}
@@ -488,11 +496,16 @@ export const ChatPage = () => {
             deleteToken();
             return <Redirect to="/"/>
           }}
+          onGroupClick={(e, id) => {setCurrentGroupId(id)}}
           newGroupClick={(e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
           searchResults={searchState.searchResults}
+          onSearchResultClick={(e, group) => {
+            setCurrentGroupId(group.id);
+            searchDispatch({type: 'resetState'});
+          }}
         />
       </Box>
       <Flex 
