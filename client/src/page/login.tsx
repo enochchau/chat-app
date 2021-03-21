@@ -13,12 +13,12 @@ import { Redirect } from 'react-router-dom';
 import { ServerError, BadLogin, GoodLogin } from '../component/toast';
 // API/ validators
 import { AuthRequest } from '../api';
-import { AuthData, TokenData, AuthDataValidator, TokenDataValidator} from '../api/validators/auth';
+import { AuthData, TokenData, AuthValidator, TokenValidator} from '../api/validators/auth';
 import * as t from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
 
-export const LoginPage = () => {
+export const LoginPage: React.FC = () => {
   return (
     <Center>
       <LoginForm/>
@@ -37,12 +37,7 @@ interface LoginFormData {
   rememberMe: boolean;
 }
 
-interface ResponseData {
-  token?: string;
-  message: string;
-}
-
-const LoginForm = () => {
+const LoginForm: React.FC = () => {
   const { handleSubmit, errors, register, formState } = useForm({
     resolver: yupResolver(schema)
   });
@@ -52,9 +47,9 @@ const LoginForm = () => {
   // use toast for error handling
   const toastMessage = useToast();
   
-  const {storeState, storeDispatch} = React.useContext(StoreContext);
+  const {storeDispatch} = React.useContext(StoreContext);
 
-  const onSubmit = (data: LoginFormData) =>{
+  const onSubmit = (data: LoginFormData): void =>{
     const rememberMe = data.rememberMe;
     // reformat data to post
     const postData = {
@@ -66,18 +61,18 @@ const LoginForm = () => {
     AuthRequest.postLogin(postData)
       .then(res => res.data)
       .then(data => {
-        const onTokenLeft = (errors: t.Errors) => {
-          const onNoTokenRight = (data: AuthData) => {
+        const onTokenLeft = (errors: t.Errors): void => {
+          const onNoTokenRight = (data: AuthData): void => {
             toastMessage(BadLogin(data.message));
           }
-          const onNoTokenLeft = (errors: t.Errors) => {
+          const onNoTokenLeft = (errors: t.Errors): void => {
             console.error('Validation error at post login: ', errors);
           }
 
           console.error('NO TOKEN Validation error at post login: ', errors);
-          pipe(AuthDataValidator.decode(data), fold(onNoTokenLeft, onNoTokenRight));
+          pipe(AuthValidator.decode(data), fold(onNoTokenLeft, onNoTokenRight));
         }
-        const onTokenRight = (data: TokenData) => {
+        const onTokenRight = (data: TokenData): void => {
           const jwtUser = decodeToJwtUser(data.token);
           if(jwtUser){
             toastMessage(GoodLogin(data.message));
@@ -87,7 +82,7 @@ const LoginForm = () => {
           }
         }
 
-        pipe(TokenDataValidator.decode(data), fold(onTokenLeft, onTokenRight));
+        pipe(TokenValidator.decode(data), fold(onTokenLeft, onTokenRight));
       })
       .catch(error => {
         toastMessage(ServerError);
@@ -98,33 +93,33 @@ const LoginForm = () => {
   // redirect link is currently a placeholder
   return(
     formAccepted
-    ? <Redirect to="/"/>
-    :
-    <Auth.Form 
-      title="Login" 
-      onSubmit={handleSubmit(onSubmit)}
-      altLink="/register"
-      linkText="Don't have an account?"
-    >
-      <Auth.EmailFormInput
-        isInvalid={Boolean(errors.email)}
-        register={register}
-        errorMessage={errors.email?.message}
-      />
-      
-      <Auth.PasswordFormInput
-        isInvalid={Boolean(errors.password)}
-        register={register}
-        errorMessage={errors.password?.message}
-      />
-
-      <Auth.RememberMe register={register} />
-      <Auth.Button
-        isLoading={formState.isSubmitting}
-        type="submit"
+      ? <Redirect to="/"/>
+      :
+      <Auth.Form 
+        title="Login" 
+        onSubmit={handleSubmit(onSubmit)}
+        altLink="/register"
+        linkText="Don't have an account?"
       >
-        Submit
-      </Auth.Button>
-    </Auth.Form>
+        <Auth.EmailFormInput
+          isInvalid={Boolean(errors.email)}
+          register={register}
+          errorMessage={errors.email?.message}
+        />
+        
+        <Auth.PasswordFormInput
+          isInvalid={Boolean(errors.password)}
+          register={register}
+          errorMessage={errors.password?.message}
+        />
+
+        <Auth.RememberMe register={register} />
+        <Auth.Button
+          isLoading={formState.isSubmitting}
+          type="submit"
+        >
+          Submit
+        </Auth.Button>
+      </Auth.Form>
   );
 }

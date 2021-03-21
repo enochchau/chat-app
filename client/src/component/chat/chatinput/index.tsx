@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, ChakraProps, Flex } from "@chakra-ui/react" ;
+import { Box, ChakraProps } from "@chakra-ui/react" ;
 import { processSendMessageEvent } from './sendmessage';
 import {shouldShowPlaceholder} from './placeholder'
 
@@ -11,10 +11,10 @@ interface ChatInputProps extends ChakraProps {
   updatePlaceholder: boolean;
 }
 
-const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, updatePlaceholder, ...rest}: ChatInputProps) => {
+const ChatInput: React.FC<ChatInputProps> = ({onKeyPress, onEnterPress, onInput, chatRef, updatePlaceholder, ...rest}: ChatInputProps) => {
   const [showPlaceholder, setShowPlaceholder] = React.useState<boolean>(true);
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     if(event.key === "Enter" && event.shiftKey) event.key = "Enter";
 
     else if(event.key === "Enter"){
@@ -25,7 +25,7 @@ const ChatInput = ({onKeyPress, onEnterPress, onInput, chatRef, updatePlaceholde
     if(onKeyPress) onKeyPress(event);
   }
 
-  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+  const handleInput = (e: React.FormEvent<HTMLDivElement>): void => {
     e.preventDefault();
     if(onInput) onInput(e);
 

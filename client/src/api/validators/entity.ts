@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 import * as tt from 'io-ts-types';
 
-export const MessageDataValidator = t.type({
+export const MessageValidator = t.type({
   id: t.number,
   message: t.string,
   timestamp: tt.DateFromISOString,
@@ -10,11 +10,10 @@ export const MessageDataValidator = t.type({
   groupId: t.number,
   userId: t.number
 })
-export type MessageData = t.TypeOf<typeof MessageDataValidator>;
-export const MessageDataArrValidator = t.array(MessageDataValidator);
-export type MessageDataArr = t.TypeOf<typeof MessageDataArrValidator>;
+export type MessageData = t.TypeOf<typeof MessageValidator>;
+export const MessageArrValidator = t.array(MessageValidator);
 
-const UserDataValidator = t.type({
+const UserValidator = t.type({
   id: t.number,
   email: t.string,
   name: t.string,
@@ -23,29 +22,27 @@ const UserDataValidator = t.type({
   avatar: t.union([t.string, t.null])
 });
 
-export type UserData = t.TypeOf<typeof UserDataValidator>;
-export const UserDataArrValidator = t.array(UserDataValidator);
-export type UserDataArr = t.TypeOf<typeof UserDataArrValidator>;
+export type UserData = t.TypeOf<typeof UserValidator>;
+export const UserArrValidator = t.array(UserValidator);
 
-export const GroupDataValidator = t.type({
+export const GroupValidator = t.type({
   id: t.number,
   name: t.string,
   created: tt.DateFromISOString,
   updated: tt.DateFromISOString,
   avatar: t.union([t.string, t.null]),
 });
-export type GroupData = t.TypeOf<typeof GroupDataValidator>;
+export type GroupData = t.TypeOf<typeof GroupValidator>;
 // response validator
-export const GroupDataArrValidator = t.array(GroupDataValidator);
-export type GroupDataArr = t.TypeOf<typeof GroupDataArrValidator>;
+export const GroupArrValidator = t.array(GroupValidator);
 
 // group data that includes the user relation
-export const GroupDataWithUsersValidator = t.intersection([GroupDataValidator, 
-  t.type({users: UserDataArrValidator})
+export const GroupWithUsersValidator = t.intersection([GroupValidator, 
+  t.type({users: UserArrValidator})
 ]);
-export type GroupDataWithUsers = t.TypeOf<typeof GroupDataWithUsersValidator>;
+export type GroupDataWithUsers = t.TypeOf<typeof GroupWithUsersValidator>;
 
-export const GroupMessageDataValidator = t.type({
+export const GroupMessageValidator = t.type({
   userId: t.number, // this value is essentially thown away...
   groupId: t.number,
   groupName: t.string, 
@@ -55,6 +52,5 @@ export const GroupMessageDataValidator = t.type({
   lastUserId: t.union([t.number, t.null]),
 });
 
-export type GroupMessageData = t.TypeOf<typeof GroupMessageDataValidator>;
-export const GroupMessageDataArrValidator = t.array(GroupMessageDataValidator);
-export type GroupMessageDataArr = t.TypeOf<typeof GroupMessageDataArrValidator>;
+export type GroupMessageData = t.TypeOf<typeof GroupMessageValidator>;
+export const GroupMessageArrValidator = t.array(GroupMessageValidator);

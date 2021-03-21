@@ -1,11 +1,11 @@
 import * as t from 'io-ts';
 
-export const AuthDataValidator = t.type({
+export const AuthValidator = t.type({
   message: t.string
 });
-export type AuthData = t.TypeOf<typeof AuthDataValidator>;
-export const TokenDataValidator = t.type({
+export type AuthData = t.TypeOf<typeof AuthValidator>;
+export const TokenValidator = t.type({
   message: t.string,
   token: t.string,
 });
-export type TokenData = t.TypeOf<typeof TokenDataValidator>;
+export type TokenData = t.TypeOf<typeof TokenValidator>;

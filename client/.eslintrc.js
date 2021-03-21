@@ -15,13 +15,14 @@ module.exports = {
     indent: ["error", 2],
     "linebreak-style": ["error", "unix"],
     "no-console": "warn",
-    "no-unused-vars": "off",
+    "no-unused-vars": [2, {"args": "after-used", "argsIgnorePattern": "^_"}],
     "@typescript-eslint/no-unused-vars": [
       "error",
       { 
         vars: "all", 
         args: "after-used", 
         ignoreRestSiblings: false,
+        argsIgnorePattern: "^_",
       },
     ],
     "@typescript-eslint/no-type-alias":[
@@ -42,5 +43,7 @@ module.exports = {
     "NodeListOf": true,
     "ChildNode": true,
     "HTMLDivElement": true,
+    "HTMLButtonElement": true,
+    "WebSocket": true,
   },
 };

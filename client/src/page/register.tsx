@@ -12,12 +12,12 @@ import { Center, useToast } from '@chakra-ui/react';
 import { Redirect } from 'react-router-dom';
 // api/ validation
 import { AuthRequest } from '../api';
-import { AuthData, AuthDataValidator } from '../api/validators/auth';
+import { AuthData, AuthValidator } from '../api/validators/auth';
 import * as t from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
 
-export const RegisterPage = () => {
+export const RegisterPage: React.FC = () => {
   return(
     <Center>
       <RegisterForm/>
@@ -46,11 +46,7 @@ interface RequestData {
   email: string;
 }
 
-interface ResponseData {
-  message: string;
-}
-
-const RegisterForm = () =>  {
+const RegisterForm: React.FC = () =>  {
   const { handleSubmit, errors, register, formState } = useForm({
     resolver: yupResolver(schema)
   });
@@ -58,7 +54,7 @@ const RegisterForm = () =>  {
 
   const toastMessage = useToast();
 
-  const onSubmit = (formData: RegisterFormData) =>{
+  const onSubmit = (formData: RegisterFormData): void =>{
     // reformat data!!
     const reqData: RequestData = {
       name: formData.name,
@@ -83,9 +79,9 @@ const RegisterForm = () =>  {
             toastMessage(BadRegister(data.message));
           }
         }
-        pipe(AuthDataValidator.decode(data), fold(onLeft, onRight));
+        pipe(AuthValidator.decode(data), fold(onLeft, onRight));
       })
-      .catch(err => {
+      .catch(_err => {
         toastMessage(ServerError);
       })
     

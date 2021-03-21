@@ -20,7 +20,6 @@ import {
   ServerMessageValidator,
   RxChatMessageValidator,
   ChatHistoryValidator,
-  
 } from '../../api/validators/websocket';
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
@@ -35,18 +34,15 @@ import { useDebounce } from '../../util';
 // api / validators
 import { SearchRequest, GroupRequest } from '../../api';
 import { 
-  GroupMessageDataArr, 
   UserData, 
-  UserDataArr, 
   GroupData, 
-  GroupDataArr, 
   GroupDataWithUsers, 
   GroupMessageData,
-  GroupMessageDataArrValidator, 
-  UserDataArrValidator, 
-  GroupDataValidator, 
-  GroupDataArrValidator, 
-  GroupDataWithUsersValidator, 
+  GroupMessageArrValidator, 
+  UserArrValidator, 
+  GroupValidator, 
+  GroupArrValidator, 
+  GroupWithUsersValidator, 
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
@@ -68,33 +64,39 @@ function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessa
 type SEARCHACTIONTYPE = 
   | {type: 'setSearchValue', payload: string}
   | {type: 'setIsSearching', payload: boolean}
-  | {type: 'setSearchResults', payload: GroupDataArr}
+  | {type: 'setSearchResults', payload: Array<GroupData>}
   | {type: 'resetState'};
-const searchInitialState = {
+const groupSearchInitialState = {
   searchValue: "",
   isSearching: false,
-  searchResults: [] as GroupDataArr,
+  searchResults: [] as Array<GroupData>,
 }
-function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYPE){
+function groupSearchReducer(state: typeof groupSearchInitialState, action: SEARCHACTIONTYPE){
   switch(action.type){
-    case 'setSearchValue':
-      return {...state, searchValue: action.payload};
-    case 'setIsSearching':
-      return {...state, isSearching: action.payload};
-    case 'setSearchResults':
-      return {...state, searchResults: action.payload};
-    case 'resetState':
-      return searchInitialState;
+  case 'setSearchValue':
+    return {...state, searchValue: action.payload};
+  case 'setIsSearching':
+    return {...state, isSearching: action.payload};
+  case 'setSearchResults':
+    return {...state, searchResults: action.payload};
+  case 'resetState':
+    return groupSearchInitialState;
   }
 }
 
 // caching current group meta data including users data
-export type GroupUsers = Map<number, UserData>
+export type UserIdMap = Map<number, UserData>
+const createUserIdMap = (userData: UserData[]): UserIdMap => {
+  return (userData.reduce((map, user) => {
+    map.set(user.id, user);
+    return map;
+  }, new Map() as UserIdMap));
+}
 
-type GROUPACTIONTYPE = | {type: 'setGroupData', payload: GroupDataWithUsers};
+type GROUPACTIONTYPE = | {type: 'setGroupData', payload:{ data: GroupDataWithUsers, userMap: UserIdMap};
 
-const groupInitialState ={
-  userMap: new Map() as GroupUsers,
+const groupInitialState = {
+  userMap: new Map() as UserIdMap,
   data: {
     id: -1,
     name: '',
@@ -107,21 +109,10 @@ const groupInitialState ={
 function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
   switch(action.type){
     case 'setGroupData':
-      
-      const createUserMap = () => {
-        return (action.payload.users.reduce((map, user) => {
-          map.set(user.id, user);
-          return map;
-        }, new Map() as GroupUsers));
-      }
-
-      const userMap = createUserMap();
-
       return{...state, 
-        userMap: userMap,
-        data: action.payload,
+        userMap: action.payload.userMap,
+        data: action.payload.data,
       }
-
     default:
       return state;
   }
@@ -131,7 +122,7 @@ function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE):
 type USERSEARCHACTIONTYPE = 
 | {type: 'creatingGroup', payload: boolean}
 | {type: 'setSearchString', payload: string}
-| {type: 'setUserList', payload: UserDataArr}
+| {type: 'setUserList', payload: Array<UserData>}
 | {type: 'setIsSearching', payload: boolean}
 | {type: 'appendNewGroup', payload: UserData}
 | {type: 'postingNewGroup', payload: boolean}
@@ -140,53 +131,36 @@ type USERSEARCHACTIONTYPE =
 const userSearchInitialState = {
   creatingGroup: false,
   searchString: "",
-  userList: [] as UserDataArr,
+  userList: [] as Array<UserData>,
   isSearching: false,
-  newGroup: [] as UserDataArr,
+  newGroup: [] as Array<UserData>,
   currentUserIds: new Set() as Set<number>,
   postingNewGroup: false,
 }
 
 function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE): typeof userSearchInitialState{
   switch(action.type){
-    case 'creatingGroup': 
-      return {...state, creatingGroup: action.payload};
-    case 'setSearchString':
-      return {...state, searchString: action.payload};
-    case 'setUserList':
-      // remove users from search results that are already in the group
-      const removeChosenUsers = () => {
-        for(let i=0; i< action.payload.length; i++){
-          if(state.currentUserIds.has(action.payload[i].id)) action.payload.splice(i, 1);
-        }
-      }
-      removeChosenUsers();
-      return {...state, userList: action.payload};
-    case 'setIsSearching':
-      return {...state, isSearching: action.payload};
-    case 'appendNewGroup':
-
-      const alreadyInArr = () => {
-        for(let user of state.newGroup){
-          if(user.id === action.payload.id) return true;
-        }
-        return false;
-      }
-
-      if(alreadyInArr()) return {...state};
-
-      state.currentUserIds.add(action.payload.id);
-      return {
-        ...state, 
-        newGroup: [...state.newGroup, action.payload], 
-        currentUserIds: state.currentUserIds
-      };
-    case 'postingNewGroup':
-      return {...state, postingNewGroup: action.payload}
-    case 'resetState':
-      return userSearchInitialState
-    default:
-      return state;
+  case 'creatingGroup': 
+    return {...state, creatingGroup: action.payload};
+  case 'setSearchString':
+    return {...state, searchString: action.payload};
+  case 'setUserList':
+    return {...state, userList: action.payload};
+  case 'setIsSearching':
+    return {...state, isSearching: action.payload};
+  case 'appendNewGroup':
+    state.currentUserIds.add(action.payload.id);
+    return {
+      ...state, 
+      newGroup: [...state.newGroup, action.payload], 
+      currentUserIds: state.currentUserIds
+    };
+  case 'postingNewGroup':
+    return {...state, postingNewGroup: action.payload}
+  case 'resetState':
+    return userSearchInitialState
+  default:
+    return state;
   }
 }
 
@@ -220,12 +194,12 @@ export const ChatPage = () => {
   const [groupState, groupDispatch] = React.useReducer(groupReducer, groupInitialState);
 
   // search value in the group panel search box
-  const [searchState, searchDispatch] = React.useReducer(searchReducer, searchInitialState);
-  const debouncedSearchValue = useDebounce(searchState.searchValue, 500);
+  const [groupSearchState, groupSearchDispatch] = React.useReducer(groupSearchReducer, groupSearchInitialState);
+  const dbGroupSearchValue = useDebounce<string>(groupSearchState.searchValue, 500);
 
   // handle user search when creating new groups
   const [userSearchState, userSearchDispatch] = React.useReducer(userSearchReducer, userSearchInitialState);
-  const debouncedUserSearch = useDebounce(userSearchState.searchString, 500);
+  const dbUserSearchValue = useDebounce<string>(userSearchState.searchString, 500);
 
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
@@ -240,35 +214,35 @@ export const ChatPage = () => {
   // handle searching
   React.useEffect(() => {
     // https://usehooks.com/useDebounce/
-    if(debouncedSearchValue) {
-      searchDispatch({type: 'setIsSearching', payload: true});
+    if(dbGroupSearchValue) {
+      groupSearchDispatch({type: 'setIsSearching', payload: true});
 
       SearchRequest.getSearchGroups({
         count: 30, 
-        search: debouncedSearchValue
+        search: dbGroupSearchValue
       })
         .then(res => res.data)
         .then(data => {
-          const onLeft = (errors: t.Errors) => {
+          const onLeft = (errors: t.Errors): void => {
             console.error('Error validating search request: ', errors);
           }
-          const onRight = (data: GroupDataArr) => {
-            searchDispatch({type: 'setSearchResults', payload: data});
+          const onRight = (data: Array<GroupData>): void => {
+            groupSearchDispatch({type: 'setSearchResults', payload: data});
             console.log(data);
           }
 
-          pipe(GroupDataArrValidator.decode(data), fold(onLeft, onRight));
-          searchDispatch({type: 'setIsSearching', payload: false});
+          pipe(GroupArrValidator.decode(data), fold(onLeft, onRight));
+          groupSearchDispatch({type: 'setIsSearching', payload: false});
         })
         .catch(error => {
           console.error(error);
-          searchDispatch({type: 'setIsSearching', payload: false});
+          groupSearchDispatch({type: 'setIsSearching', payload: false});
         })
 
     } else {
-      searchDispatch({type: 'setSearchResults', payload: []});
+      groupSearchDispatch({type: 'setSearchResults', payload: []});
     }
-  }, [debouncedSearchValue]);
+  }, [dbGroupSearchValue]);
 
   // fetch the user's groups on mount
   React.useEffect(() => {
@@ -279,15 +253,15 @@ export const ChatPage = () => {
     GroupRequest.getGroupsForUser({count: 15, date: new Date()})
       .then(res => res.data)
       .then(data => {
-        const onLeft = (errors: t.Errors) => {
+        const onLeft = (errors: t.Errors): void => {
           console.error('Error validating getting groups for user: ', errors);
         }
 
-        const onRight = async  (data: GroupMessageDataArr) => {
+        const onRight = (data: Array<GroupMessageData>): void => {
           console.log(data);
           setGroups(data);
         }
-        pipe(GroupMessageDataArrValidator.decode(data), fold(onLeft, onRight));
+        pipe(GroupMessageArrValidator.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
   }, []);
@@ -313,15 +287,15 @@ export const ChatPage = () => {
 
       const message = JSON.parse(event.data);
 
-      const onBadMessage = (errors: t.Errors) => {
+      const onBadMessage = (_errors: t.Errors): void => {
         console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
 
-        const onLeft = (errors: t.Errors) => {
+        const onLeft = (_errors: t.Errors): void => {
           console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
-        console.log("Unable to validate recieved message at websocket.");
+          console.log("Unable to validate recieved message at websocket.");
         }
 
-        const onRight = (message: ChatHistory) => {
+        const onRight = (message: ChatHistory): void => {
           const displayMsg: Array<DisplayableMessage> = new Array();
           message.payload.forEach((msg) => {
             const html = parseStringToHtml(msg.message);
@@ -330,25 +304,25 @@ export const ChatPage = () => {
               displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
             }
           });
-          setMessages(messages => displayMsg);
+          setMessages(_messages => displayMsg);
 
         }
 
         pipe(ChatHistoryValidator.decode(message), fold(onLeft, onRight));
       }
-      const handleServerMessage = (message: ServerMessage) => {
+      const handleServerMessage = (message: ServerMessage): void => {
         console.log('Server Message: ', message)
       }
 
       // if ChatMessage decode fails, pipe into ServerMessage
-      const tryServerMessage = (errors: t.Errors) => {
+      const tryServerMessage = (_errors: t.Errors): void => {
         console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
         pipe(ServerMessageValidator.decode(message), fold(onBadMessage, handleServerMessage));
       }
 
-      const handleNewMessage = (message: RxChatMessage) => {
+      const handleNewMessage = (message: RxChatMessage): void => {
 
-        const reorderGroups = () => {
+        const reorderGroups = (): void => {
           for(let i=0; i<groups.length; i++){
             if(groups[i].groupId === currentGroupId){
               const copy = [...groups];
@@ -379,7 +353,7 @@ export const ChatPage = () => {
       pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));
     }
 
-    ws.current.onopen = (event) => {
+    ws.current.onopen = (_event): void => {
       // send the first message to get authenticated
       const authMessage: AuthMessage = {
         topic: "auth",
@@ -397,15 +371,18 @@ export const ChatPage = () => {
       .then(res => res.data)
       .then(data => {
 
-        const onLeft = (errors: t.Errors) => {
+        const onLeft = (errors: t.Errors):void => {
           console.error("Validation error getting group data with users: ", errors);
         }
 
-        const onRight = (data: GroupDataWithUsers) => {
-          groupDispatch({type: "setGroupData", payload: data});
+        const onRight = (data: GroupDataWithUsers): void => {
+          
+          const userMap = createUserIdMap(data.users);
+
+          groupDispatch({type: "setGroupData", payload: {data: data, userMap: userMap}});
         }
 
-        pipe(GroupDataWithUsersValidator.decode(data), fold(onLeft, onRight));
+        pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
 
@@ -414,7 +391,7 @@ export const ChatPage = () => {
   }, [currentGroupId]); // connect to a new chat room everytime we get a new groupid
 
   // send message here essentially
-  const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>) => {
+  const handleSendMessage = (e:React.KeyboardEvent<HTMLDivElement>): void => {
     // hardcoded Demo data should be replaced later
     if(currentGroupId !== -1){
       const newMessage = processSendMessageEvent(e, "chat", storeState.id, currentGroupId);
@@ -442,37 +419,46 @@ export const ChatPage = () => {
   }, [messages]);
 
   React.useEffect(() => {
-    if (userSearchState.creatingGroup && debouncedUserSearch) {
+    if (userSearchState.creatingGroup && dbUserSearchValue) {
       userSearchDispatch({type: "setIsSearching", payload: true});
 
       SearchRequest.getSearchUsers({
         count: 15,
-        search: debouncedUserSearch 
+        search: dbUserSearchValue 
       })
-      .then(res => res.data)
-      .then(data => {
+        .then(res => res.data)
+        .then(data => {
 
-        const onLeft = (errors: t.Errors) => {
-          console.error('Error validating create group search request: ', PathReporter.report(UserDataArrValidator.decode(data)));
-        }
+          const onLeft = (_errors: t.Errors): void => {
+            console.error('Error validating create group search request: ', PathReporter.report(UserArrValidator.decode(data)));
+          }
 
-        const onRight = (data: UserDataArr) => {
-          userSearchDispatch({type: 'setUserList', payload: data});
-        }
+          const onRight = (data: Array<UserData>): void => {
 
-        pipe(UserDataArrValidator.decode(data), fold(onLeft, onRight));
-        userSearchDispatch({type: "setIsSearching", payload: false});
-      })
-      .catch(error => {
-        console.error(error);
-        userSearchDispatch({type: "setIsSearching", payload: false});
-      })
+            // remove users from search results that are already in the group
+            const removeChosenUsers = (data: Array<UserData>): void => {
+              for(let i=0; i<data.length; i++){
+                if(userSearchState.currentUserIds.has(data[i].id)) data.splice(i, 1);
+              }
+            }
+
+            removeChosenUsers(data);
+            userSearchDispatch({type: 'setUserList', payload: data});
+          }
+
+          pipe(UserArrValidator.decode(data), fold(onLeft, onRight));
+          userSearchDispatch({type: "setIsSearching", payload: false});
+        })
+        .catch(error => {
+          console.error(error);
+          userSearchDispatch({type: "setIsSearching", payload: false});
+        });
     } else {
       userSearchDispatch({type: 'setUserList', payload: []});
     }
-  }, [debouncedUserSearch]);
+  }, [dbUserSearchValue]);
 
-  const createNewGroup = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const createNewGroup = (_e: React.MouseEvent<HTMLButtonElement>): void => {
     const collectUserIds = () => {
       return userSearchState.newGroup.reduce(function (acc, user){
         acc.push(user.id);
@@ -487,15 +473,15 @@ export const ChatPage = () => {
     GroupRequest.postNewGroup({userIds: userIds, groupName: ""})
       .then(res => res.data)
       .then(data => {
-        const onLeft = (errors: t.Errors) => {
+        const onLeft = (errors: t.Errors):void => {
           console.error(errors);
         }
 
-        const onRight = (data: GroupData) => {
+        const onRight = (data: GroupData):void => {
           // push the new group into the group list
           setCurrentGroupId(data.id);
         }
-        pipe(GroupDataValidator.decode(data), fold(onLeft, onRight));
+        pipe(GroupValidator.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: 'resetState'});
       })
       .catch(err => {
@@ -522,22 +508,22 @@ export const ChatPage = () => {
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
-          moreOptionsClick={(e) => {
+          moreOptionsClick={(_e):void => {
             deleteToken();
             setLogout(true);
           }}
-          onGroupClick={(_e, id) => {
+          onGroupClick={(_e, id): void => {
             setCurrentGroupId(id);
             userSearchDispatch({type: 'resetState'});
           }}
-          newGroupClick={(_e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
+          newGroupClick={(_e): void => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
-          onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
-          searchValue={searchState.searchValue}
-          searchResults={searchState.searchResults}
-          onSearchResultClick={(e, group) => {
+          onSearch={(e):void => groupSearchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
+          searchValue={groupSearchState.searchValue}
+          searchResults={groupSearchState.searchResults}
+          onSearchResultClick={(_e, group): void => {
             setCurrentGroupId(group.id);
-            searchDispatch({type: 'resetState'});
+            groupSearchDispatch({type: 'resetState'});
           }}
         />
       </Box>
@@ -549,22 +535,32 @@ export const ChatPage = () => {
       >
         <Box>
           {userSearchState.creatingGroup
-            ? <UserSearchPanel
-                searchValue={userSearchState.searchString}
-                onInputChange={(e) => {userSearchDispatch({type: 'setSearchString', payload: e.currentTarget.value});}}
-                searchResults={userSearchState.userList}
-                onResultClick={(e, user) => {
-                  userSearchDispatch({type: 'appendNewGroup', payload: user});
-                  userSearchDispatch({type: 'setSearchString', payload: ""});
-                }}
-                newUserGroup={userSearchState.newGroup}
-                onCreateClick={createNewGroup}
-                disableButton={userSearchState.postingNewGroup}
-              />
-            : <TopAvatarPanel 
-                username={groupState.data.name} 
-                onInfoClick={(_e) => setToggleInfo(!toggleInfo)}
-              />
+            ? 
+            <UserSearchPanel
+              searchValue={userSearchState.searchString}
+              onInputChange={(e):void => {userSearchDispatch({type: 'setSearchString', payload: e.currentTarget.value});}}
+              searchResults={userSearchState.userList}
+              onResultClick={(_e, user):void => {
+
+                const alreadyInArr = (checkUser: UserData, userArr: UserData[] ):boolean => {
+                  for(let user of userArr){
+                    if(user.id === checkUser.id) return true;
+                  }
+                  return false;
+                }
+
+                if(!alreadyInArr(user, userSearchState.newGroup)) userSearchDispatch({type: 'appendNewGroup', payload: user});
+                userSearchDispatch({type: 'setSearchString', payload: ""});
+              }}
+              newUserGroup={userSearchState.newGroup}
+              onCreateClick={createNewGroup}
+              disableButton={userSearchState.postingNewGroup}
+            />
+            : 
+            <TopAvatarPanel 
+              username={groupState.data.name} 
+              onInfoClick={(_e):void => setToggleInfo(!toggleInfo)}
+            />
           }
         </Box>
         <Box

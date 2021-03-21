@@ -1,6 +1,6 @@
 import * as t from "io-ts";
 import * as tt from "io-ts-types";
-import { MessageDataValidator } from "./entity";
+import { MessageValidator } from "./entity";
 
 const ChatTopicsValidator = t.union([
   t.literal('chat'),
@@ -16,7 +16,7 @@ export type ServerTopics = t.TypeOf<typeof ServerTopicsValidator>;
 
 export const RxChatMessageValidator = t.type({
   topic: ChatTopicsValidator,
-  payload: MessageDataValidator
+  payload: MessageValidator
 });
 
 export type TxChatMessage = {
@@ -51,6 +51,6 @@ export type ServerMessage = t.TypeOf<typeof ServerMessageValidator>;
 
 export const ChatHistoryValidator= t.type({
   topic: t.literal('history'),
-  payload: t.array(MessageDataValidator)
+  payload: t.array(MessageValidator)
 })
 export type ChatHistory = t.TypeOf<typeof ChatHistoryValidator>;
