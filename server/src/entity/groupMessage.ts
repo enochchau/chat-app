@@ -62,18 +62,18 @@ export class GroupMessageView extends BaseEntity {
   groupAvatar: string;
 
   @ViewColumn()
-  lastTimestamp: Date;
+  lastTimestamp: Date | null;
 
   @ViewColumn()
-  lastMessage: string;
+  lastMessage: string | null;
 
   @ViewColumn()
-  lastUserId: string;
+  lastUserId: string | null;
 
   public static findRecentByUserId(userId: number, count: number, timeSince: Date){
     return this.createQueryBuilder("g") 
       .andWhere("g.userId = :id", {id: userId})
-      .orderBy("g.lastTimestamp", "ASC")
+      .orderBy("g.lastTimestamp", "DESC")
       .take(count)
       .getMany();
   }
@@ -83,7 +83,7 @@ export class GroupMessageView extends BaseEntity {
       .distinctOn(['groupId'])
       .where('g.lastTimestamp <= :date', {date: timeSince})
       .andWhere("g.groupId IN (...ids)", {ids: groupIds})
-      .orderBy('g.lastTimestamp', 'ASC')
+      .orderBy('g.lastTimestamp', 'DESC')
       .take(count)
       .getMany();
   }

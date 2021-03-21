@@ -223,6 +223,9 @@ export const ChatPage = () => {
   // this is populated on load
   const [currentGroupId, setCurrentGroupId] = React.useState<number>(-1);
 
+  const [logout, setLogout] = React.useState(false);
+  // handle scroll to bottom
+  const msgDivRef= React.createRef<HTMLDivElement>();
 
   // handle searching
   React.useEffect(() => {
@@ -271,6 +274,7 @@ export const ChatPage = () => {
         }
 
         const onRight = async  (data: GroupMessageDataArr) => {
+          console.log(data);
           setGroups(data);
         }
         pipe(GroupMessageDataArr.decode(data), fold(onLeft, onRight));
@@ -316,7 +320,8 @@ export const ChatPage = () => {
               displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
             }
           });
-          setMessages(messages => displayMsg);;
+          setMessages(messages => displayMsg);
+
         }
 
         pipe(ChatHistory.decode(message), fold(onLeft, onRight));
@@ -394,7 +399,6 @@ export const ChatPage = () => {
       })
       .catch(error => console.error(error));
 
-
     // disconnect from WS on unmount
     return () => disconnect();
   }, [currentGroupId]); // connect to a new chat room everytime we get a new groupid
@@ -413,6 +417,19 @@ export const ChatPage = () => {
     }
     e.currentTarget.textContent = "";
   }
+
+  // scroll to the bottom on new message if the user is at the top 
+  React.useEffect(() => {
+    const scrollToBottom = (ref: HTMLDivElement) => {
+      const bottom =  ref.scrollHeight - ref.clientHeight;
+      ref.scrollTo(0, bottom);
+    }
+    if(msgDivRef.current) {
+      if(msgDivRef.current.scrollTop === 0){
+        scrollToBottom(msgDivRef.current);
+      }
+    }
+  }, [messages]);
 
   React.useEffect(() => {
     if (userSearchState.creatingGroup && debouncedUserSearch) {
@@ -465,6 +482,7 @@ export const ChatPage = () => {
         }
 
         const onRight = (data: GroupData) => {
+          // push the new group into the group list
           setCurrentGroupId(data.id);
         }
         pipe(GroupData.decode(data), fold(onLeft, onRight));
@@ -475,6 +493,7 @@ export const ChatPage = () => {
         userSearchDispatch({type: 'resetState'});
       });
   }
+  
 
   return(
     <Flex
@@ -488,15 +507,19 @@ export const ChatPage = () => {
       align="flex-start"
     >
       {(currentGroupId !== -1) && <Redirect to={`/chat/${currentGroupId}`}/>}
+      {logout && <Redirect to="/"/>}
       <Box>
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
           moreOptionsClick={(e) => {
             deleteToken();
-            return <Redirect to="/"/>
+            setLogout(true);
           }}
-          onGroupClick={(e, id) => {setCurrentGroupId(id)}}
+          onGroupClick={(e, id) => {
+            setCurrentGroupId(id);
+            userSearchDispatch({type: 'resetState'});
+          }}
           newGroupClick={(e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
@@ -538,6 +561,7 @@ export const ChatPage = () => {
           overflowY="auto"
           padding="5px"
           flexBasis="calc( 100vh - 54px - 70px )" // 54=bottom, 74=top 
+          ref={msgDivRef}
         >
           {!userSearchState.creatingGroup &&
             <MessageList

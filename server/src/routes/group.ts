@@ -79,6 +79,19 @@ export class GroupRouter {
 
         try{
           const groups = await GroupMessageView.findRecentByUserId(req.user.id, query.count, query.date);
+
+          // put all the null timestamps at the bottom
+          // then sort by youngest to oldest
+          const cmp = (a: GroupMessageView, b: GroupMessageView) => {
+            const aCmp = a.lastTimestamp;
+            const bCmp = b.lastTimestamp;
+            if(!aCmp || !bCmp) return -1;
+            if(aCmp > bCmp) return -1;
+            if(bCmp > aCmp) return 1;
+            return 0;
+          }
+          groups.sort(cmp);
+
           if(!groups) return res.sendStatus(400);
 
           res.json(groups);
