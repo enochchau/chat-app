@@ -39,12 +39,14 @@ export type GroupData = t.TypeOf<typeof GroupData>;
 export const GroupDataArr = t.array(GroupData);
 export type GroupDataArr = t.TypeOf<typeof GroupDataArr>;
 
-
 // group data that includes the user relation
 export const GroupDataWithUsers = t.intersection([GroupData, 
   t.type({users: UserDataArr})
 ]);
 export type GroupDataWithUsers = t.TypeOf<typeof GroupDataWithUsers>;
+
+// we fill in the name after validating the data after an api call
+export type GroupDataWithUsersAndName = Omit<GroupDataWithUsers, "name"> & {name: string};
 
 
 export const GroupMessageData = t.type({

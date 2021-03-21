@@ -27,7 +27,16 @@ import { getToken, deleteToken } from '../../api/token';
 import { useDebounce } from '../../util';
 // api / validators
 import { UserRequest, SearchRequest, GroupRequest } from '../../api';
-import { GroupMessageDataArr, UserData, UserDataArr, GroupData, GroupDataArr, GroupDataWithUsers, GroupMessageData } from '../../api/validators/entity';
+import { 
+  GroupMessageDataArr, 
+  UserData, 
+  UserDataArr, 
+  GroupData, 
+  GroupDataArr, 
+  GroupDataWithUsers, 
+  GroupMessageData, 
+  GroupDataWithUsersAndName 
+} from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
@@ -69,33 +78,54 @@ function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYP
 
 // caching current group meta data including users data
 export type GroupUsers = Map<number, UserData>
-type GROUPACTIONTYPE = {type: 'setGroupData', payload: GroupDataWithUsers};
+
+type GROUPACTIONTYPE = | {type: 'setGroupData', payload: GroupDataWithUsers};
+
 const groupInitialState ={
   userMap: new Map() as GroupUsers,
   data: {
     id: -1,
-    name: 'New Message',
+    name: '',
     created: new Date(),
-    updated: new Date()
-  } as GroupData,
-}
-function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE){
+    updated: new Date(),
+    avatar: null,
+    users: [],
+  } as GroupDataWithUsersAndName,
+};
+
+function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
   switch(action.type){
     case 'setGroupData':
-      const userMap = action.payload.users.reduce((map, user) => {
-        map.set(user.id, user);
-        return map;
-      }, new Map() as GroupUsers);
+      
+      const createUserMap = () => {
+        return (action.payload.users.reduce((map, user) => {
+          map.set(user.id, user);
+          return map;
+        }, new Map() as GroupUsers));
+      }
+      
+      const collectUserNames = () => {
+        return( psuedoGroupName = action.payload.users.reduce((name, user) => {
+          name += user.name.split(' ')[0];
+          return name;
+        }, ""));
+      }
+
+      const userMap = createUserMap();
+
+      let psuedoGroupName = "";
+      if(!action.payload.name){
+        psuedoGroupName = collectUserNames();
+      }
 
       return{...state, 
         userMap: userMap,
         data: {
-          id: action.payload.id,
-          name: action.payload.name,
-          created: action.payload.created,
-          updated: action.payload.updated,
+          ...action.payload,
+          name: action.payload.name || psuedoGroupName,
         }
       }
+
     default:
       return state;
   }
@@ -103,14 +133,14 @@ function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE){
 
 // handling user search when creating a new group
 type USERSEARCHACTIONTYPE = 
-| {type: 'setCreateGroup', payload: boolean}
+| {type: 'creatingGroup', payload: boolean}
 | {type: 'setSearchString', payload: string}
 | {type: 'setUserList', payload: UserDataArr}
 | {type: 'setIsSearching', payload: boolean}
 | {type: 'appendNewGroup', payload: UserData}
-| {type: 'setCurrentUserId', payload: number}
 | {type: 'postingNewGroup', payload: boolean}
 | {type: 'resetState'}
+| {type: 'setNewGroupId', payload: number};
 
 const userSearchInitialState = {
   creatingGroup: false,
@@ -120,28 +150,37 @@ const userSearchInitialState = {
   newGroup: [] as UserDataArr,
   currentUserIds: new Set() as Set<number>,
   postingNewGroup: false,
+  newGroupId: -1
 }
 
-function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE){
+function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE): typeof userSearchInitialState{
   switch(action.type){
-    case 'setCreateGroup': 
+    case 'creatingGroup': 
       return {...state, creatingGroup: action.payload};
     case 'setSearchString':
       return {...state, searchString: action.payload};
     case 'setUserList':
       // remove users from search results that are already in the group
-      for(let i=0; i< action.payload.length; i++){
-        if(state.currentUserIds.has(action.payload[i].id)){
-          action.payload.splice(i, 1);
+      const removeChosenUsers = () => {
+        for(let i=0; i< action.payload.length; i++){
+          if(state.currentUserIds.has(action.payload[i].id)) action.payload.splice(i, 1);
         }
       }
+      removeChosenUsers();
       return {...state, userList: action.payload};
     case 'setIsSearching':
       return {...state, isSearching: action.payload};
     case 'appendNewGroup':
-      for(let user of state.newGroup){
-        if(user.id === action.payload.id) return state;
+
+      const alreadyInArr = () => {
+        for(let user of state.newGroup){
+          if(user.id === action.payload.id) return true;
+        }
+        return false;
       }
+
+      if(alreadyInArr()) return {...state};
+
       state.currentUserIds.add(action.payload.id);
       return {
         ...state, 
@@ -150,8 +189,10 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
       };
     case 'postingNewGroup':
       return {...state, postingNewGroup: action.payload}
+    case 'setNewGroupId':
+      return {...state, newGroupId: action.payload};
     case 'resetState':
-      return {...state, userSearchInitialState}
+      return userSearchInitialState
     default:
       return state;
   }
@@ -397,11 +438,17 @@ export const ChatPage = () => {
   }, [debouncedUserSearch]);
 
   const createNewGroup = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const collectUserIds = () => {
+      return userSearchState.newGroup.reduce(function (acc, user){
+        acc.push(user.id);
+        return acc;
+      }, new Array() as number[]);
+    }
+
     userSearchDispatch({type: 'postingNewGroup', payload: true});
-    const userIds = userSearchState.newGroup.reduce(function (acc, user){
-      acc.push(user.id);
-      return acc;
-    }, new Array() as number[]);
+
+    const userIds = collectUserIds();
+
     GroupRequest.postNewGroup({userIds: userIds, groupName: ""})
       .then(res => res.data)
       .then(data => {
@@ -410,7 +457,7 @@ export const ChatPage = () => {
         }
 
         const onRight = (data: GroupData) => {
-          return (<Redirect to={`/chat/${data.id}`}/>);
+          userSearchDispatch({type: 'setNewGroupId', payload: data.id});
         }
         pipe(GroupData.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: 'resetState'});
@@ -432,7 +479,7 @@ export const ChatPage = () => {
       justify="space-between"
       align="flex-start"
     >
-
+      {(userSearchState.newGroupId !== -1) && <Redirect to={`/chat/${userSearchState.newGroupId}`}/>}
       <Box>
         <GroupPanel
           username={storeState.name}
@@ -441,7 +488,7 @@ export const ChatPage = () => {
             deleteToken();
             return <Redirect to="/"/>
           }}
-          newGroupClick={(e) => {userSearchDispatch({type: 'setCreateGroup', payload: true});}}
+          newGroupClick={(e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
