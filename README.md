@@ -28,9 +28,34 @@ I am mostly trying to learn TypeScript, Parcel, Jest, and TypeORM.
     - [ ] get group meta data
         - [ ] get last messages
 - [ ] Remove Demo user placeholder data
-- [ ] User dashboard for changing user information (i.e. Name and password)
+- [ ] User dashboard for changing use information (i.e. Name and password)
 
 Issue with tooltips: https://github.com/chakra-ui/chakra-ui/issues/2869
+
+## Creating a new group
+
+Groups of two people should be treated a little differently from groups of three or more people.
+
+1. The user clicks on the icon to create a new group.
+1. User chooses first name from search results.
+2. Post userId and first name id and create a new group
+    1. If that group already exists, the existing group id will be returned
+    2. If the group doesn't exist, it will create the new group
+3. if the user searches for and clicks another user, create a new group with 3 users in it
+4. if the user searches for and clicks any subsequent users, patch in that user to the group created in step 3.
+
+## Searching for exisiting groups
+
+1. User clicks on the search.
+2. Hide the current list of groups and show the search result list
+3. As the user searches, use debounced api calls to fetch existing groups.
+4. When the user clicks on a searched group, redirect them to that groupId.
+
+## Clicking on groups in the left panel
+
+1. The user clicks on the group
+2. Redirect the user to the url with that group Id
+3. fetch all relevant group meta data using 'getGroupsWithUsers' api call.
 
 ### Auth forms
 

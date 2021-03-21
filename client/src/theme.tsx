@@ -136,3 +136,23 @@ export const Input: ComponentStyleConfig = {
     }
   }
 }
+
+export const ListItem: ComponentStyleConfig = {
+  parts: ["container", "text", "avatar"],
+  baseStyle: {
+    container: {
+      flexDirection: "row"
+    },
+    avatar: {
+      size: "md",
+    },
+    text:{
+      size: 'md',
+    }
+  },
+  variants: {
+    groupSearch:{},
+    groupList: {},
+    userSearch:{},
+  }
+}

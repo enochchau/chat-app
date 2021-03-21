@@ -107,15 +107,21 @@ type USERSEARCHACTIONTYPE =
 | {type: 'setSearchString', payload: string}
 | {type: 'setUserList', payload: UserDataArr}
 | {type: 'setIsSearching', payload: boolean}
-| {type: 'appendNewGroup', payload: UserData};
+| {type: 'appendNewGroup', payload: UserData}
+| {type: 'setCurrentUserId', payload: number}
+| {type: 'postingNewGroup', payload: boolean}
+| {type: 'resetState'}
+
 const userSearchInitialState = {
   creatingGroup: false,
   searchString: "",
   userList: [] as UserDataArr,
   isSearching: false,
   newGroup: [] as UserDataArr,
-  currentUserIds: new Set() as Set<number>
+  currentUserIds: new Set() as Set<number>,
+  postingNewGroup: false,
 }
+
 function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE){
   switch(action.type){
     case 'setCreateGroup': 
@@ -123,7 +129,7 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
     case 'setSearchString':
       return {...state, searchString: action.payload};
     case 'setUserList':
-      // remove users from serach results that are already in the group
+      // remove users from search results that are already in the group
       for(let i=0; i< action.payload.length; i++){
         if(state.currentUserIds.has(action.payload[i].id)){
           action.payload.splice(i, 1);
@@ -142,6 +148,10 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
         newGroup: [...state.newGroup, action.payload], 
         currentUserIds: state.currentUserIds
       };
+    case 'postingNewGroup':
+      return {...state, postingNewGroup: action.payload}
+    case 'resetState':
+      return {...state, userSearchInitialState}
     default:
       return state;
   }
@@ -386,6 +396,31 @@ export const ChatPage = () => {
     }
   }, [debouncedUserSearch]);
 
+  const createNewGroup = (e: React.MouseEvent<HTMLButtonElement>) => {
+    userSearchDispatch({type: 'postingNewGroup', payload: true});
+    const userIds = userSearchState.newGroup.reduce(function (acc, user){
+      acc.push(user.id);
+      return acc;
+    }, new Array() as number[]);
+    GroupRequest.postNewGroup({userIds: userIds, groupName: ""})
+      .then(res => res.data)
+      .then(data => {
+        const onLeft = (errors: t.Errors) => {
+          console.error(errors);
+        }
+
+        const onRight = (data: GroupData) => {
+          return (<Redirect to={`/chat/${data.id}`}/>);
+        }
+        pipe(GroupData.decode(data), fold(onLeft, onRight));
+        userSearchDispatch({type: 'resetState'});
+      })
+      .catch(err => {
+        console.error(err)
+        userSearchDispatch({type: 'resetState'});
+      });
+  }
+
   return(
     <Flex
       height="100vh"
@@ -430,6 +465,8 @@ export const ChatPage = () => {
                   userSearchDispatch({type: 'setSearchString', payload: ""});
                 }}
                 newUserGroup={userSearchState.newGroup}
+                onCreateClick={createNewGroup}
+                disableButton={userSearchState.postingNewGroup}
               />
             : <TopAvatarPanel 
                 username={groupState.data.name} 

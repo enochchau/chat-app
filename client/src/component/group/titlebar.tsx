@@ -43,13 +43,13 @@ export const TitleBar = ({
           isRound
         />
         <IconButton
-          aria-label="Account Options"
+          aria-label="Github"
           icon={<GithubIcon/>}
           onClick={onGithubClick}
           isRound
         />
         <IconButton
-          aria-label="Account Options"
+          aria-label="New Group"
           icon={<EditIcon/>}
           onClick={onEditClick}
           isRound

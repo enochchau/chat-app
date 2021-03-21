@@ -24,8 +24,14 @@ export class GroupEntity extends BaseEntity{
 
   @Column({
     length: 128,
+    nullable: true,
   })
   name: string;
+
+  @Column({
+    nullable: true,
+  })
+  avatar: string;
 
   @CreateDateColumn()
   created: Date;

@@ -1,10 +1,8 @@
 import * as React from 'react';
 import {
-  Flex,
-  Avatar,
-  Text,
-  Box
+  Text
 } from '@chakra-ui/react';
+import { ListItem } from '../listItem';
 
 
 function timeSinceString(time: Date){
@@ -27,19 +25,18 @@ function timeSinceString(time: Date){
 interface GroupItemProps {
   title: string;
   avatarSrc?: string;
-  lastMessage: string;
-  lastTimestamp: Date;
+  lastMessage?: string;
+  lastTimestamp?: Date;
 }
 export const GroupItem = ({title, avatarSrc, lastMessage, lastTimestamp}: GroupItemProps) => {
   return(
-    <Flex
-      flexDir="row"
+    <ListItem
+      title={title}
+      avatarSrc={avatarSrc}
     >
-      <Avatar size="md" name={title} src={avatarSrc}/>
-      <Box>
-        <Text>{title}</Text>
+      {lastMessage && lastTimestamp && 
         <Text>{lastMessage}·{timeSinceString(lastTimestamp)}</Text>
-      </Box>
-    </Flex>
+      }
+    </ListItem>
   );
 }

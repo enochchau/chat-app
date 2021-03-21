@@ -15,6 +15,7 @@ import {
   Form, 
   SidePanel,
   TopPanel,
+  ListItem,
 } from './theme'
 
 
@@ -34,7 +35,8 @@ const theme = extendTheme({
     Tooltip, 
     Form,
     SidePanel,
-    TopPanel
+    TopPanel,
+    ListItem
   }
 });
 

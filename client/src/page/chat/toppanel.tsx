@@ -1,9 +1,9 @@
-import { Text, Heading, Avatar, HStack, IconButton, Box } from '@chakra-ui/react';
+import { Button, Text, Heading, Avatar, HStack, IconButton, Box } from '@chakra-ui/react';
 import { InfoIcon } from '../../component/icon';
 import * as React from 'react';
 import { TopPanel } from '../../component/panel/toppanel';
 import { SearchBar } from '../../component/group';
-import { UserSearchList } from '../../component/search/userList';
+import { UserSearchList } from '../../component/search/searchList';
 import { UserDataArr, UserData } from '../../api/validators/entity';
 
 interface TopAvatarPanelProps {
@@ -39,6 +39,8 @@ interface UserSearchPanelProps {
   onInputChange: React.ChangeEventHandler<HTMLInputElement>,
   onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void,
   newUserGroup: UserDataArr,
+  onCreateClick: React.MouseEventHandler<HTMLButtonElement>,
+  disableButton: boolean,
 }
 export const UserSearchPanel = ({
   searchValue,
@@ -46,17 +48,12 @@ export const UserSearchPanel = ({
   onInputChange,
   onResultClick,
   newUserGroup,
+  onCreateClick,
+  disableButton
 }: UserSearchPanelProps) => {
   const [hideResults, setHideResults] = React.useState(false);
   return(
-    <TopPanel variant='userSearch'
-      onFocus={(e) => setHideResults(false)}
-      onBlur={(e) => {
-        setTimeout(() => {
-          setHideResults(true);
-        }, 100);
-      }}
-    >
+    <TopPanel variant='userSearch'>
       <Text>To:</Text>
       {
         newUserGroup.map((user, i) => 
@@ -67,7 +64,14 @@ export const UserSearchPanel = ({
         value={searchValue}
         onChange={onInputChange}
         variant="userSearch"
-      />
+        onFocus={(e) => setHideResults(false)}
+        onBlur={(e) => {
+          setTimeout(() => {
+            setHideResults(true);
+          }, 100);
+        }}
+        />
+      <Button onClick={onCreateClick} disabled={disableButton}>Create</Button>
       { !hideResults && 
         <Box
           position="absolute"

@@ -27,7 +27,7 @@ export class AuthRequest{
 export class GroupRequest {
 
   static API = '/api/group'
-  static postNewGroup(data: {userIds: number, groupName: string}){
+  static postNewGroup(data: {userIds: number[], groupName: string}){
     return axiosAuth.post(this.API, data);
   }
 
@@ -44,7 +44,7 @@ export class GroupRequest {
   }
 
   static getGroupWithUsers(params: {groupId: number}){
-    return axiosAuth.get(this.API + "/single", {params: {params}});
+    return axiosAuth.get(this.API + "/single", {params: params});
   }
 }
 

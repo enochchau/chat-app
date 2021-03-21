@@ -21,11 +21,11 @@ export const SearchBar = ({placeholder, value, onChange, onFocus, onBlur, icon, 
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setShowIcon(false);
-    onFocus(e);
+    if(onFocus) onFocus(e);
   }
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setShowIcon(true);
-    onBlur(e);
+    if(onBlur) onBlur(e);
   }
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if(e.key === "Enter"){

@@ -30,6 +30,7 @@ import { ViewColumn, ViewEntity, getManager, BaseEntity } from "typeorm";
     "ug"."userEntityId" as "userId",
     "g"."id" as "groupId",
     "g"."name" as "groupName",
+    "g"."avatar" as "groupAvatar",
     "m"."timestamp" as "lastTimestamp",
     "m"."message" as "lastMessage",
     "m"."userId" as "lastUserId"
@@ -58,6 +59,9 @@ export class GroupMessageView extends BaseEntity {
   groupName: string;
 
   @ViewColumn()
+  groupAvatar: string;
+
+  @ViewColumn()
   lastTimestamp: Date;
 
   @ViewColumn()
@@ -68,7 +72,6 @@ export class GroupMessageView extends BaseEntity {
 
   public static findRecentByUserId(userId: number, count: number, timeSince: Date){
     return this.createQueryBuilder("g") 
-      .where("g.lastTimestamp <= :date", {date: timeSince})
       .andWhere("g.userId = :id", {id: userId})
       .orderBy("g.lastTimestamp", "ASC")
       .take(count)
