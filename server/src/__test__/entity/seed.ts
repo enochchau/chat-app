@@ -25,7 +25,7 @@ export async function seed() {
   if(!users) return console.error("Couldn't find the 10 seeded test users");
 
   for(let i=1; i<users.length; i++){
-    await GroupEntity.createGroupWithUsers([users[0], users[i]], `group0:${i}`);
+    await GroupEntity.createGroupWithUsers([users[0], users[i]], "");//`group0:${i}`);
   }
   for(let i=2; i<users.length; i++){
     await GroupEntity.createGroupWithUsers([users[0], users[1], users[i]], `group1:${i}`);

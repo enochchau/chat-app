@@ -80,7 +80,25 @@ export class GroupRouter {
         try{
           const groups = await GroupMessageView.findRecentByUserId(req.user.id, query.count, query.date);
           if(!groups) return res.sendStatus(400);
-          console.log(groups)
+
+          const fillInNames = async () => {
+            const collectNames = (users: UserEntity[]) => {
+              return users.reduce((acc, user) => {
+                acc += user.name;
+                return acc;
+              }, "");
+            }
+
+            for(let group of groups){
+              if(!group.groupName){
+                const lookup = await GroupEntity.findOne({where: {id:group.groupId}, relations: ["users"]});
+                if(lookup) group.groupName = collectNames(lookup.users);
+                else group.groupName = "";
+              }
+            }
+          }
+          
+          fillInNames();
 
           res.json(groups);
         } catch(err) {

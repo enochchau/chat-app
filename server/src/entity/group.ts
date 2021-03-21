@@ -8,6 +8,8 @@ import {
   BaseEntity,
   OneToMany,
   getConnection,
+  BeforeInsert,
+  BeforeUpdate
 } from 'typeorm';
 import { UserEntity } from './user';
 import { MessageEntity } from './message';
@@ -24,7 +26,6 @@ export class GroupEntity extends BaseEntity{
 
   @Column({
     length: 128,
-    nullable: true,
   })
   name: string;
 
@@ -50,6 +51,16 @@ export class GroupEntity extends BaseEntity{
     if (name) newGroup.name = name;
     newGroup.users = users;
     return this.save(newGroup);
+  }
+
+  @BeforeUpdate()
+  @BeforeInsert()
+  private async createName(){
+    if(!this.name) this.name = this.users.reduce((acc, user, i) => {
+      acc += user.name;
+      if(i !== this.users.length-1) acc += ', '
+      return acc;
+    }, "");
   }
 
   // returns -1 if group not found
