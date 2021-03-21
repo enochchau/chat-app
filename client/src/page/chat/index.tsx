@@ -5,7 +5,7 @@ import { StoreContext } from '../../store';
 import { Box, Flex, localStorageManager } from '@chakra-ui/react';
 // page panel
 import { SidePanel } from '../../component/panel/sidepanel';
-import { TopAvatarPanel } from './toppanel';
+import { TopAvatarPanel, UserSearchPanel } from './toppanel';
 import { MessageList } from '../../component/chat/messagelist';
 import { BottomPanel } from './bottompanel';
 import { GroupPanel } from './grouppanel';
@@ -106,12 +106,15 @@ type USERSEARCHACTIONTYPE =
 | {type: 'setCreateGroup', payload: boolean}
 | {type: 'setSearchString', payload: string}
 | {type: 'setUserList', payload: UserDataArr}
-| {type: 'setIsSearching', payload: boolean};
+| {type: 'setIsSearching', payload: boolean}
+| {type: 'appendNewGroup', payload: UserData};
 const userSearchInitialState = {
   creatingGroup: false,
   searchString: "",
   userList: [] as UserDataArr,
   isSearching: false,
+  newGroup: [] as UserDataArr,
+  currentUserIds: new Set() as Set<number>
 }
 function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE){
   switch(action.type){
@@ -120,9 +123,25 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
     case 'setSearchString':
       return {...state, searchString: action.payload};
     case 'setUserList':
+      // remove users from serach results that are already in the group
+      for(let i=0; i< action.payload.length; i++){
+        if(state.currentUserIds.has(action.payload[i].id)){
+          action.payload.splice(i, 1);
+        }
+      }
       return {...state, userList: action.payload};
     case 'setIsSearching':
       return {...state, isSearching: action.payload};
+    case 'appendNewGroup':
+      for(let user of state.newGroup){
+        if(user.id === action.payload.id) return state;
+      }
+      state.currentUserIds.add(action.payload.id);
+      return {
+        ...state, 
+        newGroup: [...state.newGroup, action.payload], 
+        currentUserIds: state.currentUserIds
+      };
     default:
       return state;
   }
@@ -336,8 +355,6 @@ export const ChatPage = () => {
     e.currentTarget.textContent = "";
   }
 
-
-
   React.useEffect(() => {
     if (userSearchState.creatingGroup && debouncedUserSearch) {
       userSearchDispatch({type: "setIsSearching", payload: true});
@@ -356,6 +373,7 @@ export const ChatPage = () => {
         const onRight = (data: UserDataArr) => {
           userSearchDispatch({type: 'setUserList', payload: data});
         }
+
         pipe(UserDataArr.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: "setIsSearching", payload: false});
       })
@@ -366,21 +384,7 @@ export const ChatPage = () => {
     } else {
       userSearchDispatch({type: 'setUserList', payload: []});
     }
-  }, [userSearchState.creatingGroup]);
-
-  const handleCreateGroup = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    userSearchDispatch({type: 'setCreateGroup', payload: true});
-    const placeholderGroup = {
-      userId: -1,
-      groupId: -1,
-      groupName: 'New Message',
-      lastTimestamp: new Date(),
-      lastMessage: "",
-      lastUserId: -1,
-    } as GroupMessageData;
-
-    groups.unshift(placeholderGroup);
-  }
+  }, [debouncedUserSearch]);
 
   return(
     <Flex
@@ -402,7 +406,7 @@ export const ChatPage = () => {
             deleteToken();
             return <Redirect to="/"/>
           }}
-          newGroupClick={(e) => {return}/* TODO: this should open another search bar to create a new group */}
+          newGroupClick={(e) => {userSearchDispatch({type: 'setCreateGroup', payload: true});}}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
@@ -416,20 +420,34 @@ export const ChatPage = () => {
         height="100vh"
       >
         <Box>
-          <TopAvatarPanel 
-            username={groupState.data.name} 
-            onInfoClick={(e) => setToggleInfo(!toggleInfo)}
-          />
+          {userSearchState.creatingGroup
+            ? <UserSearchPanel
+                searchValue={userSearchState.searchString}
+                onInputChange={(e) => {userSearchDispatch({type: 'setSearchString', payload: e.currentTarget.value});}}
+                searchResults={userSearchState.userList}
+                onResultClick={(e, user) => {
+                  userSearchDispatch({type: 'appendNewGroup', payload: user});
+                  userSearchDispatch({type: 'setSearchString', payload: ""});
+                }}
+                newUserGroup={userSearchState.newGroup}
+              />
+            : <TopAvatarPanel 
+                username={groupState.data.name} 
+                onInfoClick={(e) => setToggleInfo(!toggleInfo)}
+              />
+          }
         </Box>
         <Box
           overflowY="auto"
           padding="5px"
           flexBasis="calc( 100vh - 54px - 70px )" // 54=bottom, 74=top 
         >
-          <MessageList
-            messages={messages}
-            currentUserId={storeState.id}
-          />
+          {!userSearchState.creatingGroup &&
+            <MessageList
+              messages={messages}
+              currentUserId={storeState.id}
+            />
+          }
         </Box>
         <BottomPanel 
           onMessageSubmit={handleSendMessage} 

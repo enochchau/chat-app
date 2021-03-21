@@ -1,7 +1,10 @@
-import { useStyleConfig, Heading, Avatar, Flex, HStack, IconButton } from '@chakra-ui/react';
+import { Text, Heading, Avatar, HStack, IconButton, Box } from '@chakra-ui/react';
 import { InfoIcon } from '../../component/icon';
 import * as React from 'react';
 import { TopPanel } from '../../component/panel/toppanel';
+import { SearchBar } from '../../component/group';
+import { UserSearchList } from '../../component/search/userList';
+import { UserDataArr, UserData } from '../../api/validators/entity';
 
 interface TopAvatarPanelProps {
   username: string;
@@ -30,4 +33,55 @@ export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPane
   );
 }
 
-export const TopUserSearchPanel = ({}: TopUser
+interface UserSearchPanelProps {
+  searchValue: string,
+  searchResults: UserDataArr,
+  onInputChange: React.ChangeEventHandler<HTMLInputElement>,
+  onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void,
+  newUserGroup: UserDataArr,
+}
+export const UserSearchPanel = ({
+  searchValue,
+  searchResults,
+  onInputChange,
+  onResultClick,
+  newUserGroup,
+}: UserSearchPanelProps) => {
+  const [hideResults, setHideResults] = React.useState(false);
+  return(
+    <TopPanel variant='userSearch'
+      onFocus={(e) => setHideResults(false)}
+      onBlur={(e) => {
+        setTimeout(() => {
+          setHideResults(true);
+        }, 100);
+      }}
+    >
+      <Text>To:</Text>
+      {
+        newUserGroup.map((user, i) => 
+          <Text key={i}>{user.name}</Text>
+        )
+      }
+      <SearchBar
+        value={searchValue}
+        onChange={onInputChange}
+        variant="userSearch"
+      />
+      { !hideResults && 
+        <Box
+          position="absolute"
+          top="64px"
+          height="407px"
+          width="328px"
+          boxShadow="xl"
+        >
+          <UserSearchList
+            searchResults={searchResults}
+            onClick={onResultClick}
+          />
+        </Box>
+      }
+    </TopPanel>
+  );
+}

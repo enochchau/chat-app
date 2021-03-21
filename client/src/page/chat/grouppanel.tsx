@@ -5,7 +5,7 @@ import {
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
 import { GroupDataArr, GroupMessageDataArr } from '../../api/validators/entity'
-import { SearchList } from '../../component/search/list';
+import { SearchList } from '../../component/search/groupList';
 import { SearchIcon } from '../../component/icon';
 
 interface GroupPanelProps{

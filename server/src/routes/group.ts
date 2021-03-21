@@ -16,6 +16,7 @@ export class GroupRouter {
     this.getGroupsForUser();
     this.patchLeaveGroup();
     this.patchAddToGroup();
+    this.getGroupWithUsers();
   }
 
   private postNewGroup(){
@@ -146,6 +147,30 @@ export class GroupRouter {
 
       pipe(PatchAddReq.decode(req.body), fold(onLeft, onRight));
     });
+  }
+
+  private getGroupWithUsers(){
+    const Query = t.type({
+      groupId: t.number,
+    });
+    type Query = t.TypeOf<typeof Query>;
+
+    this.router.get("/single", (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors) => {
+        return res.status(400).json(errors);
+      }
+
+      const onRight = async (query: Query) => {
+        const group = await GroupEntity.findOne({where: {id: query.groupId}, relations: ['users']});
+        
+        if(!group) return res.sendStatus(400);
+
+        res.json(group);
+      }
+
+      pipe(Query.decode(req.query), fold(onLeft, onRight));
+    })
   }
 
 }

@@ -65,7 +65,7 @@ export class SearchRequest {
     return axiosAuth.get(`${this.API}/group`, { params: parameters});
   }
   static getSearchUsers(parameters: {count: number, search: string}){
-    return axios.get(`${this.API}/user`, { params: parameters});
+    return axiosAuth.get(`${this.API}/user`, { params: parameters});
   }
 }
 

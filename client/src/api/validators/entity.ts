@@ -21,7 +21,7 @@ const BaseUserData = t.type({
   created: tt.DateFromISOString,
   updated: tt.DateFromISOString
 });
-const Avatar = t.partial({avatar: t.string});
+const Avatar = t.partial({avatar: t.union([t.string, t.null])});
 export const UserData = t.intersection([BaseUserData, Avatar]);
 export type UserData = t.TypeOf<typeof UserData>;
 export const UserDataArr = t.array(UserData);

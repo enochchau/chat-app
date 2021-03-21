@@ -7,11 +7,11 @@ import {
 } from '@chakra-ui/react';
 
 interface SearchBarProps {
-  placeholder: string,
+  placeholder?: string,
   value: string,
   onChange: React.ChangeEventHandler<HTMLInputElement>,
-  onFocus: React.FocusEventHandler<HTMLInputElement>,
-  onBlur: React.FocusEventHandler<HTMLInputElement>,
+  onFocus?: React.FocusEventHandler<HTMLInputElement>,
+  onBlur?: React.FocusEventHandler<HTMLInputElement>,
   icon?: React.ReactNode,
   variant?: string,
   size?: string,
