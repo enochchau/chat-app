@@ -1,22 +1,22 @@
 import * as t from "io-ts";
 import * as tt from "io-ts-types";
-import { MessageData } from "./entity";
+import { MessageDataValidator } from "./entity";
 
-const ChatTopics = t.union([
+const ChatTopicsValidator = t.union([
   t.literal('chat'),
   t.literal('auth'),
 ]);
-export type ChatTopics = t.TypeOf<typeof ChatTopics>;
+export type ChatTopics = t.TypeOf<typeof ChatTopicsValidator>;
 
-const ServerTopics = t.union([
+const ServerTopicsValidator = t.union([
   t.literal('okay'),
   t.literal('error')
 ]);
-export type ServerTopics = t.TypeOf<typeof ServerTopics>;
+export type ServerTopics = t.TypeOf<typeof ServerTopicsValidator>;
 
-export const RxChatMessage = t.type({
-  topic: ChatTopics,
-  payload: MessageData
+export const RxChatMessageValidator = t.type({
+  topic: ChatTopicsValidator,
+  payload: MessageDataValidator
 });
 
 export type TxChatMessage = {
@@ -29,8 +29,8 @@ export type TxChatMessage = {
   }
 }
 
-export const ServerMessage = t.type({
-  topic: ServerTopics,
+export const ServerMessageValidator = t.type({
+  topic: ServerTopicsValidator,
   payload: t.type({
     timestamp: tt.DateFromISOString,
     message: t.string,
@@ -45,12 +45,12 @@ export type AuthMessage = {
     token: string
   }
 }
-export type RxChatMessage= t.TypeOf<typeof RxChatMessage>;
+export type RxChatMessage= t.TypeOf<typeof RxChatMessageValidator>;
 export type RxChatPayload = RxChatMessage["payload"];
-export type ServerMessage = t.TypeOf<typeof ServerMessage>;
+export type ServerMessage = t.TypeOf<typeof ServerMessageValidator>;
 
-export const ChatHistory = t.type({
+export const ChatHistoryValidator= t.type({
   topic: t.literal('history'),
-  payload: t.array(MessageData)
+  payload: t.array(MessageDataValidator)
 })
-export type ChatHistory = t.TypeOf<typeof ChatHistory>;
+export type ChatHistory = t.TypeOf<typeof ChatHistoryValidator>;

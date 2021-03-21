@@ -12,7 +12,7 @@ import { Center, useToast } from '@chakra-ui/react';
 import { Redirect } from 'react-router-dom';
 // api/ validation
 import { AuthRequest } from '../api';
-import { AuthData } from '../api/validators/auth';
+import { AuthData, AuthDataValidator } from '../api/validators/auth';
 import * as t from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
@@ -72,10 +72,10 @@ const RegisterForm = () =>  {
       .then(res => res.data)
       .then(data => {
         // on validation fail
-        const onLeft = (errors: t.Errors) => console.error("Validation error at post register: ", errors);
+        const onLeft = (errors: t.Errors): void => console.error("Validation error at post register: ", errors);
 
         // on validation success
-        const onRight = (data: AuthData) => {
+        const onRight = (data: AuthData): void => {
           if (data.message.toLowerCase().includes("successful")){
             toastMessage(GoodRegister);
             setFormAccepted(true);
@@ -83,7 +83,7 @@ const RegisterForm = () =>  {
             toastMessage(BadRegister(data.message));
           }
         }
-        pipe(AuthData.decode(data), fold(onLeft, onRight));
+        pipe(AuthDataValidator.decode(data), fold(onLeft, onRight));
       })
       .catch(err => {
         toastMessage(ServerError);

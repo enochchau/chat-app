@@ -1,5 +1,6 @@
 import { NodeTypes } from './placeholder';
 import { TxChatMessage, ChatTopics } from '../../../api/validators/websocket'
+import * as React from 'react';
 
 // util function: parse child text nodes or br nodes to string
 const parseHtmlToString = (childNodes: NodeListOf<ChildNode>): string => {

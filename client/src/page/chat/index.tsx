@@ -2,9 +2,8 @@ import * as React from 'react';
 // store
 import { StoreContext } from '../../store';
 // chakra
-import { Box, Flex, localStorageManager } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 // page panel
-import { SidePanel } from '../../component/panel/sidepanel';
 import { TopAvatarPanel, UserSearchPanel } from './toppanel';
 import { MessageList } from '../../component/chat/messagelist';
 import { BottomPanel } from './bottompanel';
@@ -14,7 +13,15 @@ import { InfoPanel } from './infopanel';
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 // websocket 
-import { ChatHistory, RxChatMessage, ServerMessage } from '../../api/validators/websocket';
+import { 
+  ChatHistory, 
+  RxChatMessage, 
+  ServerMessage, 
+  ServerMessageValidator,
+  RxChatMessageValidator,
+  ChatHistoryValidator,
+  
+} from '../../api/validators/websocket';
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 // websocket -> HTML
@@ -26,7 +33,7 @@ import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
 import { useDebounce } from '../../util';
 // api / validators
-import { UserRequest, SearchRequest, GroupRequest } from '../../api';
+import { SearchRequest, GroupRequest } from '../../api';
 import { 
   GroupMessageDataArr, 
   UserData, 
@@ -34,7 +41,12 @@ import {
   GroupData, 
   GroupDataArr, 
   GroupDataWithUsers, 
-  GroupMessageData, 
+  GroupMessageData,
+  GroupMessageDataArrValidator, 
+  UserDataArrValidator, 
+  GroupDataValidator, 
+  GroupDataArrValidator, 
+  GroupDataWithUsersValidator, 
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
@@ -73,8 +85,6 @@ function searchReducer(state: typeof searchInitialState, action: SEARCHACTIONTYP
       return {...state, searchResults: action.payload};
     case 'resetState':
       return searchInitialState;
-    defualt: 
-      return state;
   }
 }
 
@@ -202,9 +212,9 @@ export const ChatPage = () => {
   // global store
   const { storeState, storeDispatch} = React.useContext(StoreContext);
   // messages to be displayed
-  const [messages, setMessages] = React.useState<Array<DisplayableMessage>>([]);
+  const [messages, setMessages] = React.useState<DisplayableMessage[]>([]);
   // groups to be displayed on the group panel
-  const [groups, setGroups] = React.useState<Array<GroupMessageData>>([]); 
+  const [groups, setGroups] = React.useState<GroupMessageData[]>([]); 
 
   // stores meta data for the current chat group
   const [groupState, groupDispatch] = React.useReducer(groupReducer, groupInitialState);
@@ -247,7 +257,7 @@ export const ChatPage = () => {
             console.log(data);
           }
 
-          pipe(GroupDataArr.decode(data), fold(onLeft, onRight));
+          pipe(GroupDataArrValidator.decode(data), fold(onLeft, onRight));
           searchDispatch({type: 'setIsSearching', payload: false});
         })
         .catch(error => {
@@ -277,7 +287,7 @@ export const ChatPage = () => {
           console.log(data);
           setGroups(data);
         }
-        pipe(GroupMessageDataArr.decode(data), fold(onLeft, onRight));
+        pipe(GroupMessageDataArrValidator.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
   }, []);
@@ -304,10 +314,10 @@ export const ChatPage = () => {
       const message = JSON.parse(event.data);
 
       const onBadMessage = (errors: t.Errors) => {
-        console.log('Server message validation error: ', PathReporter.report(ServerMessage.decode(message)));
+        console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
 
         const onLeft = (errors: t.Errors) => {
-          console.log('Unable to validate chat history message', PathReporter.report(ChatHistory.decode(message)));
+          console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
         console.log("Unable to validate recieved message at websocket.");
         }
 
@@ -324,7 +334,7 @@ export const ChatPage = () => {
 
         }
 
-        pipe(ChatHistory.decode(message), fold(onLeft, onRight));
+        pipe(ChatHistoryValidator.decode(message), fold(onLeft, onRight));
       }
       const handleServerMessage = (message: ServerMessage) => {
         console.log('Server Message: ', message)
@@ -332,8 +342,8 @@ export const ChatPage = () => {
 
       // if ChatMessage decode fails, pipe into ServerMessage
       const tryServerMessage = (errors: t.Errors) => {
-        console.log('Chat message validation error: ', PathReporter.report(RxChatMessage.decode(message)));
-        pipe(ServerMessage.decode(message), fold(onBadMessage, handleServerMessage));
+        console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
+        pipe(ServerMessageValidator.decode(message), fold(onBadMessage, handleServerMessage));
       }
 
       const handleNewMessage = (message: RxChatMessage) => {
@@ -366,7 +376,7 @@ export const ChatPage = () => {
         }
       }
       // start here!
-      pipe(RxChatMessage.decode(message), fold(tryServerMessage, handleNewMessage));
+      pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));
     }
 
     ws.current.onopen = (event) => {
@@ -395,7 +405,7 @@ export const ChatPage = () => {
           groupDispatch({type: "setGroupData", payload: data});
         }
 
-        pipe(GroupDataWithUsers.decode(data), fold(onLeft, onRight));
+        pipe(GroupDataWithUsersValidator.decode(data), fold(onLeft, onRight));
       })
       .catch(error => console.error(error));
 
@@ -443,14 +453,14 @@ export const ChatPage = () => {
       .then(data => {
 
         const onLeft = (errors: t.Errors) => {
-          console.error('Error validating create group search request: ', PathReporter.report(UserDataArr.decode(data)));
+          console.error('Error validating create group search request: ', PathReporter.report(UserDataArrValidator.decode(data)));
         }
 
         const onRight = (data: UserDataArr) => {
           userSearchDispatch({type: 'setUserList', payload: data});
         }
 
-        pipe(UserDataArr.decode(data), fold(onLeft, onRight));
+        pipe(UserDataArrValidator.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: "setIsSearching", payload: false});
       })
       .catch(error => {
@@ -485,7 +495,7 @@ export const ChatPage = () => {
           // push the new group into the group list
           setCurrentGroupId(data.id);
         }
-        pipe(GroupData.decode(data), fold(onLeft, onRight));
+        pipe(GroupDataValidator.decode(data), fold(onLeft, onRight));
         userSearchDispatch({type: 'resetState'});
       })
       .catch(err => {
@@ -516,11 +526,11 @@ export const ChatPage = () => {
             deleteToken();
             setLogout(true);
           }}
-          onGroupClick={(e, id) => {
+          onGroupClick={(_e, id) => {
             setCurrentGroupId(id);
             userSearchDispatch({type: 'resetState'});
           }}
-          newGroupClick={(e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
+          newGroupClick={(_e) => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
           onSearch={(e) => searchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
           searchValue={searchState.searchValue}
@@ -553,7 +563,7 @@ export const ChatPage = () => {
               />
             : <TopAvatarPanel 
                 username={groupState.data.name} 
-                onInfoClick={(e) => setToggleInfo(!toggleInfo)}
+                onInfoClick={(_e) => setToggleInfo(!toggleInfo)}
               />
           }
         </Box>

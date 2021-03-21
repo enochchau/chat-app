@@ -1,6 +1,6 @@
 import jwt_decode, { JwtPayload } from 'jwt-decode';
 
-export function saveToken(token: string, rememberMe: boolean){
+export function saveToken(token: string, rememberMe: boolean): void{
   if(rememberMe){
     localStorage.setItem('token', token);
   } else {
@@ -16,7 +16,7 @@ export function getToken(): null | string{
   return token;
 }
 
-export function deleteToken(){
+export function deleteToken(): void{
   localStorage.removeItem('token');
   sessionStorage.removeItem('token');
 }

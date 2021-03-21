@@ -13,7 +13,7 @@ import { Redirect } from 'react-router-dom';
 import { ServerError, BadLogin, GoodLogin } from '../component/toast';
 // API/ validators
 import { AuthRequest } from '../api';
-import { AuthData, TokenData } from '../api/validators/auth';
+import { AuthData, TokenData, AuthDataValidator, TokenDataValidator} from '../api/validators/auth';
 import * as t from 'io-ts';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
@@ -75,7 +75,7 @@ const LoginForm = () => {
           }
 
           console.error('NO TOKEN Validation error at post login: ', errors);
-          pipe(AuthData.decode(data), fold(onNoTokenLeft, onNoTokenRight));
+          pipe(AuthDataValidator.decode(data), fold(onNoTokenLeft, onNoTokenRight));
         }
         const onTokenRight = (data: TokenData) => {
           const jwtUser = decodeToJwtUser(data.token);
@@ -87,7 +87,7 @@ const LoginForm = () => {
           }
         }
 
-        pipe(TokenData.decode(data), fold(onTokenLeft, onTokenRight));
+        pipe(TokenDataValidator.decode(data), fold(onTokenLeft, onTokenRight));
       })
       .catch(error => {
         toastMessage(ServerError);

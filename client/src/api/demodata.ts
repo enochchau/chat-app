@@ -1,5 +1,5 @@
 import { DisplayableMessage } from 'component/chat/messagelist';
-import { RxChatMessage, ServerMessage } from './validators/websocket';
+import { RxChatMessage } from './validators/websocket';
 
 export const RxDemoMessage: RxChatMessage = {
   topic: "chat",
