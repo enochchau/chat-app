@@ -42,14 +42,14 @@ import * as t from 'io-ts';
 import { PathReporter } from 'io-ts/PathReporter'
 
 // When a user connects to a room
-function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, timestamp: Date){
+function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, timestamp: Date): DisplayableMessage{
   return {
     userId: userId,
     name: groupUser.name,
-    avatarSrc: groupUser.avatar,
+    avatarSrc: groupUser.avatar || undefined,
     timestamp: timestamp,
     message: htmlMessage,
-  } as DisplayableMessage
+  };
 }
 
 // handle searching
