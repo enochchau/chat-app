@@ -37,6 +37,7 @@ export const GroupItem = ({title, avatarSrc, lastMessage, lastTimestamp, onClick
       avatarSrc={avatarSrc}
       onClick={onClick}
       avatarSize="md"
+      variant="groupList"
     >
     </ListItem>
   );

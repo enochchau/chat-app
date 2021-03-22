@@ -182,6 +182,8 @@ export const SearchBar: ComponentStyleConfig = {
           opacity: 1,
         },
         marginBottom: '8px',
+        paddingTop: '2px',
+        paddingBottom: '2px',
       },
       icon: {
         color: 'gray.500',
@@ -231,8 +233,14 @@ export const ListItem: ComponentStyleConfig = {
     }
   },
   variants: {
-    groupSearch:{},
-    groupList: {},
+    groupList: {
+      title:{
+        display: {sm: 'none', md: 'block'}
+      },
+      subtitle: {
+        display: {sm: 'none', md: 'block'}
+      },
+    },
     userSearch:{
       container: {
         height: '52px'

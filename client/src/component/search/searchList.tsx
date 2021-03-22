@@ -44,6 +44,7 @@ export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) 
             key={i}
             title={item.name} 
             onClick={(e) => {onClick(e, item)}}
+            variant="groupList"
           />
         )
       }

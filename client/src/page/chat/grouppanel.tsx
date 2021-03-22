@@ -62,7 +62,7 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
           onBlur={(e) => {
             setTimeout(() => {
               setShowSearch(false);
-            }, 500);
+            }, 100);
           }}
           icon={<SearchIcon/>}
           variant="groupSearch"
