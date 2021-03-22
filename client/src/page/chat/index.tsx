@@ -251,9 +251,6 @@ export const ChatPage: React.FC = () => {
 
   // fetch the user's groups on mount
   React.useEffect(() => {
-    if(groupId){
-      setCurrentGroupId(parseInt(groupId));
-    }
 
     GroupRequest.getGroupsForUser({count: 15, date: new Date()})
       .then(res => res.data)
@@ -265,6 +262,9 @@ export const ChatPage: React.FC = () => {
         const onRight = (data: Array<GroupMessageData>): void => {
           console.log(data);
           setGroups(data);
+          // set the group Id here!
+          // we want to auto redirect the user if they aren't going to a specific groupId page
+          setCurrentGroupId(groupId ? parseInt(groupId) : data[0].groupId);
         }
         pipe(GroupMessageArrValidator.decode(data), fold(onLeft, onRight));
       })
