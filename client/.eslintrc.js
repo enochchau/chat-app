@@ -4,9 +4,12 @@ module.exports = {
     node: true,
     jest: true,
   },
-  extends: "eslint:recommended",
+  extends: [ "eslint:recommended", "plugin:@typescript-eslint/recommended"],
   parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint", "react-hooks"],
+  plugins: [
+    "@typescript-eslint", 
+    "react-hooks"
+  ],
   parserOptions: {
     ecmaVersion: 2017,
     sourceType: "module",
@@ -44,6 +47,8 @@ module.exports = {
     "ChildNode": true,
     "HTMLDivElement": true,
     "HTMLButtonElement": true,
+    "HTMLInputElement": true,
     "WebSocket": true,
+    "window":true,
   },
 };

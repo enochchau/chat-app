@@ -9,6 +9,7 @@ import { MessageList } from '../../component/chat/messagelist';
 import { BottomPanel } from './bottompanel';
 import { GroupPanel } from './grouppanel';
 import { InfoPanel } from './infopanel';
+import { PanelFrame } from '../../component/panel/panelFrame';
 // processing functions
 import { processSendMessageEvent } from '../../component/chat/chatinput';
 import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
@@ -489,19 +490,10 @@ export const ChatPage: React.FC = () => {
   
 
   return(
-    <Flex
-      height="100vh"
-      width="100vw"
-      // overflowX="hidden"
-      // overflowY="hidden"
-      direction="row"
-      wrap="nowrap"
-      justify="space-between"
-      align="flex-start"
-    >
+    <PanelFrame variant="screen">
       {(currentGroupId !== -1) && <Redirect to={`/chat/${currentGroupId}`}/>}
       {logout && <Redirect to="/"/>}
-      <Box>
+      <PanelFrame variant="sidePanel">
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
@@ -523,13 +515,8 @@ export const ChatPage: React.FC = () => {
             groupSearchDispatch({type: 'resetState'});
           }}
         />
-      </Box>
-      <Flex 
-        width="100%"
-        flexDir="column"
-        justify="space-between"
-        height="100vh"
-      >
+      </PanelFrame>
+      <PanelFrame variant="centerPanel">
         <Box>
           {userSearchState.creatingGroup
             ? 
@@ -560,31 +547,25 @@ export const ChatPage: React.FC = () => {
             />
           }
         </Box>
-        <Box
-          overflowY="auto"
-          padding="5px"
-          flexBasis="calc( 100vh - 54px - 70px )" // 54=bottom, 74=top 
-          ref={msgDivRef}
-        >
+        <PanelFrame variant="messagePanel" ref={msgDivRef}>
           {!userSearchState.creatingGroup &&
             <MessageList
               messages={messages}
               currentUserId={storeState.id}
             />
           }
-        </Box>
+        </PanelFrame>
         <BottomPanel 
           onMessageSubmit={handleSendMessage} 
           rightPanelStatus={toggleInfo}
         />
-      </Flex>
+      </PanelFrame>
 
       { toggleInfo &&
-        <Box>
+        <PanelFrame variant="sidePanel">
           <InfoPanel/>
-        </Box>
+        </PanelFrame>
       }
-
-    </Flex>
+    </PanelFrame>
   );
 }

@@ -20,7 +20,8 @@ import {
   SearchBar,
   FloatingBox,
   ChatInput,
-  ChatInputChild
+  ChatInputChild,
+  PanelFrame,
 } from './theme'
 
 
@@ -46,7 +47,8 @@ const theme = extendTheme({
     SearchBar,
     FloatingBox,
     ChatInput,
-    ChatInputChild
+    ChatInputChild,
+    PanelFrame,
   }
 });
 

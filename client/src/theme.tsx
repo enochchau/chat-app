@@ -1,5 +1,40 @@
 import { ComponentStyleConfig } from '@chakra-ui/react'
 
+export const PanelFrame: ComponentStyleConfig = {
+  variants:{
+    sidePanel: {
+      height:"100vh",
+      borderLeft:'1px',
+      borderRight:'1px',
+      borderLeftColor:'gray.200',
+      borderRightColor:'gray.200',
+    },
+    centerPanel: {
+      width:'100%',
+      flexDir:"column",
+      justify:"space-between",
+      height:"100vh",
+      display: "flex",
+    },
+    messagePanel:{
+      overflowY:"auto",
+      padding:"5px",
+      flexBasis:"calc( 100vh - 54px - 70px )", // 54=bottom, 74=top 
+    },
+    screen:{
+      height:"100vh",
+      width:"100vw",
+      // overflowX="hidden"
+      // overflowY="hidden"
+      direction:"row",
+      wrap:"nowrap",
+      justify:"space-between",
+      align:"flex-start",
+      display:'flex',
+    }
+  }
+}
+
 export const Message: ComponentStyleConfig = {
   parts: ["message", "text", "sideButtons"],
   baseStyle: {
@@ -23,7 +58,7 @@ export const Message: ComponentStyleConfig = {
       _hover: {
         color: "gray.300"
       }
-    }
+    },
   },
   variants: {
     left: {
@@ -97,10 +132,6 @@ export const SidePanel: ComponentStyleConfig = {
   baseStyle: {
     maxHeight: "100vh",
     overflowY: "auto",
-    borderLeft: '1px',
-    borderRight: '1px',
-    borderLeftColor: 'gray.200',
-    borderRightColor: 'gray.200',
   },
   variants:{
     leftPanel: {

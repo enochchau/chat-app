@@ -59,7 +59,11 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
           value={searchValue}
           placeholder={"Search Messenger"}
           onFocus={(e) => setShowSearch(true)}
-          onBlur={(e) => setShowSearch(false)}
+          onBlur={(e) => {
+            setTimeout(() => {
+              setShowSearch(false);
+            }, 500);
+          }}
           icon={<SearchIcon/>}
           variant="groupSearch"
         />

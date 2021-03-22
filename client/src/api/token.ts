@@ -31,7 +31,7 @@ export interface DecodedJwtUser {
 }
 export function decodeToJwtUser(token: string): DecodedJwtUser | undefined{
   try {
-    let decoded:DecodedJwt = jwt_decode<JwtPayload>(token);
+    const decoded:DecodedJwt = jwt_decode<JwtPayload>(token);
     return decoded.user;
   } catch(error){
     return;
