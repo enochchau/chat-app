@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, ChakraProps } from "@chakra-ui/react" ;
+import { Box, ChakraProps, useStyleConfig } from "@chakra-ui/react" ;
 import { processSendMessageEvent } from './sendmessage';
 import {shouldShowPlaceholder} from './placeholder'
 
@@ -40,36 +40,25 @@ const ChatInput: React.FC<ChatInputProps> = ({onKeyPress, onEnterPress, onInput,
     }
   }, [ chatRef, updatePlaceholder ]);
 
+  const parentStyles = useStyleConfig("ChatInput", {});
+
+  const childStyles = useStyleConfig("ChatInputChild", {variant: (showPlaceholder ? 'showPlaceholder' : 'noPlaceholder')});
+
   return(
     <Box
       {...rest}
-      width="100%"
-      maxHeight="100px"
-      overflowY="auto"
-      overflowX='hidden'
+      sx={parentStyles}
     >
       <Box
-        ml="10px"
-        mr="10px"
-        padding="5px"
-        overflowWrap="break-word"
-        textOverflow="clip"
+        sx={childStyles}
         contentEditable
         onInput={handleInput}
         ref={chatRef}
-        border="none"
-        _focus={{outline: "none"}}
-        fontSize="md"          
         onKeyPress={handleKeyPress}
-        _after={showPlaceholder 
-          ? {
-            content: '"Aa"', 
-            color: "gray.400",
-          } 
-          : {}}
       ></Box>
     </Box>
   );
 }
+
 
 export { ChatInput, processSendMessageEvent, shouldShowPlaceholder }

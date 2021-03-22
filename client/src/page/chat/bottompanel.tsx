@@ -39,29 +39,31 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProp
       <Box 
         width={
           rightPanelStatus
-          ? {
-            sm:"calc(100vw - 458px)", // these are calculated based on the right and left panel
-            md:"calc(100vw - 734px)"
-          }
-          : {
-            sm:"calc(100vw - 153px)",
-            md:"calc(100vw - 429px)"
-          }
+            ? 
+            {
+              sm:"calc(100vw - 458px)", // these are calculated based on the right and left panel
+              md:"calc(100vw - 734px)"
+            }
+            : 
+            {
+              sm:"calc(100vw - 153px)",
+              md:"calc(100vw - 429px)"
+            }
         }
       > 
         <ChatInput
           onEnterPress={onMessageSubmit}
           chatRef={chatRef}
           updatePlaceholder={updatePlaceholder}
-          borderTopLeftRadius="xl"
-          borderBottomLeftRadius="xl"
+          borderTopLeftRadius="2xl"
+          borderBottomLeftRadius="2xl"
           backgroundColor="gray.100"
         />
       </Box>
       <Box
         backgroundColor="gray.100"
-        borderTopRightRadius="xl"
-        borderBottomRightRadius="xl"
+        borderTopRightRadius="2xl"
+        borderBottomRightRadius="2xl"
       >
         <ClickOutside onClick={hideEmojiPicker}>
           <SmileIcon

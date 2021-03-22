@@ -6,7 +6,7 @@ import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
 import { GroupData, GroupMessageDataArr } from '../../api/validators/entity'
 import { GroupSearchList } from '../../component/search/searchList';
-import { SearchIcon } from '../../component/icon';
+import { ArrowLeftIcon, SearchIcon } from '../../component/icon';
 
 interface GroupPanelProps{
   username: string;
@@ -22,7 +22,7 @@ interface GroupPanelProps{
 }
 
 
-export const GroupPanel = ({
+export const GroupPanel: React.FC<GroupPanelProps> = ({
   username, 
   avatarSrc, 
   moreOptionsClick, 
@@ -37,33 +37,41 @@ export const GroupPanel = ({
   const [showSearch, setShowSearch] = React.useState(false);
   return(
     <SidePanel variant="leftPanel">
-      <Flex
-        flexDir="row"
-      >
-      </Flex>
       <TitleBar
-        title="Chat"
+        title="Chats"
         username={username}
         avatarSrc={avatarSrc}
         onGithubClick={(e) => window.location.href="https://github.com/ec965/chat-app"}
         onEllipsisClick={moreOptionsClick}
         onEditClick={newGroupClick}
       />
-      <SearchBar
-        onChange={onSearch}
-        value={searchValue}
-        placeholder={"Search Messenger"}
-        onFocus={(e) => setShowSearch(true)}
-        onBlur={(e) => setShowSearch(false)}
-        icon={<SearchIcon/>}
-        variant="groupSearch"
-      />
+      <Flex
+        flexDir="row"
+        align="center"
+      >
+        { showSearch && <ArrowLeftIcon
+          marginBottom="8px"
+          marginLeft="6px"
+          marginRight="14px"
+        /> }
+        <SearchBar
+          onChange={onSearch}
+          value={searchValue}
+          placeholder={"Search Messenger"}
+          onFocus={(e) => setShowSearch(true)}
+          onBlur={(e) => setShowSearch(false)}
+          icon={<SearchIcon/>}
+          variant="groupSearch"
+        />
+      </Flex>
       {showSearch 
-       ?<GroupSearchList
-            searchResults={searchResults}
-            onClick={onSearchResultClick}
-          />
-       :<GroupList
+        ?
+        <GroupSearchList
+          searchResults={searchResults}
+          onClick={onSearchResultClick}
+        />
+        :
+        <GroupList
           onClick={onGroupClick}
           groupData={groupData}
         />

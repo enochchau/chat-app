@@ -19,6 +19,8 @@ export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) =>
             title={item.name}
             avatarSrc={item.avatar}
             onClick={(e) => {onClick(e, item)}}
+            avatarSize="sm"
+            variant="userSearch"
           />
         )
       }

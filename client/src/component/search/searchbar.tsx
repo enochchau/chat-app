@@ -3,6 +3,7 @@ import {
   Input, 
   InputGroup, 
   InputLeftElement, 
+  useMultiStyleConfig, 
   useStyleConfig
 } from '@chakra-ui/react';
 
@@ -16,30 +17,31 @@ interface SearchBarProps {
   variant?: string,
   size?: string,
 }
-export const SearchBar = ({placeholder, value, onChange, onFocus, onBlur, icon, variant, size}: SearchBarProps) => {
+export const SearchBar: React.FC<SearchBarProps> = ({placeholder, value, onChange, onFocus, onBlur, icon, variant, size}: SearchBarProps) => {
   const [showIcon, setShowIcon] = React.useState<boolean>(true);
 
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>):void => {
     setShowIcon(false);
     if(onFocus) onFocus(e);
   }
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>): void => {
     setShowIcon(true);
     if(onBlur) onBlur(e);
   }
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>):void => {
     if(e.key === "Enter"){
       e.preventDefault();
       e.currentTarget.blur();
     }
   }
-  const styles = useStyleConfig("Input", {variant, size});
+  const styles = useMultiStyleConfig("SearchBar", {variant, size});
   return(
     <InputGroup>
       {icon && (showIcon &&
         <InputLeftElement
           pointevents="none"
           children={icon}
+          sx={styles.icon}
         />)
       }
       <Input 
@@ -50,7 +52,7 @@ export const SearchBar = ({placeholder, value, onChange, onFocus, onBlur, icon, 
         onKeyPress={handleKeyPress}
         onChange={onChange}
         value={value}
-        sx={styles}
+        sx={styles.input}
       />
     </InputGroup>
   );

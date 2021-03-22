@@ -33,12 +33,11 @@ export const GroupItem = ({title, avatarSrc, lastMessage, lastTimestamp, onClick
   return(
     <ListItem
       title={title}
+      subtitle={(lastMessage && lastTimestamp) ? `${lastMessage}  ·  ${timeSinceString(lastTimestamp)}`: undefined}
       avatarSrc={avatarSrc}
       onClick={onClick}
+      avatarSize="md"
     >
-      {lastMessage && lastTimestamp && 
-        <Text>{lastMessage}·{timeSinceString(lastTimestamp)}</Text>
-      }
     </ListItem>
   );
 }

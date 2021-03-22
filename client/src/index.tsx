@@ -16,6 +16,11 @@ import {
   SidePanel,
   TopPanel,
   ListItem,
+  TitleBar,
+  SearchBar,
+  FloatingBox,
+  ChatInput,
+  ChatInputChild
 } from './theme'
 
 
@@ -36,7 +41,12 @@ const theme = extendTheme({
     Form,
     SidePanel,
     TopPanel,
-    ListItem
+    ListItem,
+    TitleBar,
+    SearchBar,
+    FloatingBox,
+    ChatInput,
+    ChatInputChild
   }
 });
 

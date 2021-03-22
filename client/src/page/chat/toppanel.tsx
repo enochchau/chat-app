@@ -1,4 +1,4 @@
-import { Button, Text, Heading, Avatar, HStack, IconButton, Box } from '@chakra-ui/react';
+import { Button, Text, Heading, Avatar, HStack, IconButton, Box, useMultiStyleConfig, useStyleConfig } from '@chakra-ui/react';
 import { InfoIcon } from '../../component/icon';
 import * as React from 'react';
 import { TopPanel } from '../../component/panel/toppanel';
@@ -42,7 +42,7 @@ interface UserSearchPanelProps {
   onCreateClick: React.MouseEventHandler<HTMLButtonElement>,
   disableButton: boolean,
 }
-export const UserSearchPanel = ({
+export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
   searchValue,
   searchResults,
   onInputChange,
@@ -70,22 +70,29 @@ export const UserSearchPanel = ({
             setHideResults(true);
           }, 100);
         }}
-        />
+      />
       <Button onClick={onCreateClick} disabled={disableButton}>Create</Button>
       { !hideResults && 
-        <Box
-          position="absolute"
-          top="64px"
-          height="407px"
-          width="328px"
-          boxShadow="xl"
-        >
-          <UserSearchList
-            searchResults={searchResults}
-            onClick={onResultClick}
-          />
-        </Box>
+        <FloatingSearchResults searchResults={searchResults} onResultClick={onResultClick}/>
       }
     </TopPanel>
+  );
+}
+
+interface FloatingSearchResultsProps{
+  searchResults: UserDataArr;
+  onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void;
+}
+const FloatingSearchResults: React.FC<FloatingSearchResultsProps> = ({
+  searchResults, onResultClick
+}: FloatingSearchResultsProps) => {
+  const styles = useStyleConfig("FloatingBox", {variant: 'userSearchResults'})
+  return(
+    <Box sx={styles}>
+      <UserSearchList
+        searchResults={searchResults}
+        onClick={onResultClick}
+      />
+    </Box>
   );
 }

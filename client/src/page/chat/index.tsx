@@ -71,7 +71,7 @@ const groupSearchInitialState = {
   isSearching: false,
   searchResults: [] as Array<GroupData>,
 }
-function groupSearchReducer(state: typeof groupSearchInitialState, action: SEARCHACTIONTYPE){
+function groupSearchReducer(state: typeof groupSearchInitialState, action: SEARCHACTIONTYPE): typeof groupSearchInitialState{
   switch(action.type){
   case 'setSearchValue':
     return {...state, searchValue: action.payload};
@@ -85,15 +85,13 @@ function groupSearchReducer(state: typeof groupSearchInitialState, action: SEARC
 }
 
 // caching current group meta data including users data
-export type UserIdMap = Map<number, UserData>
+export type UserIdMap = Map<number, UserData>;
 const createUserIdMap = (userData: UserData[]): UserIdMap => {
   return (userData.reduce((map, user) => {
     map.set(user.id, user);
     return map;
   }, new Map() as UserIdMap));
 }
-
-type GROUPACTIONTYPE = | {type: 'setGroupData', payload:{ data: GroupDataWithUsers, userMap: UserIdMap};
 
 const groupInitialState = {
   userMap: new Map() as UserIdMap,
@@ -106,15 +104,22 @@ const groupInitialState = {
   } as GroupData,
 };
 
+type GROUPACTIONTYPE = 
+| {type: 'setGroupData', payload: typeof groupInitialState }
+| {type: 'resetState'} ;
+
+
 function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
   switch(action.type){
-    case 'setGroupData':
-      return{...state, 
-        userMap: action.payload.userMap,
-        data: action.payload.data,
-      }
-    default:
-      return state;
+  case 'setGroupData':
+    return{...state, 
+      userMap: action.payload.userMap,
+      data: action.payload.data,
+    }
+  case 'resetState':
+    return groupInitialState;
+  default:
+    return state;
   }
 }
 
@@ -178,13 +183,13 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
 // shows meta data on the current group
 
 // the middle box should have flex
-export const ChatPage = () => {
+export const ChatPage: React.FC = () => {
   // websocket
   const ws = React.useRef<WebSocket | null>(null);
   // the groupId the user is requesting
   const { groupId } = useParams<{groupId?: string}>(); 
   // global store
-  const { storeState, storeDispatch} = React.useContext(StoreContext);
+  const { storeState } = React.useContext(StoreContext);
   // messages to be displayed
   const [messages, setMessages] = React.useState<DisplayableMessage[]>([]);
   // groups to be displayed on the group panel
@@ -269,7 +274,7 @@ export const ChatPage = () => {
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
   React.useEffect(() => {
-    const disconnect = () => {
+    const disconnect = (): void => {
       if(ws.current !== null) ws.current.close();
     }
 
@@ -283,7 +288,7 @@ export const ChatPage = () => {
     }
 
     // setup the message handler
-    ws.current.onmessage = (event) => {
+    ws.current.onmessage = (event): void => {
 
       const message = JSON.parse(event.data);
 
@@ -328,7 +333,7 @@ export const ChatPage = () => {
               const copy = [...groups];
               const insertGroup = copy.splice(i, 1);
               copy.unshift(insertGroup[0]);
-              setGroups(groups => copy);
+              setGroups(_groups => copy);
               break;
             }
           }
@@ -387,7 +392,7 @@ export const ChatPage = () => {
       .catch(error => console.error(error));
 
     // disconnect from WS on unmount
-    return () => disconnect();
+    return ():void => disconnect();
   }, [currentGroupId]); // connect to a new chat room everytime we get a new groupid
 
   // send message here essentially
@@ -407,7 +412,7 @@ export const ChatPage = () => {
 
   // scroll to the bottom on new message if the user is at the top 
   React.useEffect(() => {
-    const scrollToBottom = (ref: HTMLDivElement) => {
+    const scrollToBottom = (ref: HTMLDivElement): void => {
       const bottom =  ref.scrollHeight - ref.clientHeight;
       ref.scrollTo(0, bottom);
     }
@@ -459,7 +464,7 @@ export const ChatPage = () => {
   }, [dbUserSearchValue]);
 
   const createNewGroup = (_e: React.MouseEvent<HTMLButtonElement>): void => {
-    const collectUserIds = () => {
+    const collectUserIds = (): Array<number> => {
       return userSearchState.newGroup.reduce(function (acc, user){
         acc.push(user.id);
         return acc;

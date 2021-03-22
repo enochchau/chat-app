@@ -3,23 +3,24 @@ import * as React from 'react';
 
 interface ListItemProps {
   title: string;
+  subtitle?: string;
   avatarSrc?: string | null;
-  children?: React.ReactNode;
+  avatarSize?:string;
   variant?: string;
   size?: string;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
-export const ListItem = ({title, avatarSrc, children, size, variant, onClick}: ListItemProps) => {
+export const ListItem: React.FC<ListItemProps> = ({title, subtitle, avatarSrc, size, variant, onClick, avatarSize}: ListItemProps) => {
   const styles = useMultiStyleConfig('ListItem', {size, variant});
   return(
     <Flex
       onClick={onClick}
       sx={styles.container}
     >
-      <Avatar sx={styles.avatar} name={title} src={avatarSrc || undefined}/>
-      <Box>
-        <Text sx={styles.text}>{title}</Text>
-        {children}
+      <Avatar size={avatarSize} sx={styles.avatar} name={title} src={avatarSrc || undefined}/>
+      <Box >
+        <Text sx={styles.title}>{title}</Text>
+        {subtitle && <Text sx={styles.subtitle}>{subtitle}</Text>}
       </Box>
     </Flex>
   );

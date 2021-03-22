@@ -1,4 +1,5 @@
-import { ComponentMultiStyleConfig, ComponentStyleConfig } from '@chakra-ui/react'
+import { ComponentStyleConfig } from '@chakra-ui/react'
+
 export const Message: ComponentStyleConfig = {
   parts: ["message", "text", "sideButtons"],
   baseStyle: {
@@ -30,7 +31,7 @@ export const Message: ComponentStyleConfig = {
         flexDirection: "row"
       },
       text: {
-        backgroundColor: "gray.400",
+        backgroundColor: "gray.300",
         color: "black"
       },
       sideButtons: {
@@ -95,7 +96,11 @@ export const Form: ComponentStyleConfig = {
 export const SidePanel: ComponentStyleConfig = {
   baseStyle: {
     maxHeight: "100vh",
-    overflowY: "auto"
+    overflowY: "auto",
+    borderLeft: '1px',
+    borderRight: '1px',
+    borderLeftColor: 'gray.200',
+    borderRightColor: 'gray.200',
   },
   variants:{
     leftPanel: {
@@ -103,11 +108,11 @@ export const SidePanel: ComponentStyleConfig = {
         sm: '84px',
         md: '360px'
       },
-      boxShadow: "base"
+      paddingLeft: '8px',
+      paddingRight: '8px',
     },
     rightPanel: {
       width: "320px",
-      boxShadow: "base"
     }
   }
 }
@@ -122,37 +127,160 @@ export const TopPanel: ComponentStyleConfig = {
   variants:{
     userSearch: {
       justifyContent: 'flex-start'
-    }
+    },
   }
 }
 
-export const Input: ComponentStyleConfig = {
+export const SearchBar: ComponentStyleConfig = {
+  parts:['icon', 'input'],
+  baseStyle:{
+    input:{
+      _focus:{
+        outline: 'none',
+      },
+    },
+  },
   variants: {
-    groupSearch: {
-      borderRadius: 'md'
+    groupSearch:{
+      input: {
+        borderRadius: '3xl',
+        background: 'gray.100',
+        border: 'none',
+        _placeholder:{
+          color: 'gray.500',
+          opacity: 1,
+        },
+        marginBottom: '8px',
+      },
+      icon: {
+        color: 'gray.500',
+      }
     },
     userSearch: {
-      backgroundColor: 'inherit'
+      input:{
+        backgroundColor: 'inherit',
+        border: 'none',
+      },
     }
   }
 }
 
 export const ListItem: ComponentStyleConfig = {
-  parts: ["container", "text", "avatar"],
+  parts: ["container", "title", "subtitle", "avatar"],
   baseStyle: {
     container: {
-      flexDirection: "row"
+      flexDirection: "row",
+      _hover :{
+        background: 'gray.100',
+        cursor: 'pointer',
+      },
+      height: '72px',
+      alignItems: 'center',
+      justifyContent: 'space-around',
+      borderRadius: 'xl',
+      paddingLeft: '8px',
+      paddingRight: '8px',
     },
     avatar: {
-      size: "md",
     },
-    text:{
-      size: 'md',
+    title:{
+      width: '236px',
+      fontSize: 'md',
+      textOverflow: 'ellipsis',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap'
+    },
+    subtitle:{
+      width: '236px',
+      textOverflow: 'ellipsis',
+      fontSize: 'sm',
+      color: 'gray.500',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap'
     }
   },
   variants: {
     groupSearch:{},
     groupList: {},
-    userSearch:{},
+    userSearch:{
+      container: {
+        height: '52px'
+      }
+    },
+  }
+}
+
+export const TitleBar: ComponentStyleConfig = {
+  parts: ["container", "title", "icon", "iconButton"],
+  baseStyle: {
+    container: {
+      display: {sm: 'none', md: 'flex'},
+      flexDir: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: '16px',
+      marginBottom: '16px',
+      marginRight: '8px',
+      marginLeft: '8px',
+    },
+    title: {
+      fontSize:'2xl',
+    },
+    icon: {},
+    iconButton: {},
+  }
+}
+
+export const FloatingBox: ComponentStyleConfig = {
+  baseStyle:{
+    position: 'absolute',
+    overflow: 'auto'
+  },
+  variants:{
+    userSearchResults: {
+      top: "54px",
+      border: '1px',
+      borderColor: 'gray.100',
+      backgroundColor : 'white',
+      height: "407px",
+      width: "328px",
+      boxShadow: "2xl",
+      borderRadius: 'lg',
+    }
+  }
+}
+
+export const ChatInput: ComponentStyleConfig = {
+  baseStyle:{
+    width:"100%",
+    maxHeight:"100px",
+    overflowY:"auto",
+    overflowX:'hidden',
+  }
+}
+// this is the inner content of the above
+export const ChatInputChild: ComponentStyleConfig = {
+  baseStyle:{
+    ml: "10px",
+    mr: "10px",
+    padding: "5px",
+    overflowWrap: "break-word",
+    textOverflow: "clip",
+    border: "none",
+    _focus: {
+      outline: "none"
+    },
+    fontSize: "md", 
+  },
+  variants: {
+    showPlaceholder:{
+      _after:{
+        content: '"Aa"',
+        color: 'gray.500',
+      }
+    },
+    noPlaceholder:{
+      _after:{}
+    }
   }
 }
