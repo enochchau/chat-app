@@ -4,7 +4,7 @@ import {
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../component/group';
-import { GroupData, GroupMessageDataArr } from '../../api/validators/entity'
+import { GroupMessageData, GroupData } from '../../api/validators/entity'
 import { GroupSearchList } from '../../component/search/searchList';
 import { ArrowLeftIcon, SearchIcon } from '../../component/icon';
 
@@ -13,7 +13,7 @@ interface GroupPanelProps{
   avatarSrc?: string;
   moreOptionsClick: React.MouseEventHandler<HTMLButtonElement>;
   newGroupClick: React.MouseEventHandler<HTMLButtonElement>;
-  groupData: GroupMessageDataArr; // replace this later
+  groupData: GroupMessageData[]; 
   onSearch: React.ChangeEventHandler<HTMLInputElement>;
   searchValue: string;
   searchResults: Array<GroupData>;

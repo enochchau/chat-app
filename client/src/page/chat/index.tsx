@@ -94,28 +94,22 @@ const createUserIdMap = (userData: UserData[]): UserIdMap => {
 }
 
 const groupInitialState = {
-  userMap: new Map() as UserIdMap,
-  data: {
-    id: -1,
-    name: '',
-    created: new Date(),
-    updated: new Date(),
-    avatar: null,
-  } as GroupData,
-};
+  id: -1,
+  name: '',
+  created: new Date(),
+  updated: new Date(),
+  avatar: null,
+} as GroupData;
 
 type GROUPACTIONTYPE = 
-| {type: 'setGroupData', payload: typeof groupInitialState }
+| {type: 'setGroupData', payload: GroupData}
 | {type: 'resetState'} ;
 
 
 function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
   switch(action.type){
   case 'setGroupData':
-    return{...state, 
-      userMap: action.payload.userMap,
-      data: action.payload.data,
-    }
+    return action.payload
   case 'resetState':
     return groupInitialState;
   default:
@@ -277,100 +271,6 @@ export const ChatPage: React.FC = () => {
     const disconnect = (): void => {
       if(ws.current !== null) ws.current.close();
     }
-
-    ws.current = new WebSocket(WSURL);
-    
-    const token = getToken();
-    if(!token) {
-      console.log('No token found. Unable to open websocket.');
-      disconnect();
-      return;
-    }
-
-    // setup the message handler
-    ws.current.onmessage = (event): void => {
-
-      const message = JSON.parse(event.data);
-
-      const onBadMessage = (_errors: t.Errors): void => {
-        console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
-
-        const onLeft = (_errors: t.Errors): void => {
-          console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
-          console.log("Unable to validate recieved message at websocket.");
-        }
-
-        const onRight = (message: ChatHistory): void => {
-          const displayMsg: Array<DisplayableMessage> = new Array();
-          message.payload.forEach((msg) => {
-            const html = parseStringToHtml(msg.message);
-            const sender = groupState.userMap.get(msg.userId);
-            if(sender){
-              displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
-            }
-          });
-          setMessages(_messages => displayMsg);
-
-        }
-
-        pipe(ChatHistoryValidator.decode(message), fold(onLeft, onRight));
-      }
-      const handleServerMessage = (message: ServerMessage): void => {
-        console.log('Server Message: ', message)
-      }
-
-      // if ChatMessage decode fails, pipe into ServerMessage
-      const tryServerMessage = (_errors: t.Errors): void => {
-        console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
-        pipe(ServerMessageValidator.decode(message), fold(onBadMessage, handleServerMessage));
-      }
-
-      const handleNewMessage = (message: RxChatMessage): void => {
-
-        const reorderGroups = (): void => {
-          for(let i=0; i<groups.length; i++){
-            if(groups[i].groupId === currentGroupId){
-              const copy = [...groups];
-              const insertGroup = copy.splice(i, 1);
-              copy.unshift(insertGroup[0]);
-              setGroups(_groups => copy);
-              break;
-            }
-          }
-        }
-        console.log("Chat Message: ", message);
-        // messages are recieved as strings but must be displayed as HTML
-        const html = parseStringToHtml(message.payload.message);
-        const sender = groupState.userMap.get(message.payload.userId);
-        const id = message.payload.userId;
-        const timestamp= message.payload.timestamp;
-
-        if(sender){
-          const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
-          // array is displayed backwards, later messages should come first
-          setMessages(messages => [displayMsg, ...messages]);
-          reorderGroups();
-        } else {
-          // do a fetch request to get the data since we've evidently lost it
-        }
-      }
-      // start here!
-      pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));
-    }
-
-    ws.current.onopen = (_event): void => {
-      // send the first message to get authenticated
-      const authMessage: AuthMessage = {
-        topic: "auth",
-        payload: {
-          timestamp: new Date(),
-          groupId: currentGroupId,
-          token: token,
-        }
-      }
-      if(ws.current) ws.current.send(JSON.stringify(authMessage));
-    };
-
     // populate the group meta data
     GroupRequest.getGroupWithUsers({groupId: currentGroupId})
       .then(res => res.data)
@@ -383,8 +283,100 @@ export const ChatPage: React.FC = () => {
         const onRight = (data: GroupDataWithUsers): void => {
           
           const userMap = createUserIdMap(data.users);
+          groupDispatch({type: 'setGroupData', payload: data})
 
-          groupDispatch({type: "setGroupData", payload: {data: data, userMap: userMap}});
+          // create the websocket after getting the group's users meta data
+          ws.current = new WebSocket(WSURL);
+          
+          const token = getToken();
+          if(!token) {
+            console.log('No token found. Unable to open websocket.');
+            disconnect();
+            return;
+          }
+
+          // setup the message handler
+          ws.current.onmessage = (event): void => {
+
+            const message = JSON.parse(event.data);
+
+            const onBadMessage = (_errors: t.Errors): void => {
+              console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
+
+              const onHistLeft = (_errors: t.Errors): void => {
+                console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
+                console.log("Unable to validate recieved message at websocket.");
+              }
+
+              const onHistRight = (message: ChatHistory): void => {
+                const displayMsg: Array<DisplayableMessage> = new Array();
+                message.payload.forEach((msg) => {
+                  const html = parseStringToHtml(msg.message);
+                  const sender = userMap.get(msg.userId);
+                  if(sender){
+                    displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
+                  }
+                });
+
+                setMessages(_messages => displayMsg);
+              }
+
+              pipe(ChatHistoryValidator.decode(message), fold(onHistLeft, onHistRight));
+            }
+            const handleServerMessage = (message: ServerMessage): void => {
+              console.log('Server Message: ', message)
+            }
+
+            // if ChatMessage decode fails, pipe into ServerMessage
+            const tryServerMessage = (_errors: t.Errors): void => {
+              console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
+              pipe(ServerMessageValidator.decode(message), fold(onBadMessage, handleServerMessage));
+            }
+
+            const handleNewMessage = (message: RxChatMessage): void => {
+
+              const reorderGroups = (): void => {
+                for(let i=0; i<groups.length; i++){
+                  if(groups[i].groupId === currentGroupId){
+                    const copy = [...groups];
+                    const insertGroup = copy.splice(i, 1);
+                    copy.unshift(insertGroup[0]);
+                    setGroups(_groups => copy);
+                    break;
+                  }
+                }
+              }
+              // messages are recieved as strings but must be displayed as HTML
+              const html = parseStringToHtml(message.payload.message);
+              const sender = userMap.get(message.payload.userId);
+              const id = message.payload.userId;
+              const timestamp= message.payload.timestamp;
+
+              if(sender){
+                const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
+                // array is displayed backwards, later messages should come first
+                setMessages(messages => [displayMsg, ...messages]);
+                reorderGroups();
+              } else {
+                // do a fetch request to get the data since we've evidently lost it
+              }
+            }
+            // start here!
+            pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));
+          }
+
+          ws.current.onopen = (_event): void => {
+            // send the first message to get authenticated
+            const authMessage: AuthMessage = {
+              topic: "auth",
+              payload: {
+                timestamp: new Date(),
+                groupId: currentGroupId,
+                token: token,
+              }
+            }
+            if(ws.current) ws.current.send(JSON.stringify(authMessage));
+          };
         }
 
         pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
@@ -563,7 +555,7 @@ export const ChatPage: React.FC = () => {
             />
             : 
             <TopAvatarPanel 
-              username={groupState.data.name} 
+              username={groupState.name} 
               onInfoClick={(_e):void => setToggleInfo(!toggleInfo)}
             />
           }

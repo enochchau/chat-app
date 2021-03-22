@@ -1,10 +1,10 @@
 import { Flex } from '@chakra-ui/react';
 import { GroupItem } from './item';
 import * as React from 'react';
-import { GroupMessageDataArr } from '../../api/validators/entity';
+import { GroupMessageData} from '../../api/validators/entity';
 
 interface GroupListProps{
-  groupData: GroupMessageDataArr;
+  groupData: GroupMessageData[];
   onClick: (e: React.MouseEvent<HTMLDivElement>, groupId: number) => void;
 }
 export const GroupList = ({groupData, onClick}: GroupListProps) => {

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { TopPanel } from '../../component/panel/toppanel';
 import { SearchBar } from '../../component/group';
 import { UserSearchList } from '../../component/search/searchList';
-import { UserDataArr, UserData } from '../../api/validators/entity';
+import { UserData } from '../../api/validators/entity';
 
 interface TopAvatarPanelProps {
   username: string;
@@ -35,10 +35,10 @@ export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPane
 
 interface UserSearchPanelProps {
   searchValue: string,
-  searchResults: UserDataArr,
+  searchResults: UserData[],
   onInputChange: React.ChangeEventHandler<HTMLInputElement>,
   onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void,
-  newUserGroup: UserDataArr,
+  newUserGroup: UserData[],
   onCreateClick: React.MouseEventHandler<HTMLButtonElement>,
   disableButton: boolean,
 }
@@ -80,7 +80,7 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
 }
 
 interface FloatingSearchResultsProps{
-  searchResults: UserDataArr;
+  searchResults: UserData[];
   onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void;
 }
 const FloatingSearchResults: React.FC<FloatingSearchResultsProps> = ({

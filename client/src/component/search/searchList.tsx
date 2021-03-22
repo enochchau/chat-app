@@ -1,5 +1,5 @@
 import { Flex } from '@chakra-ui/react';
-import { UserDataArr, UserData, GroupDataWithUsers, GroupData} from 'api/validators/entity';
+import { UserData, GroupDataWithUsers, GroupData} from 'api/validators/entity';
 import * as React from 'react';
 import { ListItem } from '../listItem';
 
