@@ -7,7 +7,7 @@ import {
   ServerMessageValidator, 
   ServerMessage, 
   ChatHistoryValidator
-} from 'api/validators/websocket';
+} from '../../api/validators/websocket';
 import { pipe } from 'fp-ts/lib/pipeable';
 import { fold } from 'fp-ts/lib/Either';
 import * as t from 'io-ts';
@@ -30,7 +30,12 @@ export class ChatHandler {
     }, new Map() as UserIdMap));
   }
 
-  public validateMessage(message: any, handleNewMessage: (message: RxChatMessage) => void, handleHist: (message:ChatHistory) => void){
+  public validateMessage(
+    message: any, 
+    handleNewMessage: (message: RxChatMessage) => void, 
+    handleServerMessage: (message: ServerMessage) => void, 
+    handleHist: (message:ChatHistory) => void
+  ): void{
     const onHistLeft = (_errors: t.Errors): void => {
       console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
       console.log("Unable to validate recieved message at websocket.");
@@ -39,9 +44,6 @@ export class ChatHandler {
     const onBadServerMessage = (_errors: t.Errors): void => {
       console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
       pipe(ChatHistoryValidator.decode(message), fold(onHistLeft, handleHist));
-    }
-    const handleServerMessage = (message: ServerMessage): void => {
-      console.log('Server Message: ', message)
     }
     // if ChatMessage decode fails, pipe into ServerMessage
     const tryServerMessage = (_errors: t.Errors): void => {

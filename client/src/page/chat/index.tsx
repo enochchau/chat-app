@@ -1,15 +1,16 @@
 import * as React from 'react';
 import { useContext, useEffect, useState, useRef } from 'react';
+import { useSearch, useValidator, useScrollToBottomIfAtTop, useErrorPrinter } from '../../util/hook';
 // store
 import { StoreContext } from '../../store';
 // chakra
 import { Box } from '@chakra-ui/react';
 // page panel
-import { TopAvatarPanel, UserSearchPanel } from './toppanel';
+import { TopAvatarPanel, UserSearchPanel } from './panel/toppanel';
 import { MessageList } from '../../component/chat/messagelist';
-import { BottomPanel } from './bottompanel';
-import { GroupPanel } from './grouppanel';
-import { InfoPanel } from './infopanel';
+import { BottomPanel } from './panel/bottompanel';
+import { GroupPanel } from './panel/grouppanel';
+import { InfoPanel } from './panel/infopanel';
 import { PanelFrame } from '../../component/panel/panelFrame';
 // processing functions
 import { processSendMessageEvent } from '../../component/chat/chatinput';
@@ -17,7 +18,8 @@ import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 // websocket 
 import { 
   ChatHistory, 
-  RxChatMessage, 
+  RxChatMessage,
+  ServerMessage, 
 } from '../../api/validators/websocket';
 import { ChatHandler } from './websocket';
 import { AuthMessage } from '../../api/validators/websocket';
@@ -27,8 +29,6 @@ import { DisplayableMessage } from '../../component/chat/messagelist/index';
 import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
-// use debounce for search
-import { useSearch, useValidator, useScrollToBottomIfAtTop } from '../../util';
 // api / validators
 import { GroupRequest, axiosAuth } from '../../api';
 import { 
@@ -138,13 +138,24 @@ export const ChatPage: React.FC = () => {
 
   // handle errors
   // TODO: write a better error handler
-  const errors: Array<boolean> = [groupSearch.error, groupResult.error, userSearch.error, userResult.error];
-  useEffect(() => {
-    for(let i=0; i<errors.length; i++){
-      if (errors[i] === true);
-      console.log('Error at index: ', i, "in the error array...");
-    }
-  }, errors);
+  type ResponseError = {
+    error: boolean,
+    errMsg: any,
+  }
+  type ValidationError = {
+    error: boolean,
+    errMsg: string[],
+  }
+  const validationErrors: ValidationError[] = [
+    {error: groupResult.error, errMsg: groupResult.errMsg},
+    {error: userResult.error, errMsg: userResult.errMsg},
+  ];
+  const responseErrors: ResponseError[] = [
+    {error: groupSearch.error, errMsg: groupSearch.errMsg},
+    {error: userSearch.error, errMsg: userSearch.errMsg},
+  ];
+  useErrorPrinter(validationErrors);
+  useErrorPrinter(responseErrors);
   
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
@@ -192,6 +203,10 @@ export const ChatPage: React.FC = () => {
               setMessages(_messages => displayMsg);
             }
 
+            const handleServerMessage = (message: ServerMessage): void => {
+              console.log(message);
+            }
+
             const handleNewMessage = (message: RxChatMessage): void => {
 
               const reorderGroups = (): void => {
@@ -221,7 +236,7 @@ export const ChatPage: React.FC = () => {
               }
             }
 
-            handler.current?.validateMessage(message, handleNewMessage, handleHistMessage)
+            handler.current?.validateMessage(message, handleNewMessage, handleServerMessage, handleHistMessage)
           }
 
           handler.current.ws.onopen = (_event): void => {
@@ -267,22 +282,16 @@ export const ChatPage: React.FC = () => {
     GroupRequest.postNewGroup({userIds: userIds, groupName: ""})
       .then(res => res.data)
       .then(data => {
-        const onLeft = (errors: t.Errors):void => {
-          console.error(errors);
-        }
+        const onLeft = (errors: t.Errors):void => {console.error(errors);}
 
-        const onRight = (data: GroupData):void => {
-          // push the new group into the group list
-          setCurrentGroupId(data.id);
-        }
+        const onRight = (data: GroupData):void => {setCurrentGroupId(data.id);}
+        
         pipe(GroupValidator.decode(data), fold(onLeft, onRight));
       })
-      .catch(err => {
-        console.error(err)
-      });
+      .catch(err => {console.error(err)});
   }
 
-  const logout = ()=> {
+  const logout = (): void=> {
     deleteToken();
     setIsLogout(true);
   }
