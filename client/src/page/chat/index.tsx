@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { createRef, useContext, useEffect, useReducer, useState, useRef } from 'react';
+import { createRef, useContext, useEffect, useState, useRef } from 'react';
 // store
 import { StoreContext } from '../../store';
 // chakra
@@ -18,13 +18,8 @@ import  { parseStringToHtml } from '../../component/chat/htmlchatmessage';
 import { 
   ChatHistory, 
   RxChatMessage, 
-  ServerMessage, 
-  ServerMessageValidator,
-  RxChatMessageValidator,
-  ChatHistoryValidator,
 } from '../../api/validators/websocket';
 import { ChatHandler } from './websocket';
-import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 // websocket -> HTML
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
@@ -33,7 +28,7 @@ import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
-import { useSearch, useValidator } from '../../util';
+import { useSearch, useValidator, useScrollToBottomIfAtTop } from '../../util';
 // api / validators
 import { GroupRequest, axiosAuth } from '../../api';
 import { 
@@ -50,7 +45,6 @@ import {
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
-import { PathReporter } from 'io-ts/PathReporter'
 
 // When a user connects to a room
 function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, timestamp: Date): DisplayableMessage{
@@ -63,39 +57,6 @@ function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessa
   };
 }
 
-// handle searching
-type SEARCHACTIONTYPE = 
-  | {type: 'setSearchValue', payload: string}
-  | {type: 'setIsSearching', payload: boolean}
-  | {type: 'setSearchResults', payload: Array<GroupData>}
-  | {type: 'resetState'};
-const groupSearchInitialState = {
-  searchValue: "",
-  isSearching: false,
-  searchResults: [] as Array<GroupData>,
-}
-function groupSearchReducer(state: typeof groupSearchInitialState, action: SEARCHACTIONTYPE): typeof groupSearchInitialState{
-  switch(action.type){
-  case 'setSearchValue':
-    return {...state, searchValue: action.payload};
-  case 'setIsSearching':
-    return {...state, isSearching: action.payload};
-  case 'setSearchResults':
-    return {...state, searchResults: action.payload};
-  case 'resetState':
-    return groupSearchInitialState;
-  }
-}
-
-// caching current group meta data including users data
-export type UserIdMap = Map<number, UserData>;
-const createUserIdMap = (userData: UserData[]): UserIdMap => {
-  return (userData.reduce((map, user) => {
-    map.set(user.id, user);
-    return map;
-  }, new Map() as UserIdMap));
-}
-
 const groupInitialState = {
   id: -1,
   name: '',
@@ -103,68 +64,6 @@ const groupInitialState = {
   updated: new Date(),
   avatar: null,
 } as GroupData;
-
-type GROUPACTIONTYPE = 
-| {type: 'setGroupData', payload: GroupData}
-| {type: 'resetState'} ;
-
-
-function groupReducer(state: typeof groupInitialState, action: GROUPACTIONTYPE): typeof groupInitialState{
-  switch(action.type){
-  case 'setGroupData':
-    return action.payload
-  case 'resetState':
-    return groupInitialState;
-  default:
-    return state;
-  }
-}
-
-// handling user search when creating a new group
-type USERSEARCHACTIONTYPE = 
-| {type: 'creatingGroup', payload: boolean}
-| {type: 'setSearchString', payload: string}
-| {type: 'setUserList', payload: Array<UserData>}
-| {type: 'setIsSearching', payload: boolean}
-| {type: 'appendNewGroup', payload: UserData}
-| {type: 'postingNewGroup', payload: boolean}
-| {type: 'resetState'}
-
-const userSearchInitialState = {
-  creatingGroup: false,
-  searchString: "",
-  userList: [] as Array<UserData>,
-  isSearching: false,
-  newGroup: [] as Array<UserData>,
-  currentUserIds: new Set() as Set<number>,
-  postingNewGroup: false,
-}
-
-function userSearchReducer( state: typeof userSearchInitialState, action: USERSEARCHACTIONTYPE): typeof userSearchInitialState{
-  switch(action.type){
-  case 'creatingGroup': 
-    return {...state, creatingGroup: action.payload};
-  case 'setSearchString':
-    return {...state, searchString: action.payload};
-  case 'setUserList':
-    return {...state, userList: action.payload};
-  case 'setIsSearching':
-    return {...state, isSearching: action.payload};
-  case 'appendNewGroup':
-    state.currentUserIds.add(action.payload.id);
-    return {
-      ...state, 
-      newGroup: [...state.newGroup, action.payload], 
-      currentUserIds: state.currentUserIds
-    };
-  case 'postingNewGroup':
-    return {...state, postingNewGroup: action.payload}
-  case 'resetState':
-    return userSearchInitialState
-  default:
-    return state;
-  }
-}
 
 // LEFT PANEL
 // a list of potential groups that a user can join.
@@ -183,26 +82,25 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
 export const ChatPage: React.FC = () => {
   // websocket
   const handler = useRef<ChatHandler | null>(null);
-  // the groupId the user is requesting
+
+  // current group data
   const { groupId } = useParams<{groupId?: string}>(); 
   const [currentGroupId, setCurrentGroupId] = useState<number>(-1);
+  const [currentGroupData, setCurrentGroupData] = useState<GroupData>(groupInitialState);
 
-  // global store
+  // global store with current user's meta data
   const { storeState } = useContext(StoreContext);
 
   // messages to be displayed
   const [messages, setMessages] = useState<DisplayableMessage[]>([]);
   // groups to be displayed on the group panel
   const [groups, setGroups] = useState<GroupMessageData[]>([]); 
-
-  // stores meta data for the current chat group
-  const [groupState, groupDispatch] = useReducer(groupReducer, groupInitialState);
   
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = useState<boolean>(true);
   const [logout, setLogout] = useState(false);
   // handle scroll to bottom
-  const msgDivRef= createRef<HTMLDivElement>();
+  const msgDivRef = useScrollToBottomIfAtTop([messages]);
 
   // group search on left panel
   const SEARCHCOUNT = 30;
@@ -254,8 +152,7 @@ export const ChatPage: React.FC = () => {
         }
 
         const onRight = (data: GroupDataWithUsers): void => {
-          
-          groupDispatch({type: 'setGroupData', payload: data})
+          setCurrentGroupData(data);
 
           // create the websocket after getting the group's users meta data
           handler.current = new ChatHandler(data.users);
@@ -354,19 +251,6 @@ export const ChatPage: React.FC = () => {
     e.currentTarget.textContent = "";
   }
 
-  // scroll to the bottom on new message if the user is at the top 
-  useEffect(() => {
-    const scrollToBottom = (ref: HTMLDivElement): void => {
-      const bottom =  ref.scrollHeight - ref.clientHeight;
-      ref.scrollTo(0, bottom);
-    }
-    if(msgDivRef.current) {
-      if(msgDivRef.current.scrollTop === 0){
-        scrollToBottom(msgDivRef.current);
-      }
-    }
-  }, [messages]);
-
   const createNewGroup = (_e: React.MouseEvent<HTMLButtonElement>): void => {
     const userIds = Array.from(newGroup, ([_key, value]) => value.id);
 
@@ -436,7 +320,7 @@ export const ChatPage: React.FC = () => {
             />
             : 
             <TopAvatarPanel 
-              username={groupState.name} 
+              username={currentGroupData.name} 
               onInfoClick={(_e):void => setToggleInfo(!toggleInfo)}
             />
           }

@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createRef } from 'react';
 import * as React from 'react';
 import { fold } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -97,4 +97,23 @@ export function useValidator<T, O = T, I = unknown>(validator: t.Type<T, O, I>, 
   }, [dataToValidate]);
 
   return {data, error}
+}
+
+export function useScrollToBottomIfAtTop(dependencies: any[]): React.LegacyRef<HTMLDivElement>{
+  const ref= createRef<HTMLDivElement>();
+
+  useEffect(() => {
+    const scrollToBottom = (ref: HTMLDivElement): void => {
+      const bottom =  ref.scrollHeight - ref.clientHeight;
+      ref.scrollTo(0, bottom);
+    }
+
+    if(ref.current) {
+      if(ref.current.scrollTop === 0){
+        scrollToBottom(ref.current);
+      }
+    }
+  }, dependencies);
+
+  return ref;
 }
