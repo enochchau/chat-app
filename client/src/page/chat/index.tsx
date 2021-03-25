@@ -23,6 +23,7 @@ import {
   RxChatMessageValidator,
   ChatHistoryValidator,
 } from '../../api/validators/websocket';
+import { ChatHandler } from './websocket';
 import { WSURL } from '../../api';
 import { AuthMessage } from '../../api/validators/websocket';
 // websocket -> HTML
@@ -32,9 +33,9 @@ import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
-import { useDebounce, useSearch, useValidator } from '../../util';
+import { useSearch, useValidator } from '../../util';
 // api / validators
-import { SearchRequest, GroupRequest, axiosAuth } from '../../api';
+import { GroupRequest, axiosAuth } from '../../api';
 import { 
   UserData, 
   GroupData, 
@@ -181,7 +182,7 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
 // the middle box should have flex
 export const ChatPage: React.FC = () => {
   // websocket
-  const ws = useRef<WebSocket | null>(null);
+  const handler = useRef<ChatHandler | null>(null);
   // the groupId the user is requesting
   const { groupId } = useParams<{groupId?: string}>(); 
   const [currentGroupId, setCurrentGroupId] = useState<number>(-1);
@@ -241,7 +242,7 @@ export const ChatPage: React.FC = () => {
   // handle group id changing: i.e. moving into a different chat room
   useEffect(() => {
     const disconnect = (): void => {
-      if(ws.current !== null) ws.current.close();
+      if(handler.current !== null) handler.current.ws.close();
     }
     // populate the group meta data
     GroupRequest.getGroupWithUsers({groupId: currentGroupId})
@@ -254,11 +255,10 @@ export const ChatPage: React.FC = () => {
 
         const onRight = (data: GroupDataWithUsers): void => {
           
-          const userMap = createUserIdMap(data.users);
           groupDispatch({type: 'setGroupData', payload: data})
 
           // create the websocket after getting the group's users meta data
-          ws.current = new WebSocket(WSURL);
+          handler.current = new ChatHandler(data.users);
           
           const token = getToken();
           if(!token) {
@@ -268,41 +268,21 @@ export const ChatPage: React.FC = () => {
           }
 
           // setup the message handler
-          ws.current.onmessage = (event): void => {
+          handler.current.ws.onmessage = (event): void => {
 
             const message = JSON.parse(event.data);
 
-            const onBadMessage = (_errors: t.Errors): void => {
-              console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
+            const handleHistMessage = (message: ChatHistory): void => {
+              const displayMsg: Array<DisplayableMessage> = [];
+              message.payload.forEach((msg) => {
+                const html = parseStringToHtml(msg.message);
+                const sender = handler.current?.groupMap.get(msg.userId);
+                if(sender){
+                  displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
+                }
+              });
 
-              const onHistLeft = (_errors: t.Errors): void => {
-                console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
-                console.log("Unable to validate recieved message at websocket.");
-              }
-
-              const onHistRight = (message: ChatHistory): void => {
-                const displayMsg: Array<DisplayableMessage> = new Array();
-                message.payload.forEach((msg) => {
-                  const html = parseStringToHtml(msg.message);
-                  const sender = userMap.get(msg.userId);
-                  if(sender){
-                    displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
-                  }
-                });
-
-                setMessages(_messages => displayMsg);
-              }
-
-              pipe(ChatHistoryValidator.decode(message), fold(onHistLeft, onHistRight));
-            }
-            const handleServerMessage = (message: ServerMessage): void => {
-              console.log('Server Message: ', message)
-            }
-
-            // if ChatMessage decode fails, pipe into ServerMessage
-            const tryServerMessage = (_errors: t.Errors): void => {
-              console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
-              pipe(ServerMessageValidator.decode(message), fold(onBadMessage, handleServerMessage));
+              setMessages(_messages => displayMsg);
             }
 
             const handleNewMessage = (message: RxChatMessage): void => {
@@ -320,7 +300,7 @@ export const ChatPage: React.FC = () => {
               }
               // messages are recieved as strings but must be displayed as HTML
               const html = parseStringToHtml(message.payload.message);
-              const sender = userMap.get(message.payload.userId);
+              const sender = handler.current?.groupMap.get(message.payload.userId);
               const id = message.payload.userId;
               const timestamp= message.payload.timestamp;
 
@@ -333,11 +313,11 @@ export const ChatPage: React.FC = () => {
                 // do a fetch request to get the data since we've evidently lost it
               }
             }
-            // start here!
-            pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));
+
+            handler.current?.validateMessage(message, handleNewMessage, handleHistMessage)
           }
 
-          ws.current.onopen = (_event): void => {
+          handler.current.ws.onopen = (_event): void => {
             // send the first message to get authenticated
             const authMessage: AuthMessage = {
               topic: "auth",
@@ -347,7 +327,7 @@ export const ChatPage: React.FC = () => {
                 token: token,
               }
             }
-            if(ws.current) ws.current.send(JSON.stringify(authMessage));
+            if(handler.current) handler.current.ws.send(JSON.stringify(authMessage));
           };
         }
 
