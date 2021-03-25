@@ -1,8 +1,9 @@
 import * as React from 'react';
+import { createRef, useContext, useEffect, useReducer, useState, useRef } from 'react';
 // store
 import { StoreContext } from '../../store';
 // chakra
-import { Box, Flex } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 // page panel
 import { TopAvatarPanel, UserSearchPanel } from './toppanel';
 import { MessageList } from '../../component/chat/messagelist';
@@ -31,9 +32,9 @@ import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
 // use debounce for search
-import { useDebounce } from '../../util';
+import { useDebounce, useSearch, useValidator } from '../../util';
 // api / validators
-import { SearchRequest, GroupRequest } from '../../api';
+import { SearchRequest, GroupRequest, axiosAuth } from '../../api';
 import { 
   UserData, 
   GroupData, 
@@ -43,7 +44,7 @@ import {
   UserArrValidator, 
   GroupValidator, 
   GroupArrValidator, 
-  GroupWithUsersValidator, 
+  GroupWithUsersValidator,
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
@@ -180,72 +181,63 @@ function userSearchReducer( state: typeof userSearchInitialState, action: USERSE
 // the middle box should have flex
 export const ChatPage: React.FC = () => {
   // websocket
-  const ws = React.useRef<WebSocket | null>(null);
+  const ws = useRef<WebSocket | null>(null);
   // the groupId the user is requesting
   const { groupId } = useParams<{groupId?: string}>(); 
   // global store
-  const { storeState } = React.useContext(StoreContext);
+  const { storeState } = useContext(StoreContext);
   // messages to be displayed
-  const [messages, setMessages] = React.useState<DisplayableMessage[]>([]);
+  const [messages, setMessages] = useState<DisplayableMessage[]>([]);
   // groups to be displayed on the group panel
-  const [groups, setGroups] = React.useState<GroupMessageData[]>([]); 
+  const [groups, setGroups] = useState<GroupMessageData[]>([]); 
 
   // stores meta data for the current chat group
-  const [groupState, groupDispatch] = React.useReducer(groupReducer, groupInitialState);
+  const [groupState, groupDispatch] = useReducer(groupReducer, groupInitialState);
 
   // search value in the group panel search box
-  const [groupSearchState, groupSearchDispatch] = React.useReducer(groupSearchReducer, groupSearchInitialState);
+  const [groupSearchState, groupSearchDispatch] = useReducer(groupSearchReducer, groupSearchInitialState);
   const dbGroupSearchValue = useDebounce<string>(groupSearchState.searchValue, 500);
 
   // handle user search when creating new groups
-  const [userSearchState, userSearchDispatch] = React.useReducer(userSearchReducer, userSearchInitialState);
+  const [userSearchState, userSearchDispatch] = useReducer(userSearchReducer, userSearchInitialState);
   const dbUserSearchValue = useDebounce<string>(userSearchState.searchString, 500);
 
   // toggle the info panel
-  const [toggleInfo, setToggleInfo] = React.useState<boolean>(true);
+  const [toggleInfo, setToggleInfo] = useState<boolean>(true);
 
   // this is populated on load
-  const [currentGroupId, setCurrentGroupId] = React.useState<number>(-1);
+  const [currentGroupId, setCurrentGroupId] = useState<number>(-1);
 
-  const [logout, setLogout] = React.useState(false);
+  const [logout, setLogout] = useState(false);
   // handle scroll to bottom
-  const msgDivRef= React.createRef<HTMLDivElement>();
+  const msgDivRef= createRef<HTMLDivElement>();
 
-  // handle searching
-  React.useEffect(() => {
-    // https://usehooks.com/useDebounce/
-    if(dbGroupSearchValue) {
-      groupSearchDispatch({type: 'setIsSearching', payload: true});
 
-      SearchRequest.getSearchGroups({
-        count: 30, 
-        search: dbGroupSearchValue
-      })
-        .then(res => res.data)
-        .then(data => {
-          const onLeft = (errors: t.Errors): void => {
-            console.error('Error validating search request: ', errors);
-          }
-          const onRight = (data: Array<GroupData>): void => {
-            groupSearchDispatch({type: 'setSearchResults', payload: data});
-            console.log(data);
-          }
+  // group search
+  const SEARCHCOUNT = 30;
+  const groupSearch = useSearch(500, axiosAuth, '/api/search/group', SEARCHCOUNT);
+  const groupResult = useValidator(GroupArrValidator, groupSearch.data, []);
 
-          pipe(GroupArrValidator.decode(data), fold(onLeft, onRight));
-          groupSearchDispatch({type: 'setIsSearching', payload: false});
-        })
-        .catch(error => {
-          console.error(error);
-          groupSearchDispatch({type: 'setIsSearching', payload: false});
-        })
+  // user search
+  const userSearch = useSearch(500, axiosAuth, '/api/search/user', SEARCHCOUNT);
 
-    } else {
-      groupSearchDispatch({type: 'setSearchResults', payload: []});
-    }
-  }, [dbGroupSearchValue]);
+
+
+  // validate group search
+  // useEffect(() => {
+  //   const onLeft = (_errors: t.Errors): void => {
+  //     console.log('error validating group search');
+  //   }
+  //   const onRight = (data: GroupData[]):void => {
+  //     setGroupResult(data);
+  //   }
+  //   pipe(GroupArrValidator.decode(groupSearch.data), fold(onLeft, onRight));
+  // }, [groupSearch.data])
+  // validate user search
+
 
   // fetch the user's groups on mount
-  React.useEffect(() => {
+  useEffect(() => {
 
     GroupRequest.getGroupsForUser({count: 15, date: new Date()})
       .then(res => res.data)
@@ -268,7 +260,7 @@ export const ChatPage: React.FC = () => {
   
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
-  React.useEffect(() => {
+  useEffect(() => {
     const disconnect = (): void => {
       if(ws.current !== null) ws.current.close();
     }
@@ -404,7 +396,7 @@ export const ChatPage: React.FC = () => {
   }
 
   // scroll to the bottom on new message if the user is at the top 
-  React.useEffect(() => {
+  useEffect(() => {
     const scrollToBottom = (ref: HTMLDivElement): void => {
       const bottom =  ref.scrollHeight - ref.clientHeight;
       ref.scrollTo(0, bottom);
@@ -416,7 +408,7 @@ export const ChatPage: React.FC = () => {
     }
   }, [messages]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (userSearchState.creatingGroup && dbUserSearchValue) {
       userSearchDispatch({type: "setIsSearching", payload: true});
 
@@ -507,12 +499,11 @@ export const ChatPage: React.FC = () => {
           }}
           newGroupClick={(_e): void => {userSearchDispatch({type: 'creatingGroup', payload: true});}}
           groupData={groups}
-          onSearch={(e):void => groupSearchDispatch({type: 'setSearchValue', payload: e.currentTarget.value})}
-          searchValue={groupSearchState.searchValue}
-          searchResults={groupSearchState.searchResults}
+          onSearch={(e):void => groupSearch.setInputValue(e.currentTarget.value)}
+          searchValue={groupSearch.inputValue}
+          searchResults={groupResult.data}
           onSearchResultClick={(_e, group): void => {
             setCurrentGroupId(group.id);
-            groupSearchDispatch({type: 'resetState'});
           }}
         />
       </PanelFrame>
