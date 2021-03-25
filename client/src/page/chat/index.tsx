@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { createRef, useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 // store
 import { StoreContext } from '../../store';
 // chakra
@@ -21,7 +21,7 @@ import {
 } from '../../api/validators/websocket';
 import { ChatHandler } from './websocket';
 import { AuthMessage } from '../../api/validators/websocket';
-// websocket -> HTML
+// websocket text -> HTML
 import { DisplayableMessage } from '../../component/chat/messagelist/index';
 // router
 import { Redirect, useParams } from 'react-router';
@@ -98,7 +98,7 @@ export const ChatPage: React.FC = () => {
   
   // toggle the info panel
   const [toggleInfo, setToggleInfo] = useState<boolean>(true);
-  const [logout, setLogout] = useState(false);
+  const [isLogout, setIsLogout] = useState(false);
   // handle scroll to bottom
   const msgDivRef = useScrollToBottomIfAtTop([messages]);
 
@@ -135,6 +135,16 @@ export const ChatPage: React.FC = () => {
       })
       .catch(error => console.error(error));
   }, []);
+
+  // handle errors
+  // TODO: write a better error handler
+  const errors: Array<boolean> = [groupSearch.error, groupResult.error, userSearch.error, userResult.error];
+  useEffect(() => {
+    for(let i=0; i<errors.length; i++){
+      if (errors[i] === true);
+      console.log('Error at index: ', i, "in the error array...");
+    }
+  }, errors);
   
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
@@ -242,10 +252,10 @@ export const ChatPage: React.FC = () => {
     if(currentGroupId !== -1){
       const newMessage = processSendMessageEvent(e, "chat", storeState.id, currentGroupId);
 
-      if(newMessage && ws.current && ws.current.readyState === 1) {
-        ws.current.send(JSON.stringify(newMessage));
+      if(newMessage && handler.current && handler.current.ws.readyState === 1) {
+        handler.current.ws.send(JSON.stringify(newMessage));
 
-      } else console.error(`Unable to send websocket message\nWeboscket status: ${ws.current}`)
+      } else console.error(`Unable to send websocket message\nWeboscket status: ${handler.current?.ws.readyState}`)
       // reset the chat box
     }
     e.currentTarget.textContent = "";
@@ -271,31 +281,29 @@ export const ChatPage: React.FC = () => {
         console.error(err)
       });
   }
+
+  const logout = ()=> {
+    deleteToken();
+    setIsLogout(true);
+  }
   
 
   return(
     <PanelFrame variant="screen">
       {(currentGroupId !== -1) && <Redirect to={`/chat/${currentGroupId}`}/>}
-      {logout && <Redirect to="/"/>}
+      {isLogout && <Redirect to="/"/>}
       <PanelFrame variant="sidePanel">
         <GroupPanel
           username={storeState.name}
           avatarSrc={storeState.avatar}
-          moreOptionsClick={(_e):void => {
-            deleteToken();
-            setLogout(true);
-          }}
-          onGroupClick={(_e, id): void => {
-            setCurrentGroupId(id);
-          }}
+          moreOptionsClick={(_e):void => {logout();}}
+          onGroupClick={(_e, id): void => {setCurrentGroupId(id);}}
           newGroupClick={(_e): void => {setIsCreatingGroup(true)}}
           groupData={groups}
           onSearch={(e):void => groupSearch.setInputValue(e.currentTarget.value)}
           searchValue={groupSearch.inputValue}
           searchResults={groupResult.data}
-          onSearchResultClick={(_e, group): void => {
-            setCurrentGroupId(group.id);
-          }}
+          onSearchResultClick={(_e, group): void => {setCurrentGroupId(group.id);}}
         />
       </PanelFrame>
       <PanelFrame variant="centerPanel">
@@ -314,7 +322,7 @@ export const ChatPage: React.FC = () => {
                 userSearch.setInputValue('');
                 setNewGroup(newGroup.set(user.id, user));
               }}
-              newUserGroup={/*convert map to arr to display*/Array.from(newGroup, ([key, value]) => value)}
+              newUserGroup={Array.from(newGroup, ([_key, value]) => value)/*convert map to array for displaying*/}
               onCreateClick={createNewGroup}
               disableButton={userSearch.isSearching}
             />
