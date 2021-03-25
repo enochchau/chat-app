@@ -74,9 +74,9 @@ export const Message = ({personName, avatarSrc, children, timestamp, showAvatar,
               ? <Avatar name={personName} size="sm" src={avatarSrc}/>
               : <Box height="32px" width="32px"/>
           )}
-            <MessageText timestamp={timestamp} timestampPlacement={variant}>
-              {children}
-            </MessageText>
+          <MessageText timestamp={timestamp} timestampPlacement={variant}>
+            {children}
+          </MessageText>
         </HStack>
         <SideButtons/>
       </StylesProvider>

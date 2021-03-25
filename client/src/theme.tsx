@@ -91,12 +91,27 @@ export const Message: ComponentStyleConfig = {
 export const Icon: ComponentStyleConfig = {
   baseStyle: {
     background: "none",
-    margin: "5px",
   },
   variants: {
+    clickable:{
+      cursor: 'pointer',
+    },
+    emojiPicker: {
+      color: "blue.400",
+      padding: '0',
+      margin: '0',
+    },
     sideMsgButton:{
+      fontSize: '16px',
+      marginLeft: '1px',
+      marginRight: '1px',
     }
-  }
+  },
+  sizes: {
+    smallText: {
+      cursor: 'pointer',
+    },
+  },
 }
 
 export const Tooltip: ComponentStyleConfig = {
@@ -157,7 +172,8 @@ export const TopPanel: ComponentStyleConfig = {
   },
   variants:{
     userSearch: {
-      justifyContent: 'flex-start'
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
   }
 }
@@ -323,3 +339,25 @@ export const ChatInputChild: ComponentStyleConfig = {
     }
   }
 }
+
+export const ClosableText: ComponentStyleConfig = {
+  parts: ['container', 'text'],
+  baseStyle: {
+    container: {
+      borderRadius: 'lg',
+      backgroundColor: 'gray.300',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2px',
+      marginLeft: '5px',
+      marginRight: '5px',
+      flexDir: 'row',
+      flexWrap: 'nowrap',
+    },
+    text: {
+      size: "xs",
+      padding: '2px',
+    }
+  }
+};

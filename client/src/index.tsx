@@ -22,6 +22,7 @@ import {
   ChatInput,
   ChatInputChild,
   PanelFrame,
+  ClosableText
 } from './theme'
 
 
@@ -49,6 +50,7 @@ const theme = extendTheme({
     ChatInput,
     ChatInputChild,
     PanelFrame,
+    ClosableText,
   }
 });
 

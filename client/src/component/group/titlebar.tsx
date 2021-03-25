@@ -5,9 +5,10 @@ import {
   HStack,
   Box,
   useMultiStyleConfig,
+  Tooltip
 } from '@chakra-ui/react';
 import * as React from 'react';
-import { EllipsisVIcon, GithubIcon, EditIcon } from '../icon';
+import { GithubIcon, EditIcon, SignOutIcon } from '../icon';
 
 interface TitleBarProps {
   avatarSrc?: string;
@@ -35,27 +36,33 @@ export const TitleBar: React.FC<TitleBarProps> = ({
         <Heading sx={styles.title}>{title}</Heading>
       </HStack>
       <HStack>
-        <IconButton
-          aria-label="Account Options"
-          icon={<EllipsisVIcon sx={styles.icon}/>}
-          onClick={onEllipsisClick}
-          isRound
-          sx={styles.iconButton}
-        />
-        <IconButton
-          aria-label="Github"
-          icon={<GithubIcon sx={styles.icon}/>}
-          onClick={onGithubClick}
-          isRound
-          sx={styles.iconButton}
-        />
-        <IconButton
-          aria-label="New Group"
-          icon={<EditIcon sx={styles.icon}/>}
-          onClick={onEditClick}
-          isRound
-          sx={styles.iconButton}
-        />
+        <Tooltip label="Sign Out">
+          <IconButton
+            aria-label="Sign out"
+            icon={<SignOutIcon sx={styles.icon}/>}
+            onClick={onEllipsisClick}
+            isRound
+            sx={styles.iconButton}
+          />
+        </Tooltip>
+        <Tooltip label="Github">
+          <IconButton
+            aria-label="Github"
+            icon={<GithubIcon sx={styles.icon}/>}
+            onClick={onGithubClick}
+            isRound
+            sx={styles.iconButton}
+          />
+        </Tooltip>
+        <Tooltip label="New Group">
+          <IconButton
+            aria-label="New Group"
+            icon={<EditIcon sx={styles.icon}/>}
+            onClick={onEditClick}
+            isRound
+            sx={styles.iconButton}
+          />
+        </Tooltip>
       </HStack>
     </Box>
   );

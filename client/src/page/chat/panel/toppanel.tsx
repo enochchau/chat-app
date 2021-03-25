@@ -1,17 +1,18 @@
-import { Button, Text, Heading, Avatar, HStack, IconButton, Box, useMultiStyleConfig, useStyleConfig } from '@chakra-ui/react';
-import { InfoIcon } from '../../component/icon';
+import { Button, Text, Heading, Avatar, HStack, IconButton, Box, useStyleConfig, Flex } from '@chakra-ui/react';
+import { InfoIcon } from '../../../component/icon';
 import * as React from 'react';
-import { TopPanel } from '../../component/panel/toppanel';
-import { SearchBar } from '../../component/group';
-import { UserSearchList } from '../../component/search/searchList';
-import { UserData } from '../../api/validators/entity';
+import { TopPanel } from '../../../component/panel/toppanel';
+import { SearchBar } from '../../../component/group';
+import { UserSearchList } from '../../../component/search/searchList';
+import { UserData } from '../../../api/validators/entity';
+import { ClosableText } from '../../../component/closableText';
 
 interface TopAvatarPanelProps {
   username: string;
   avatarSrc?: string;
   onInfoClick: React.MouseEventHandler<HTMLButtonElement>;
 }
-export const TopAvatarPanel = ({username, avatarSrc, onInfoClick}: TopAvatarPanelProps) => {
+export const TopAvatarPanel: React.FC<TopAvatarPanelProps> = ({username, avatarSrc, onInfoClick}) => {
   return(
     <TopPanel>
       <HStack padding="5px">
@@ -41,6 +42,7 @@ interface UserSearchPanelProps {
   newUserGroup: UserData[],
   onCreateClick: React.MouseEventHandler<HTMLButtonElement>,
   disableButton: boolean,
+  onClickRemoveNewUser: (e: React.MouseEvent<HTMLElement>, user: UserData) => void,
 }
 export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
   searchValue,
@@ -48,29 +50,37 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
   onInputChange,
   onResultClick,
   newUserGroup,
+  onClickRemoveNewUser,
   onCreateClick,
   disableButton
 }: UserSearchPanelProps) => {
   const [hideResults, setHideResults] = React.useState(false);
+
+  const onClickRemoveUser = (e: React.MouseEvent<HTMLElement>, user: UserData): void => {
+    onClickRemoveNewUser(e, user);
+  }
+
   return(
     <TopPanel variant='userSearch'>
-      <Text>To:</Text>
-      {
-        newUserGroup.map((user, i) => 
-          <Text key={i}>{user.name}</Text>
-        )
-      }
-      <SearchBar
-        value={searchValue}
-        onChange={onInputChange}
-        variant="userSearch"
-        onFocus={(e) => setHideResults(false)}
-        onBlur={(e) => {
-          setTimeout(() => {
-            setHideResults(true);
-          }, 100);
-        }}
-      />
+      <Flex flexDir="row" align="center" width="100%" justifyContent="flex-start">
+        <Text>To:</Text>
+        {
+          newUserGroup.map((user, i) => 
+            <ClosableText key={i} onXClick={(e): void => onClickRemoveUser(e, user)}>{user.name}</ClosableText>
+          )
+        }
+        <SearchBar
+          value={searchValue}
+          onChange={onInputChange}
+          variant="userSearch"
+          onFocus={(e) => setHideResults(false)}
+          onBlur={(e) => {
+            setTimeout(() => {
+              setHideResults(true);
+            }, 200);
+          }}
+        />
+      </Flex>
       <Button onClick={onCreateClick} disabled={disableButton}>Create</Button>
       { !hideResults && 
         <FloatingSearchResults searchResults={searchResults} onResultClick={onResultClick}/>
@@ -78,6 +88,7 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
     </TopPanel>
   );
 }
+
 
 interface FloatingSearchResultsProps{
   searchResults: UserData[];

@@ -4,8 +4,9 @@ import {
   useStyleConfig,
   useStyles,
   Tooltip,
+  IconButton
 } from '@chakra-ui/react';
-import { StackedIcon, CircleIcon, EllipsisVIcon, SmileIconRegular, ReplyIcon } from '../../icon';
+import { EllipsisVIcon, SmileIconRegular, ReplyIcon } from '../../icon';
 
 interface SideButtonsProps {
   onSmileClick?: React.MouseEventHandler<HTMLButtonElement>
@@ -23,21 +24,45 @@ export const SideButtons = ({onSmileClick, onReplyClick, onOptionsClick}: SideBu
         placement="top"
         sx={tooltipStyles}
       >
-        <span><SmileIconRegular sx={iconStyles} onClick={onSmileClick}/></span>
+        <span>
+          <IconButton
+            aria-label="react"
+            isRound
+            size="xs"
+            sx={iconStyles}
+            icon={<SmileIconRegular onClick={onSmileClick}/>}  
+          />
+        </span>
       </Tooltip>
       <Tooltip
         label="Reply"
         placement="top"
         sx={tooltipStyles}
       >
-        <span><ReplyIcon sx={iconStyles} onClick={onReplyClick}/></span>
+        <span>
+          <IconButton
+            aria-label="react"
+            isRound
+            size="xs"
+            sx={iconStyles}
+            icon={<ReplyIcon onClick={onReplyClick}/>}
+          />
+        </span>
       </Tooltip>
       <Tooltip
         label="More"
         placement="top"
         sx={tooltipStyles}
       >
-        <span><EllipsisVIcon sx={iconStyles} onClick={onOptionsClick}/> </span>
+        <span>
+          <IconButton
+            aria-label="react"
+            isRound
+            size="xs"
+            sx={iconStyles}
+            icon={<EllipsisVIcon onClick={onOptionsClick}/>}
+          />
+        </span>
       </Tooltip>
     </Flex>
   );

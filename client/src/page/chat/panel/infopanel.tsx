@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { SidePanel } from '../../component/panel/sidepanel';
+import { SidePanel } from '../../../component/panel/sidepanel';
 import {
   Box,
 } from '@chakra-ui/react';
 
-export const InfoPanel = () => {
+export const InfoPanel: React.FC = () => {
   return(
     <SidePanel variant="rightPanel">
       <Box height="1300px"></Box>

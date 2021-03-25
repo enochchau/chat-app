@@ -115,7 +115,7 @@ describe("<LoginPage/>", () => {
 
   test("Get a server error.", async () => {
     server.use(
-      rest.post(`http://${URL}${LOGIN}`, (req, res, ctx) => {
+      rest.post(`http://${URL}/login`, (req, res, ctx) => {
         return res(ctx.status(500))
       })
     )

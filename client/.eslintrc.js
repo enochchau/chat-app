@@ -48,6 +48,7 @@ module.exports = {
     "HTMLDivElement": true,
     "HTMLButtonElement": true,
     "HTMLInputElement": true,
+    "HTMLElement": true,
     "WebSocket": true,
     "window":true,
   },

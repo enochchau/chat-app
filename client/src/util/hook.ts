@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { useState, useEffect, createRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as React from 'react';
 import { fold } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
@@ -80,6 +80,7 @@ export function useSearch<T>(delay: number, axios: AxiosInstance, url: string, c
 // validation as a hook
 interface useValidatorReturn<T>{
   data: T;
+  setData: React.Dispatch<React.SetStateAction<T>>;
   error: boolean;
   errMsg: string[];
 }
@@ -111,12 +112,12 @@ export function useValidator<T, O = T, I = unknown>(validator: t.Type<T, O, I>, 
 
   }, [dataToValidate]);
 
-  return {data, error, errMsg}
+  return {data, setData, error, errMsg}
 }
 
 // scrolls to the bottom of a div if at the top of the div
 export function useScrollToBottomIfAtTop(dependencies: any[]): React.LegacyRef<HTMLDivElement>{
-  const ref= createRef<HTMLDivElement>();
+  const ref= useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const scrollToBottom = (ref: HTMLDivElement): void => {
@@ -124,7 +125,7 @@ export function useScrollToBottomIfAtTop(dependencies: any[]): React.LegacyRef<H
       ref.scrollTo(0, bottom);
     }
 
-    if(ref.current) {
+    if(ref && ref.current) {
       if(ref.current.scrollTop === 0){
         scrollToBottom(ref.current);
       }

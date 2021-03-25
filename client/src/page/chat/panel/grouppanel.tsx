@@ -1,12 +1,12 @@
-import { SidePanel } from '../../component/panel/sidepanel';
+import { SidePanel } from '../../../component/panel/sidepanel';
 import { 
   Flex
 } from '@chakra-ui/react';
 import * as React from 'react';
-import { GroupList, SearchBar, TitleBar } from '../../component/group';
-import { GroupMessageData, GroupData } from '../../api/validators/entity'
-import { GroupSearchList } from '../../component/search/searchList';
-import { ArrowLeftIcon, SearchIcon } from '../../component/icon';
+import { GroupList, SearchBar, TitleBar } from '../../../component/group';
+import { GroupMessageData, GroupData } from '../../../api/validators/entity'
+import { GroupSearchList } from '../../../component/search/searchList';
+import { ArrowLeftIcon, SearchIcon } from '../../../component/icon';
 
 interface GroupPanelProps{
   username: string;
@@ -49,11 +49,14 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
         flexDir="row"
         align="center"
       >
-        { showSearch && <ArrowLeftIcon
-          marginBottom="8px"
-          marginLeft="6px"
-          marginRight="14px"
-        /> }
+        { showSearch && 
+          <ArrowLeftIcon
+            marginBottom="8px"
+            marginLeft="6px"
+            marginRight="14px"
+            cursor="pointer"
+          /> 
+        }
         <SearchBar
           onChange={onSearch}
           value={searchValue}

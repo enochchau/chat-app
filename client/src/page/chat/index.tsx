@@ -97,7 +97,7 @@ export const ChatPage: React.FC = () => {
   const [groups, setGroups] = useState<GroupMessageData[]>([]); 
   
   // toggle the info panel
-  const [toggleInfo, setToggleInfo] = useState<boolean>(true);
+  const [toggleInfo, setToggleInfo] = useState<boolean>(false);
   const [isLogout, setIsLogout] = useState(false);
   // handle scroll to bottom
   const msgDivRef = useScrollToBottomIfAtTop([messages]);
@@ -112,7 +112,7 @@ export const ChatPage: React.FC = () => {
   const userResult = useValidator(UserArrValidator, userSearch.data, []); 
   // new group creation
   type userId = number;
-  const [newGroup, setNewGroup] = useState<Map<userId, UserData>>(new Map());
+  const [newGroup, setNewGroup] = useState<UserData[]>([]);
   const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
   // fetch the user's groups on mount
@@ -154,8 +154,8 @@ export const ChatPage: React.FC = () => {
     {error: groupSearch.error, errMsg: groupSearch.errMsg},
     {error: userSearch.error, errMsg: userSearch.errMsg},
   ];
-  useErrorPrinter(validationErrors);
-  useErrorPrinter(responseErrors);
+  // useErrorPrinter(validationErrors);
+  // useErrorPrinter(responseErrors);
   
   // WEBSOCKET stuff happens here
   // handle group id changing: i.e. moving into a different chat room
@@ -277,7 +277,7 @@ export const ChatPage: React.FC = () => {
   }
 
   const createNewGroup = (_e: React.MouseEvent<HTMLButtonElement>): void => {
-    const userIds = Array.from(newGroup, ([_key, value]) => value.id);
+    const userIds = newGroup.map(user => user.id);
 
     GroupRequest.postNewGroup({userIds: userIds, groupName: ""})
       .then(res => res.data)
@@ -286,7 +286,9 @@ export const ChatPage: React.FC = () => {
 
         const onRight = (data: GroupData):void => {setCurrentGroupId(data.id);}
         
+        console.log(data);
         pipe(GroupValidator.decode(data), fold(onLeft, onRight));
+        setIsCreatingGroup(false);
       })
       .catch(err => {console.error(err)});
   }
@@ -296,6 +298,16 @@ export const ChatPage: React.FC = () => {
     setIsLogout(true);
   }
   
+  const trimSearchResults = ():UserData[]  => {
+    const userMap = new Map();
+    for(let user of newGroup){
+      userMap.set(user.id, user);
+    }
+    return userResult.data.reduce((acc, user) => {
+      if(!userMap.has(user.id)) acc.push(user);
+      return acc;
+    }, [] as UserData[]);
+  }
 
   return(
     <PanelFrame variant="screen">
@@ -306,7 +318,10 @@ export const ChatPage: React.FC = () => {
           username={storeState.name}
           avatarSrc={storeState.avatar}
           moreOptionsClick={(_e):void => {logout();}}
-          onGroupClick={(_e, id): void => {setCurrentGroupId(id);}}
+          onGroupClick={(_e, id): void => {
+            if(isCreatingGroup) setIsCreatingGroup(false);
+            setCurrentGroupId(id);
+          }}
           newGroupClick={(_e): void => {setIsCreatingGroup(true)}}
           groupData={groups}
           onSearch={(e):void => groupSearch.setInputValue(e.currentTarget.value)}
@@ -322,16 +337,23 @@ export const ChatPage: React.FC = () => {
             <UserSearchPanel
               searchValue={userSearch.inputValue}
               onInputChange={(e):void => {userSearch.setInputValue(e.currentTarget.value); }}
-              searchResults={userResult.data.reduce((showArr, user) => {
-                // remove any user from search reuslts that we've already chosen
-                if(!newGroup.has(user.id)) showArr.push(user);
-                return showArr;
-              }, [] as UserData[])}
+              searchResults={trimSearchResults()}
               onResultClick={(_e, user):void => {
+                // reset search results
                 userSearch.setInputValue('');
-                setNewGroup(newGroup.set(user.id, user));
+                userResult.setData([]);
+                setNewGroup([...newGroup, user]);
               }}
-              newUserGroup={Array.from(newGroup, ([_key, value]) => value)/*convert map to array for displaying*/}
+              newUserGroup={newGroup}
+              onClickRemoveNewUser={(_e, user): void => {
+                for(let i=0; i<newGroup.length; i++){
+                  if(newGroup[i] === user){
+                    const updateArr = [...newGroup];
+                    updateArr.splice(i, 1);
+                    setNewGroup(updateArr);
+                  }
+                }
+              }}
               onCreateClick={createNewGroup}
               disableButton={userSearch.isSearching}
             />

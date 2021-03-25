@@ -1,5 +1,5 @@
 import { rest } from 'msw';
-import { URL, LOGIN, REGISTER } from '../api';
+import { URL } from '../api';
 import jwt from 'jwt-simple';
 
 export interface TestUser {
@@ -17,12 +17,13 @@ export const testUser:TestUser = {
   name: "Test User Person"
 };
 
+const FULLURL = `http://${URL}`;
 
 const testJwt = jwt.encode({user:{username: testUser.username, id: testUser.id}}, 'SUPERSECRET');
 
 export const handler = [
   
-  rest.post(`http://${URL}${LOGIN}`, (req, res, ctx) => {
+  rest.post(`${FULLURL}/login`, (req, res, ctx) => {
     const body = req.body as TestUser;
 
     if(body.username !== testUser.username){
@@ -34,7 +35,7 @@ export const handler = [
     return res(ctx.json({message: "Logged in successfully.", token: testJwt}));
   }),
 
-  rest.post(`http://${URL}${REGISTER}`, (req, res, ctx) => {
+  rest.post(`${FULLURL}/register`, (req, res, ctx) => {
     const body = req.body as TestUser ;
     if(body.username === testUser.username){
       return res(ctx.json({message: 'That username is already taken.'}));
@@ -43,5 +44,5 @@ export const handler = [
       return res(ctx.json({message: "Please include a name."}));
     }
     return res(ctx.json({message: "Registration successful."}));
-  })
+  }),
 ]

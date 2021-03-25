@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { ChatInput } from '../../../component/chat/chatinput'
-import { Flex, Box } from '@chakra-ui/react';
+import { Flex, Box, useStyleConfig, IconButton } from '@chakra-ui/react';
 import { ClickOutside } from '../../../component/clickoutside';
 import { Picker } from '../../../component/chat/emojipicker';
 import { SmileIcon } from '../../../component/icon';
 import { BaseEmoji } from 'emoji-mart';
+import { Icon } from 'theme';
 
 interface BottomPanelProps {
   rightPanelStatus: boolean;
@@ -15,6 +16,8 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProp
   const [updatePlaceholder, setUpdatePlaceholder] = React.useState<boolean>(false);
 
   const chatRef = React.createRef<HTMLDivElement>();
+
+  const iconStyle = useStyleConfig("Icon", {variant: 'emojiPicker'});
 
   const showEmojiPicker = () => {
     setToggleEmojiPicker(!toggleEmojiPicker) ;
@@ -66,11 +69,17 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProp
         borderBottomRightRadius="2xl"
       >
         <ClickOutside onClick={hideEmojiPicker}>
-          <SmileIcon
-            mt="10px"
-            mr="10px"
-            onClick={showEmojiPicker}
+          <IconButton
+            isRound
+            sx={iconStyle}
+            aria-label='emoji picker'
+            size="sm"
+            icon={<SmileIcon
+              onClick={showEmojiPicker}
+              fontSize="16px"
+            />}
           />
+
           {toggleEmojiPicker && 
             <Picker
               toggleOffset={rightPanelStatus}
