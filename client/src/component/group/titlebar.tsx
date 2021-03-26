@@ -42,6 +42,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             icon={<SignOutIcon sx={styles.icon}/>}
             onClick={onEllipsisClick}
             isRound
+            size="md"
+            fontSize="md"
             sx={styles.iconButton}
           />
         </Tooltip>
@@ -51,6 +53,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             icon={<GithubIcon sx={styles.icon}/>}
             onClick={onGithubClick}
             isRound
+            size="md"
+            fontSize="md"
             sx={styles.iconButton}
           />
         </Tooltip>
@@ -60,6 +64,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({
             icon={<EditIcon sx={styles.icon}/>}
             onClick={onEditClick}
             isRound
+            size="md"
+            fontSize="md"
             sx={styles.iconButton}
           />
         </Tooltip>

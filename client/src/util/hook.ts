@@ -116,8 +116,8 @@ export function useValidator<T, O = T, I = unknown>(validator: t.Type<T, O, I>, 
 }
 
 // scrolls to the bottom of a div if at the top of the div
-export function useScrollToBottomIfAtTop(dependencies: any[]): React.LegacyRef<HTMLDivElement>{
-  const ref= useRef<HTMLDivElement>(null);
+export function useScrollToBottomIfAtTop(dependencies: any[]): React.MutableRefObject<HTMLDivElement>{
+  const ref= useRef<HTMLDivElement>(null) as React.MutableRefObject<HTMLDivElement>;
 
   useEffect(() => {
     const scrollToBottom = (ref: HTMLDivElement): void => {

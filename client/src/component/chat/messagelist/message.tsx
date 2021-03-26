@@ -61,25 +61,35 @@ interface MessageProps {
   showAvatar?: boolean;
   personName: string;
   variant: "right" | "left";
+  size?: "middleRight" | "topRight" | 'bottomRight' | "middleLeft" | "topLeft" | 'bottomLeft' ;
+  showName?: boolean;
 }
-export const Message = ({personName, avatarSrc, children, timestamp, showAvatar, variant}: MessageProps) => {
-  const styles = useMultiStyleConfig("Message", { variant })
+export const Message: React.FC<MessageProps> = ({personName, avatarSrc, children, timestamp, showAvatar, variant, showName, size}) => {
+  const styles = useMultiStyleConfig("Message", { variant, size })
   return(
-    <Flex sx={styles.message}>
-      <StylesProvider value={styles}>
-        <HStack>
-          {
-            variant==="left"
-            && (showAvatar 
-              ? <Avatar name={personName} size="sm" src={avatarSrc}/>
-              : <Box height="32px" width="32px"/>
-          )}
-          <MessageText timestamp={timestamp} timestampPlacement={variant}>
-            {children}
-          </MessageText>
-        </HStack>
-        <SideButtons/>
-      </StylesProvider>
+    <Flex
+      flexDir="column"
+    >
+      {showName && 
+        <Text sx={styles.name}>{personName}</Text>
+      }
+      <Flex sx={styles.message}>
+        <StylesProvider value={styles}>
+          <HStack>
+            {
+              variant==="left"
+              && (showAvatar 
+                ? <Avatar name={personName} size="sm" src={avatarSrc}/>
+                : <Box height="32px" width="32px"/>
+              )
+            }
+            <MessageText timestamp={timestamp} timestampPlacement={variant}>
+              {children}
+            </MessageText>
+          </HStack>
+          <SideButtons/>
+        </StylesProvider>
+      </Flex>
     </Flex>
   );
 }

@@ -25,7 +25,9 @@ export const TopAvatarPanel: React.FC<TopAvatarPanelProps> = ({username, avatarS
         <IconButton
           aria-label="See Chat Info"
           isRound
-          icon={<InfoIcon fontSize="lg"/>}
+          size="sm"
+          fontSize='xl'
+          icon={<InfoIcon color='blue.400'/>}
           onClick={onInfoClick}
           background="none"
         />

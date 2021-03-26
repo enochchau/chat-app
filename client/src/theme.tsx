@@ -36,18 +36,18 @@ export const PanelFrame: ComponentStyleConfig = {
 }
 
 export const Message: ComponentStyleConfig = {
-  parts: ["message", "text", "sideButtons"],
+  parts: ["message", "text", "sideButtons", "name"],
   baseStyle: {
     message: {
-      alignItems:"center",
       paddingTop: "2px",
+      justifyContent: 'flex-start',
     },
     text: {
       pt:"4px",
       pb:"4px",
-      pr:"8px",
-      pl:"8px",
-      borderRadius: "xl"
+      pr:"10px",
+      pl:"10px",
+      borderRadius: '3xl',
     },
     sideButtons:{
       display: "flex",
@@ -59,6 +59,11 @@ export const Message: ComponentStyleConfig = {
         color: "gray.300"
       }
     },
+    name: {
+      fontSize: "xs",
+      color: "gray.500",
+      marginLeft: '44px',
+    }
   },
   variants: {
     left: {
@@ -83,6 +88,40 @@ export const Message: ComponentStyleConfig = {
       },
       sideButtons: {
         flexDir: "row-reverse"
+      }
+    }
+  },
+  sizes: {
+    middleLeft: {
+      text: {
+        borderTopLeftRadius: 'md',
+        borderBottomLeftRadius: 'md',
+      },
+    },
+    topLeft: {
+      text: {
+        borderBottomLeftRadius: 'md',
+      },
+    },
+    bottomLeft: {
+      text: {
+        borderTopLeftRadius: 'md',
+      }
+    },
+    middleRight: {
+      text: {
+        borderTopRightRadius: 'md',
+        borderBottomRightRadius: 'md',
+      },
+    },
+    topRight: {
+      text: {
+        borderBottomRightRadius: 'md',
+      },
+    },
+    bottomRight: {
+      text: {
+        borderTopRightRadius: 'md',
       }
     }
   }

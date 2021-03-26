@@ -63,7 +63,8 @@ const groupInitialState = {
   created: new Date(),
   updated: new Date(),
   avatar: null,
-} as GroupData;
+  users: [],
+} as GroupDataWithUsers;
 
 // LEFT PANEL
 // a list of potential groups that a user can join.
@@ -86,7 +87,7 @@ export const ChatPage: React.FC = () => {
   // current group data
   const { groupId } = useParams<{groupId?: string}>(); 
   const [currentGroupId, setCurrentGroupId] = useState<number>(-1);
-  const [currentGroupData, setCurrentGroupData] = useState<GroupData>(groupInitialState);
+  const [currentGroupData, setCurrentGroupData] = useState<GroupDataWithUsers>(groupInitialState);
 
   // global store with current user's meta data
   const { storeState } = useContext(StoreContext);
@@ -111,7 +112,6 @@ export const ChatPage: React.FC = () => {
   const userSearch = useSearch(500, axiosAuth, '/api/search/user', SEARCHCOUNT);
   const userResult = useValidator(UserArrValidator, userSearch.data, []); 
   // new group creation
-  type userId = number;
   const [newGroup, setNewGroup] = useState<UserData[]>([]);
   const [isCreatingGroup, setIsCreatingGroup] = useState<boolean>(false);
 
@@ -369,6 +369,7 @@ export const ChatPage: React.FC = () => {
             <MessageList
               messages={messages}
               currentUserId={storeState.id}
+              userCount={currentGroupData.users.length}
             />
           }
         </PanelFrame>
