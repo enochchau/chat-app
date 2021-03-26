@@ -89,7 +89,7 @@ const RegisterForm: React.FC = () =>  {
 
   return(
     formAccepted
-      ? <Redirect to="/login"/>
+      ? <Redirect to="/"/>
       :
       <Auth.Form 
         title="Register" 
