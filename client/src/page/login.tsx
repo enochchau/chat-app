@@ -78,7 +78,7 @@ const LoginForm: React.FC = () => {
             toastMessage(GoodLogin(data.message));
             saveToken(data.token, rememberMe);
             storeDispatch({type: 'store current user', payload: jwtUser});
-            setFormAccepted(true);
+            setTimeout(() => {setFormAccepted(true)}, 100);
           }
         }
 
@@ -93,7 +93,7 @@ const LoginForm: React.FC = () => {
   // redirect link is currently a placeholder
   return(
     formAccepted
-      ? <Redirect to="/"/>
+      ? <Redirect to="/chat/-1"/>
       :
       <Auth.Form 
         title="Login" 

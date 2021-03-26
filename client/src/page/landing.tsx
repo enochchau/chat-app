@@ -8,7 +8,7 @@ export const LandingPage = () => {
       <Link to="/">Home</Link>
       <Link to="/login">Login</Link>
       <Link to="/register">Register</Link>
-      <Link to="/chat">Chat</Link>
+      <Link to="/chat/-1">Chat</Link>
     </Center>
   );
 }

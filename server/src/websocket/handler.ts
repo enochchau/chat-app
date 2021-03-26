@@ -54,7 +54,7 @@ export class WsHandler {
 
 // ------ on message helper
   private toEvent = (message: string) => {
-    console.log('[WEBSOCKET] message: ', message);
+    // console.log('[WEBSOCKET] message: ', message);
     try{
       const event = JSON.parse(message);
 

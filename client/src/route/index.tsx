@@ -17,9 +17,6 @@ export const Routes = () => {
         <PrivateRoute path="/chat/:groupId">
           <ChatPage/>
         </PrivateRoute>
-        <PrivateRoute path="/chat">
-          <ChatPage/>
-        </PrivateRoute>
         <Route path="/login">
           <LoginPage/>
         </Route>
@@ -27,7 +24,7 @@ export const Routes = () => {
           <RegisterPage/>
         </Route>
         <Route path="/">
-          <LandingPage/>
+          <LoginPage/>
         </Route>
       </Switch>
     </Router>

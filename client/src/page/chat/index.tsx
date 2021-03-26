@@ -117,43 +117,44 @@ export const ChatPage: React.FC = () => {
 
   // fetch the user's groups on mount
   useEffect(() => {
-    GroupRequest.getGroupsForUser({count: 15, date: new Date()})
-      .then(res => res.data)
-      .then(data => {
-        const onLeft = (errors: t.Errors): void => {
-          console.error('Error validating getting groups for user: ', errors);
-        }
+    const fetchGroups = ():void => {
+      GroupRequest.getGroupsForUser({count: 15, date: new Date()})
+        .then(res => res.data)
+        .then(data => {
+          const onLeft = (errors: t.Errors): void => {
+            console.error('Error validating getting groups for user: ', errors);
+          }
 
-        const onRight = (data: Array<GroupMessageData>): void => {
-          console.log(data);
-          setGroups(data);
-          // set the group Id here!
-          // we want to auto redirect the user if they aren't going to a specific groupId page
-          setCurrentGroupId(groupId ? parseInt(groupId) : data[0].groupId);
-        }
-        pipe(GroupMessageArrValidator.decode(data), fold(onLeft, onRight));
-      })
-      .catch(error => console.error(error));
-  }, []);
-
+          const onRight = (data: Array<GroupMessageData>): void => {
+            console.log(data);
+            setGroups(data);
+            // set the group Id here!
+            // we want to auto redirect the user if they aren't going to a specific groupId page
+            setCurrentGroupId((groupId !== '-1' && groupId) ? parseInt(groupId) : data[0].groupId);
+          }
+          pipe(GroupMessageArrValidator.decode(data), fold(onLeft, onRight));
+        })
+        .catch(error => console.error(error));
+    }
+    fetchGroups();
+  }, []); 
   // handle errors
-  // TODO: write a better error handler
-  type ResponseError = {
-    error: boolean,
-    errMsg: any,
-  }
-  type ValidationError = {
-    error: boolean,
-    errMsg: string[],
-  }
-  const validationErrors: ValidationError[] = [
-    {error: groupResult.error, errMsg: groupResult.errMsg},
-    {error: userResult.error, errMsg: userResult.errMsg},
-  ];
-  const responseErrors: ResponseError[] = [
-    {error: groupSearch.error, errMsg: groupSearch.errMsg},
-    {error: userSearch.error, errMsg: userSearch.errMsg},
-  ];
+  // type ResponseError = {
+  //   error: boolean,
+  //   errMsg: any,
+  // }
+  // type ValidationError = {
+  //   error: boolean,
+  //   errMsg: string[],
+  // }
+  // const validationErrors: ValidationError[] = [
+  //   {error: groupResult.error, errMsg: groupResult.errMsg},
+  //   {error: userResult.error, errMsg: userResult.errMsg},
+  // ];
+  // const responseErrors: ResponseError[] = [
+  //   {error: groupSearch.error, errMsg: groupSearch.errMsg},
+  //   {error: userSearch.error, errMsg: userSearch.errMsg},
+  // ];
   // useErrorPrinter(validationErrors);
   // useErrorPrinter(responseErrors);
   
@@ -182,75 +183,75 @@ export const ChatPage: React.FC = () => {
           if(!token) {
             console.log('No token found. Unable to open websocket.');
             disconnect();
-            return;
-          }
+          } else {
 
-          // setup the message handler
-          handler.current.ws.onmessage = (event): void => {
+            // setup the message handler
+            handler.current.ws.onmessage = (event): void => {
 
-            const message = JSON.parse(event.data);
+              const message = JSON.parse(event.data);
 
-            const handleHistMessage = (message: ChatHistory): void => {
-              const displayMsg: Array<DisplayableMessage> = [];
-              message.payload.forEach((msg) => {
-                const html = parseStringToHtml(msg.message);
-                const sender = handler.current?.groupMap.get(msg.userId);
-                if(sender){
-                  displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
-                }
-              });
+              const handleHistMessage = (message: ChatHistory): void => {
+                const displayMsg: Array<DisplayableMessage> = [];
+                message.payload.forEach((msg) => {
+                  const html = parseStringToHtml(msg.message);
+                  const sender = handler.current?.groupMap.get(msg.userId);
+                  if(sender){
+                    displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
+                  }
+                });
 
-              setMessages(_messages => displayMsg);
-            }
+                setMessages(_messages => displayMsg);
+              }
 
-            const handleServerMessage = (message: ServerMessage): void => {
-              console.log(message);
-            }
+              const handleServerMessage = (message: ServerMessage): void => {
+                console.log(message);
+              }
 
-            const handleNewMessage = (message: RxChatMessage): void => {
+              const handleNewMessage = (message: RxChatMessage): void => {
 
-              const reorderGroups = (): void => {
-                for(let i=0; i<groups.length; i++){
-                  if(groups[i].groupId === currentGroupId){
-                    const copy = [...groups];
-                    const insertGroup = copy.splice(i, 1);
-                    copy.unshift(insertGroup[0]);
-                    setGroups(_groups => copy);
-                    break;
+                const reorderGroups = (): void => {
+                  for(let i=0; i<groups.length; i++){
+                    if(groups[i].groupId === currentGroupId){
+                      const copy = [...groups];
+                      const insertGroup = copy.splice(i, 1);
+                      copy.unshift(insertGroup[0]);
+                      setGroups(_groups => copy);
+                      break;
+                    }
                   }
                 }
-              }
-              // messages are recieved as strings but must be displayed as HTML
-              const html = parseStringToHtml(message.payload.message);
-              const sender = handler.current?.groupMap.get(message.payload.userId);
-              const id = message.payload.userId;
-              const timestamp= message.payload.timestamp;
+                // messages are recieved as strings but must be displayed as HTML
+                const html = parseStringToHtml(message.payload.message);
+                const sender = handler.current?.groupMap.get(message.payload.userId);
+                const id = message.payload.userId;
+                const timestamp= message.payload.timestamp;
 
-              if(sender){
-                const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
-                // array is displayed backwards, later messages should come first
-                setMessages(messages => [displayMsg, ...messages]);
-                reorderGroups();
-              } else {
-                // do a fetch request to get the data since we've evidently lost it
+                if(sender){
+                  const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
+                  // array is displayed backwards, later messages should come first
+                  setMessages(messages => [displayMsg, ...messages]);
+                  reorderGroups();
+                } else {
+                  // do a fetch request to get the data since we've evidently lost it
+                }
               }
+
+              handler.current?.validateMessage(message, handleNewMessage, handleServerMessage, handleHistMessage)
             }
 
-            handler.current?.validateMessage(message, handleNewMessage, handleServerMessage, handleHistMessage)
+            handler.current.ws.onopen = (_event): void => {
+              // send the first message to get authenticated
+              const authMessage: AuthMessage = {
+                topic: "auth",
+                payload: {
+                  timestamp: new Date(),
+                  groupId: currentGroupId,
+                  token: token,
+                }
+              }
+              if(handler.current) handler.current.ws.send(JSON.stringify(authMessage));
+            };
           }
-
-          handler.current.ws.onopen = (_event): void => {
-            // send the first message to get authenticated
-            const authMessage: AuthMessage = {
-              topic: "auth",
-              payload: {
-                timestamp: new Date(),
-                groupId: currentGroupId,
-                token: token,
-              }
-            }
-            if(handler.current) handler.current.ws.send(JSON.stringify(authMessage));
-          };
         }
 
         pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
@@ -258,7 +259,7 @@ export const ChatPage: React.FC = () => {
       .catch(error => console.error(error));
 
     // disconnect from WS on unmount
-    return ():void => disconnect();
+    return ():void => {disconnect()};
   }, [currentGroupId]); // connect to a new chat room everytime we get a new groupid
 
   // send message here essentially

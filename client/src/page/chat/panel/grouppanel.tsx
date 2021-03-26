@@ -41,7 +41,7 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
         title="Chats"
         username={username}
         avatarSrc={avatarSrc}
-        onGithubClick={(e):void => window.location.href="https://github.com/ec965/chat-app"}
+        onGithubClick={(e):void => {window.location.href="https://github.com/ec965/chat-app"}}
         onEllipsisClick={moreOptionsClick}
         onEditClick={newGroupClick}
       />
