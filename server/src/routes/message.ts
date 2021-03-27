@@ -10,6 +10,7 @@ export class MessageRouter {
 
   constructor(){
     this.getLastMessages();
+    this.removeMessage();
   }
 
   private getLastMessages() {
@@ -26,6 +27,35 @@ export class MessageRouter {
       }
 
       pipe(ReqType.decode(req.body), fold(onLeft, onRight));
+    })
+  }
+
+  private removeMessage() {
+    const Req = t.type({
+      messageId: t.number
+    });
+    type ReqType = t.TypeOf<typeof Req>;
+
+    this.router.patch('/', (req,res,next)  => {
+      const onLeft = async (errors: t.Errors): Promise<void> => { res.sendStatus(400)}
+      
+      const onRight = async (body: ReqType): Promise<void> => {
+        try{
+          let message = await MessageEntity.findOne(body.messageId);
+
+          if(message && req.user && req.user.id === message.userId) {
+            message.message = "This message was unsent."
+            
+            const updatedMessage = await MessageEntity.save(message);
+
+            res.json(updatedMessage);
+          } else res.sendStatus(400);
+        } catch( error ) {
+          next(error);
+        }
+      }
+
+      pipe(Req.decode(req.body), fold(onLeft, onRight));
     })
   }
 }

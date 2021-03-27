@@ -7,7 +7,6 @@ import {
 import { PrivateRoute } from '../component/route';
 import { LoginPage } from '../page/login';
 import { RegisterPage } from '../page/register';
-import { LandingPage } from '../page/landing';
 import { ChatPage } from '../page/chat';
 
 export const Routes = () => {

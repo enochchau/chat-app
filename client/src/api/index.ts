@@ -56,6 +56,10 @@ export class MessageRequest {
       params: parameters
     });
   } 
+
+  static removeMessage(data: {messageId: number}): Promise<AxiosResponse<any>>{
+    return axiosAuth.patch(this.API, data);
+  }
 }
 
 export class SearchRequest {

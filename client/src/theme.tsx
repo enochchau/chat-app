@@ -89,7 +89,35 @@ export const Message: ComponentStyleConfig = {
       sideButtons: {
         flexDir: "row-reverse"
       }
-    }
+    },
+    removedLeft: {
+      message: {
+        flexDir: 'row'
+      },
+      text: {
+        backgroundColor: "white",
+        color: "gray.400",
+        border: '1px',
+        borderColor: 'gray.400',
+      },
+      sideButtons: {
+        display: 'none'
+      }
+    },
+    removedRight: {
+      message: {
+        flexDir: "row-reverse"
+      },
+      text: {
+        backgroundColor: "white",
+        color: "gray.400",
+        border: '1px',
+        borderColor: 'gray.400',
+      },
+      sideButtons: {
+        display: 'none'
+      }
+    },
   },
   sizes: {
     middleLeft: {
@@ -400,3 +428,49 @@ export const ClosableText: ComponentStyleConfig = {
     }
   }
 };
+
+export const AlertDialog = {
+  parts: ['header, closeButton'],
+  variants: {
+    removeMessage: {
+      header: {
+        fontSize: 'lg',
+        fontWeight: 'bold',
+        borderBottom: '1px',
+        borderColor: 'gray.100',
+      },
+      closeButton: {
+        borderRadius: '3xl',
+        color: 'gray.500',
+        backgroundColor: 'gray.50'
+      }
+    }
+  }
+}
+
+export const Button: ComponentStyleConfig = {
+  variants:{
+    cancel: {
+      fontSize: 'sm',
+      paddingLeft: '12px',
+      paddingRight: '12px',
+      color: 'blue.400',
+      backgroundColor: 'white',
+      margin: '4px',
+      _hover:{
+        background: 'gray.100',
+      },
+    },
+    okay: {
+      fontSize: 'sm',
+      paddingLeft: '12px',
+      paddingRight: '12px',
+      color: 'white',
+      backgroundColor: 'blue.400',
+      _hover:{
+        background: 'blue.500',
+      },
+      margin: '4px',
+    }
+  }
+} 

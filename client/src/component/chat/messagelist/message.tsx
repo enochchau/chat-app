@@ -37,7 +37,7 @@ interface MessageTextProps extends FlexProps{
   timestamp: Date;
   timestampPlacement: Placement;
 }
-const MessageText = ({timestamp, children, timestampPlacement, ...rest}: MessageTextProps) => {
+const MessageText: React.FC<MessageTextProps> = ({timestamp, children, timestampPlacement}) => {
   const styles = useStyles();
   const timeString = getTimeString(timestamp);
   return(
@@ -60,12 +60,30 @@ interface MessageProps {
   avatarSrc?: string;
   showAvatar?: boolean;
   personName: string;
-  variant: "right" | "left";
-  size?: "middleRight" | "topRight" | 'bottomRight' | "middleLeft" | "topLeft" | 'bottomLeft' ;
+  variant: "right" | "left" | 'removedLeft' | 'removedRight';
+  size?: string;
   showName?: boolean;
+  messageId: number;
+  onRemoveClick: (e: React.MouseEvent<HTMLButtonElement>, id: number) => void;
 }
-export const Message: React.FC<MessageProps> = ({personName, avatarSrc, children, timestamp, showAvatar, variant, showName, size}) => {
+export const Message: React.FC<MessageProps> = ({
+  personName, 
+  avatarSrc, 
+  children, 
+  timestamp, 
+  showAvatar, 
+  variant, 
+  showName, 
+  size, 
+  messageId,
+  onRemoveClick,
+}) => {
   const styles = useMultiStyleConfig("Message", { variant, size })
+
+  const handleRemoveClick = (e: React.MouseEvent<HTMLButtonElement>): void => {
+    onRemoveClick(e, messageId);
+  }
+
   return(
     <Flex
       flexDir="column"
@@ -83,11 +101,15 @@ export const Message: React.FC<MessageProps> = ({personName, avatarSrc, children
                 : <Box height="32px" width="32px"/>
               )
             }
-            <MessageText timestamp={timestamp} timestampPlacement={variant}>
+            <MessageText timestamp={timestamp} timestampPlacement={variant === "removedLeft" ? 'left' : variant === 'removedRight' ? 'right' : variant}>
               {children}
             </MessageText>
           </HStack>
-          <SideButtons/>
+          {variant==='right' && 
+            <SideButtons
+              onRemoveClick={handleRemoveClick}
+            />
+          }
         </StylesProvider>
       </Flex>
     </Flex>

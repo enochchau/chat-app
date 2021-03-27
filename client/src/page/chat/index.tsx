@@ -30,7 +30,7 @@ import { Redirect, useParams } from 'react-router';
 // token
 import { getToken, deleteToken } from '../../api/token';
 // api / validators
-import { GroupRequest, axiosAuth } from '../../api';
+import { GroupRequest, axiosAuth, MessageRequest } from '../../api';
 import { 
   UserData, 
   GroupData, 
@@ -41,20 +41,47 @@ import {
   GroupValidator, 
   GroupArrValidator, 
   GroupWithUsersValidator,
+  MessageValidator,
+  MessageData,
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
 
-// When a user connects to a room
-function createDisplayableMessage(userId: number, groupUser: UserData, htmlMessage: React.ReactNode, timestamp: Date): DisplayableMessage{
+function createDisplayableMessage(message: MessageData, user: UserData): DisplayableMessage{
   return {
-    userId: userId,
-    name: groupUser.name,
-    avatarSrc: groupUser.avatar || undefined,
-    timestamp: timestamp,
-    message: htmlMessage,
+    messageId: message.id,
+    userId: user.id,
+    name: user.name,
+    avatarSrc: user.avatar || undefined,
+    timestamp: message.timestamp,
+    message: parseStringToHtml(message.message),
+    removed: message.message === "This message was unsent.",
   };
+}
+function bSearchId(id: number, messages: DisplayableMessage[]): number {
+  // later messages come first, messages[] is sorted in largest to smallest id
+  let lower = 0;
+  let upper = messages.length-1; // not inclusive
+  let mid = Math.floor((upper - lower) / 2);
+  let current = messages[mid].messageId;
+  let count = 0;
+
+  // worst case is O(log(n)) so break out of loop after that to prevent infinite looping
+  while(current !== id && count <= Math.log(messages.length)){
+    if(current > id){
+      lower = mid + 1;
+      mid = Math.floor((upper - lower) / 2) + lower;
+      current = messages[mid].messageId;
+    }
+    if(current < id){
+      upper = mid - 1;
+      mid = upper - Math.floor((upper - lower) / 2);
+      current = messages[mid].messageId;
+    }
+    count += 1;
+  }
+  return mid;
 }
 
 const groupInitialState = {
@@ -193,10 +220,9 @@ export const ChatPage: React.FC = () => {
               const handleHistMessage = (message: ChatHistory): void => {
                 const displayMsg: Array<DisplayableMessage> = [];
                 message.payload.forEach((msg) => {
-                  const html = parseStringToHtml(msg.message);
                   const sender = handler.current?.groupMap.get(msg.userId);
                   if(sender){
-                    displayMsg.push(createDisplayableMessage(msg.userId, sender, html, msg.timestamp));
+                    displayMsg.push(createDisplayableMessage(msg, sender));
                   }
                 });
 
@@ -204,6 +230,7 @@ export const ChatPage: React.FC = () => {
               }
 
               const handleServerMessage = (message: ServerMessage): void => {
+                // probably parse this for errors...
                 console.log(message);
               }
 
@@ -220,14 +247,10 @@ export const ChatPage: React.FC = () => {
                     }
                   }
                 }
-                // messages are recieved as strings but must be displayed as HTML
-                const html = parseStringToHtml(message.payload.message);
-                const sender = handler.current?.groupMap.get(message.payload.userId);
-                const id = message.payload.userId;
-                const timestamp= message.payload.timestamp;
 
+                const sender = handler.current?.groupMap.get(message.payload.userId);
                 if(sender){
-                  const displayMsg = createDisplayableMessage(id, sender, html, timestamp);
+                  const displayMsg = createDisplayableMessage(message.payload, sender);
                   // array is displayed backwards, later messages should come first
                   setMessages(messages => [displayMsg, ...messages]);
                   reorderGroups();
@@ -292,6 +315,22 @@ export const ChatPage: React.FC = () => {
         setIsCreatingGroup(false);
       })
       .catch(err => {console.error(err)});
+  }
+
+  const removeMessage = (_e: React.MouseEvent<HTMLButtonElement>, id: number): void => {
+    MessageRequest.removeMessage({messageId: id})
+      .then(res => res.data)
+      .then(data => {
+        const onLeft = (errors: t.Errors): void => {return};
+        const onRight = (msg: MessageData): void => {
+          const index = bSearchId(msg.id, messages);
+          const copy = [...messages];
+          copy[index].message = parseStringToHtml(msg.message);
+          setMessages(copy);
+        }
+        pipe(MessageValidator.decode(data), fold(onLeft, onRight));
+      })
+      .catch(err => console.error(err))
   }
 
   const logout = (): void=> {
@@ -371,6 +410,7 @@ export const ChatPage: React.FC = () => {
               messages={messages}
               currentUserId={storeState.id}
               userCount={currentGroupData.users.length}
+              onRemoveClick={removeMessage}
             />
           }
         </PanelFrame>
