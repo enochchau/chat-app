@@ -1,4 +1,18 @@
-import { Button, Text, Heading, Avatar, HStack, IconButton, Box, useStyleConfig, Flex } from '@chakra-ui/react';
+import { Button, 
+  Text, 
+  Heading, 
+  Avatar, 
+  HStack, 
+  IconButton, 
+  Box, 
+  useStyleConfig, 
+  Flex, 
+  Tag, 
+  TagLabel, 
+  TagCloseButton,
+  Spinner,
+  Center
+} from '@chakra-ui/react';
 import { InfoIcon } from '../../../component/icon';
 import * as React from 'react';
 import { TopPanel } from '../../../component/panel/toppanel';
@@ -40,11 +54,11 @@ interface UserSearchPanelProps {
   searchValue: string,
   searchResults: UserData[],
   onInputChange: React.ChangeEventHandler<HTMLInputElement>,
-  onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void,
+  onResultClick: (_e: React.MouseEvent<HTMLDivElement>, _user: UserData) => void,
   newUserGroup: UserData[],
   onCreateClick: React.MouseEventHandler<HTMLButtonElement>,
   disableButton: boolean,
-  onClickRemoveNewUser: (e: React.MouseEvent<HTMLElement>, user: UserData) => void,
+  onClickRemoveNewUser: (_e: React.MouseEvent<HTMLElement>, _user: UserData) => void,
 }
 export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
   searchValue,
@@ -64,25 +78,33 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
 
   return(
     <TopPanel variant='userSearch'>
-      <Flex flexDir="row" align="center" width="100%" justifyContent="flex-start">
-        <Text>To:</Text>
-        {
-          newUserGroup.map((user, i) => 
-            <ClosableText key={i} onXClick={(e): void => onClickRemoveUser(e, user)}>{user.name}</ClosableText>
-          )
-        }
-        <SearchBar
-          value={searchValue}
-          onChange={onInputChange}
-          variant="userSearch"
-          onFocus={(e) => setHideResults(false)}
-          onBlur={(e) => {
-            setTimeout(() => {
-              setHideResults(true);
-            }, 200);
-          }}
-        />
-      </Flex>
+      <Text>To:</Text>
+      {
+        newUserGroup.map((user, i) => (
+          <Tag 
+            size="md" 
+            key={i} 
+            variant="subtle" 
+            colorScheme="facebook"
+            ml="4px"
+            mr="4px"
+          >
+            <TagLabel><span title={user.name}>{user.name}</span></TagLabel>
+            <TagCloseButton onClick={(e): void => onClickRemoveUser(e, user)}/>
+          </Tag>
+        ))
+      }
+      <SearchBar
+        value={searchValue}
+        onChange={onInputChange}
+        variant="userSearch"
+        onFocus={(_e): void => setHideResults(false)}
+        onBlur={(_e): void => {
+          setTimeout(() => {
+            setHideResults(true);
+          }, 200);
+        }}
+      />
       <Button onClick={onCreateClick} disabled={disableButton}>Create</Button>
       { !hideResults && 
         <FloatingSearchResults searchResults={searchResults} onResultClick={onResultClick}/>
@@ -94,7 +116,7 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
 
 interface FloatingSearchResultsProps{
   searchResults: UserData[];
-  onResultClick: (e: React.MouseEvent<HTMLDivElement>, user: UserData) => void;
+  onResultClick: (_e: React.MouseEvent<HTMLDivElement>, _user: UserData) => void;
 }
 const FloatingSearchResults: React.FC<FloatingSearchResultsProps> = ({
   searchResults, onResultClick
@@ -102,10 +124,17 @@ const FloatingSearchResults: React.FC<FloatingSearchResultsProps> = ({
   const styles = useStyleConfig("FloatingBox", {variant: 'userSearchResults'})
   return(
     <Box sx={styles}>
-      <UserSearchList
-        searchResults={searchResults}
-        onClick={onResultClick}
-      />
+      { searchResults.length > 0 
+        ?
+        <UserSearchList
+          searchResults={searchResults}
+          onClick={onResultClick}
+        />
+        :
+        <Center marginTop='200px'>
+          <Spinner size="md" speed="0.75s"/>
+        </Center>
+      }
     </Box>
   );
 }

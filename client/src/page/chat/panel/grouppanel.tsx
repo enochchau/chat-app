@@ -1,6 +1,7 @@
 import { SidePanel } from '../../../component/panel/sidepanel';
 import { 
-  Flex
+  Center,
+  Flex, Spinner
 } from '@chakra-ui/react';
 import * as React from 'react';
 import { GroupList, SearchBar, TitleBar } from '../../../component/group';
@@ -17,8 +18,8 @@ interface GroupPanelProps{
   onSearch: React.ChangeEventHandler<HTMLInputElement>;
   searchValue: string;
   searchResults: Array<GroupData>;
-  onSearchResultClick: (e: React.MouseEvent<HTMLDivElement>, item: GroupData) => void;
-  onGroupClick: (e: React.MouseEvent<HTMLDivElement>, id: number) => void;
+  onSearchResultClick: (_e: React.MouseEvent<HTMLDivElement>, _item: GroupData) => void;
+  onGroupClick: (_e: React.MouseEvent<HTMLDivElement>, _id: number) => void;
 }
 
 
@@ -41,7 +42,7 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
         title="Chats"
         username={username}
         avatarSrc={avatarSrc}
-        onGithubClick={(e):void => {window.location.href="https://github.com/ec965/chat-app"}}
+        onGithubClick={(_e):void => {window.location.href="https://github.com/ec965/chat-app"}}
         onEllipsisClick={moreOptionsClick}
         onEditClick={newGroupClick}
       />
@@ -61,8 +62,8 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
           onChange={onSearch}
           value={searchValue}
           placeholder={"Search Messenger"}
-          onFocus={(e) => setShowSearch(true)}
-          onBlur={(e) => {
+          onFocus={(_e): void => setShowSearch(true)}
+          onBlur={(_e):void => {
             setTimeout(() => {
               setShowSearch(false);
             }, 100);
@@ -73,10 +74,16 @@ export const GroupPanel: React.FC<GroupPanelProps> = ({
       </Flex>
       {showSearch 
         ?
-        <GroupSearchList
-          searchResults={searchResults}
-          onClick={onSearchResultClick}
-        />
+        searchResults.length > 0 
+          ?
+          <GroupSearchList
+            searchResults={searchResults}
+            onClick={onSearchResultClick}
+          />
+          :
+          <Center marginTop="40vh" marginBottom="30vh">
+            <Spinner size="md" speed="0.75s"/>
+          </Center>
         :
         <GroupList
           onClick={onGroupClick}

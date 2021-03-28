@@ -31,7 +31,7 @@ export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) =>
 
 interface GroupSearchListProps{
   searchResults: Array<GroupData>,
-  onClick: (e: React.MouseEvent<HTMLDivElement>, item: GroupData) => void,
+  onClick: (_e: React.MouseEvent<HTMLDivElement>, _item: GroupData) => void,
 }
 export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) => {
   return(
@@ -43,7 +43,7 @@ export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) 
           <ListItem
             key={i}
             title={item.name} 
-            onClick={(e) => {onClick(e, item)}}
+            onClick={(e): void => {onClick(e, item)}}
             variant="groupList"
           />
         )
