@@ -407,7 +407,7 @@ export const ChatInputChild: ComponentStyleConfig = {
   }
 }
 
-export const AlertDialog = {
+export const AlertDialog: ComponentStyleConfig = {
   parts: ['header, closeButton'],
   variants: {
     removeMessage: {
@@ -452,3 +452,9 @@ export const Button: ComponentStyleConfig = {
     }
   }
 } 
+
+export const Spinner: ComponentStyleConfig = {
+  baseStyle: {
+    color: "gray.400"
+  }
+}

@@ -22,9 +22,9 @@ import {
   ChatInput,
   ChatInputChild,
   PanelFrame,
-  ClosableText,
   AlertDialog,
   Button,
+  Spinner,
 } from './theme'
 
 
@@ -52,9 +52,9 @@ const theme = extendTheme({
     ChatInput,
     ChatInputChild,
     PanelFrame,
-    ClosableText,
     AlertDialog,
     Button,
+    Spinner,
   }
 });
 

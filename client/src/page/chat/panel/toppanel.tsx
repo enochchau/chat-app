@@ -9,7 +9,9 @@ import { Button,
   Flex, 
   Tag, 
   TagLabel, 
-  TagCloseButton
+  TagCloseButton,
+  Spinner,
+  Center
 } from '@chakra-ui/react';
 import { InfoIcon } from '../../../component/icon';
 import * as React from 'react';
@@ -122,10 +124,17 @@ const FloatingSearchResults: React.FC<FloatingSearchResultsProps> = ({
   const styles = useStyleConfig("FloatingBox", {variant: 'userSearchResults'})
   return(
     <Box sx={styles}>
-      <UserSearchList
-        searchResults={searchResults}
-        onClick={onResultClick}
-      />
+      { searchResults.length > 0 
+        ?
+        <UserSearchList
+          searchResults={searchResults}
+          onClick={onResultClick}
+        />
+        :
+        <Center marginTop='200px'>
+          <Spinner size="md" speed="0.75s"/>
+        </Center>
+      }
     </Box>
   );
 }
