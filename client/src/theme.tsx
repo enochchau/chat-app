@@ -407,28 +407,6 @@ export const ChatInputChild: ComponentStyleConfig = {
   }
 }
 
-export const ClosableText: ComponentStyleConfig = {
-  parts: ['container', 'text'],
-  baseStyle: {
-    container: {
-      borderRadius: 'lg',
-      backgroundColor: 'gray.300',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2px',
-      marginLeft: '5px',
-      marginRight: '5px',
-      flexDir: 'row',
-      flexWrap: 'nowrap',
-    },
-    text: {
-      size: "xs",
-      padding: '2px',
-    }
-  }
-};
-
 export const AlertDialog = {
   parts: ['header, closeButton'],
   variants: {

@@ -321,7 +321,7 @@ export const ChatPage: React.FC = () => {
     MessageRequest.removeMessage({messageId: id})
       .then(res => res.data)
       .then(data => {
-        const onLeft = (errors: t.Errors): void => {return};
+        const onLeft = (_errors: t.Errors): void => {return};
         const onRight = (msg: MessageData): void => {
           const index = bSearchId(msg.id, messages);
           const copy = [...messages];
