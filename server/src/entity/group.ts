@@ -68,13 +68,14 @@ export class GroupEntity extends BaseEntity{
   @BeforeUpdate()
   private async updateName(){
     try{
-      if(this.name.split(',')[0] === this.users[0].name){
+      let split = this.name.split(', ')
+      if(split[0] === this.users[0].name && split[1] === this.users[1].name){
         this.name = this.users.reduce((acc, user, i) => {
           acc += user.name;
           if(i !== this.users.length-1) acc += ', '
           return acc;
         }, "");
-      }
+      } else this.createName();
     } catch(error) {
       console.error(error);
     }
@@ -136,8 +137,9 @@ export class GroupEntity extends BaseEntity{
       await createComparisonTable();
       const result = await queryComparison();
       await dropComparisonTable(); // we don't have to await this when running on an actual server
+      console.log(result);
 
-      return pipe(QueryShape.decode(result), fold(onBadShape, onGoodShape));
+      pipe(QueryShape.decode(result), fold(onBadShape, onGoodShape));
     } catch(error){
       console.error(error);
     }

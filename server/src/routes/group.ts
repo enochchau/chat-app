@@ -78,7 +78,6 @@ export class GroupRouter {
         query.count = countMaxLimiter(query.count);
 
         try{
-
           const groups = await GroupMessageView.findRecentByUserId(req.user.id, query.count, query.date);
 
           // put all the null timestamps at the bottom
