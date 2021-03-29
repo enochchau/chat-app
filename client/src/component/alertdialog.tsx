@@ -20,6 +20,7 @@ interface MyAlertDialogProps {
   header: string,
   isOpen: boolean,
   onClose: () => void,
+  disableOkayButton?: boolean,
 }
 export const MyAlertDialog: React.FC<MyAlertDialogProps> = ({
   cancelButtonText,
@@ -29,6 +30,7 @@ export const MyAlertDialog: React.FC<MyAlertDialogProps> = ({
   header,
   isOpen,
   onClose,
+  disableOkayButton,
 }) => {
   const cancelRef = React.useRef<any>();
   const alertStyles = useMultiStyleConfig("AlertDialog", {variant: "removeMessage"});
@@ -65,6 +67,7 @@ export const MyAlertDialog: React.FC<MyAlertDialogProps> = ({
                 onOkayClick(e);
               }}
               sx={okayButtonStyle}
+              disabled={disableOkayButton}
             >
               {okayButtonText}
             </Button>
