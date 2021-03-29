@@ -9,7 +9,8 @@ import {
   OneToMany,
   getConnection,
   BeforeInsert,
-  BeforeUpdate
+  BeforeUpdate,
+  AfterLoad
 } from 'typeorm';
 import { UserEntity } from './user';
 import { MessageEntity } from './message';
@@ -53,23 +54,35 @@ export class GroupEntity extends BaseEntity{
     return this.save(newGroup);
   }
 
-  @BeforeUpdate()
   @BeforeInsert()
   private async createName(){
-    if(!this.name) this.name = this.users.reduce((acc, user, i) => {
-      acc += user.name;
-      if(i !== this.users.length-1) acc += ', '
-      return acc;
-    }, "");
+    if(!this.name){
+      this.name = this.users.reduce((acc, user, i) => {
+        acc += user.name;
+        if(i !== this.users.length-1) acc += ', '
+        return acc;
+      }, "");
+    }
+  }
+
+  @BeforeUpdate()
+  private async updateName(){
+    try{
+      if(this.name.split(',')[0] === this.users[0].name){
+        this.name = this.users.reduce((acc, user, i) => {
+          acc += user.name;
+          if(i !== this.users.length-1) acc += ', '
+          return acc;
+        }, "");
+      }
+    } catch(error) {
+      console.error(error);
+    }
   }
 
   // returns -1 if group not found
   // returns groupId if group is found
-  // Main idea:
-  // 1. create a new table and insert into it the userIds that form the group we are checking
-  // 2. as a sub query do a left outer join with this new table (left side) and the user groups joins table (right side)
-  // 3. on the main query, look for groups that have the same number as users
-  // 4. $$$
+  // Main idea: https://stackoverflow.com/questions/23605970/check-if-a-list-of-items-already-exists-in-a-sql-database
   public static async doesGroupExist(userIds: Array<number>): Promise<number>{
     // Shape of the object returned by querComparison
     const QueryShape = t.array(t.type({groupId: t.number}));
@@ -88,16 +101,20 @@ export class GroupEntity extends BaseEntity{
         INSERT INTO "${tableName}" VALUES ${strArr};
         COMMIT;
       `);
-    // SubQuery: taking [groupIds and groupMemberCount] that include all of our users     
-    // MainQuery: finding the groupId that corresponds to the number of users we are looking for
+    // SubQuery gives a table with groupEntityId, memberCount, memberCountInList
+    //    where the list is a table that holds the ids of the users we are looking for.
     const queryComparison = async () => 
       connection.query(`
-        SELECT "g"."groupEntityId" as "groupId" FROM (
-          SELECT COUNT("ug"."groupEntityId") as "memberCount", "ug"."groupEntityId"
-          FROM "${tableName}" LEFT OUTER JOIN "user_entity_groups_group_entity" "ug"
-          ON "ug"."userEntityId" = "${tableName}"."id"
-          GROUP BY "ug"."groupEntityId"
-        ) AS "g" WHERE "memberCount"=${userIds.length};
+        SELECT "sq"."groupEntityId" as "groupId"
+        FROM (
+          SELECT "ug"."groupEntityId"
+              , count(*) AS "memberCount"
+              , SUM(CASE WHEN "${tableName}"."id" IS NULL THEN 0 ELSE 1 END) AS  "memberCountInList"
+          FROM "user_entity_groups_group_entity" "ug"
+            LEFT OUTER JOIN "${tableName}" ON "ug"."userEntityId"="${tableName}"."id"
+        GROUP BY "ug"."groupEntityId"
+        ) AS "sq" 
+        WHERE "sq"."memberCountInList"=(SELECT COUNT(*) FROM "${tableName}");
       `);
     const dropComparisonTable = () => connection.query(`
       DROP TABLE \"${tableName}\";

@@ -42,7 +42,7 @@ if (NODE_ENV === "test"){
     "password": "test123",
     "synchronize": true,
     "dropSchema": false,
-    "logging": false,
+    "logging": true,
     "entities": [
       "./src/entity/**/*.ts"
     ]
