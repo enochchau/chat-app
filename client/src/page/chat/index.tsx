@@ -47,6 +47,7 @@ import {
 import { pipe } from 'fp-ts/lib/function';
 import { fold } from 'fp-ts/Either';
 import * as t from 'io-ts';
+import { trimGroupName } from '../../util/trimName';
 
 function createDisplayableMessage(message: MessageData, user: UserData): DisplayableMessage{
   return {
@@ -60,7 +61,7 @@ function createDisplayableMessage(message: MessageData, user: UserData): Display
   };
 }
 function bSearchId(id: number, messages: DisplayableMessage[]): number {
-  // later messages come first, messages[] is sorted in largest to smallest id
+  // later messages come first, messages[] is sorted from largest to smallest id
   let lower = 0;
   let upper = messages.length-1; // not inclusive
   let mid = Math.floor((upper - lower) / 2);
@@ -153,7 +154,7 @@ export const ChatPage: React.FC = () => {
           }
 
           const onRight = (data: Array<GroupMessageData>): void => {
-            console.log(data);
+            data.forEach(group => group.groupName = trimGroupName(group.groupName, storeState.name));
             setGroups(data);
             // set the group Id here!
             // we want to auto redirect the user if they aren't going to a specific groupId page
@@ -164,7 +165,7 @@ export const ChatPage: React.FC = () => {
         .catch(error => console.error(error));
     }
     fetchGroups();
-  }, []); 
+  }, [storeState]); 
   // handle errors
   // type ResponseError = {
   //   error: boolean,
@@ -201,6 +202,7 @@ export const ChatPage: React.FC = () => {
         }
 
         const onRight = (data: GroupDataWithUsers): void => {
+          data.name = trimGroupName(data.name, storeState.name);
           setCurrentGroupData(data);
 
           // create the websocket after getting the group's users meta data
@@ -422,7 +424,10 @@ export const ChatPage: React.FC = () => {
 
       { toggleInfo &&
         <PanelFrame variant="sidePanel">
-          <InfoPanel/>
+          <InfoPanel
+            group={currentGroupData}
+            members={currentGroupData.users}
+          />
         </PanelFrame>
       }
     </PanelFrame>

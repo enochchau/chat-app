@@ -44,7 +44,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({children}) => {
         storeDispatch({type: 'store current user', payload: jwtUser})
       }
     }
-  }, [storeDispatch]);
+  }, []);
 
   return(
     <StoreContext.Provider value={{ storeState, storeDispatch }}>

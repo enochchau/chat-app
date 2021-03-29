@@ -47,7 +47,7 @@ export const Message: ComponentStyleConfig = {
       pb:"4px",
       pr:"10px",
       pl:"10px",
-      borderRadius: '3xl',
+      borderRadius: '2xl',
     },
     sideButtons:{
       display: "flex",

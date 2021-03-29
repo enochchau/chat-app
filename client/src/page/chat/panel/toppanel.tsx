@@ -18,8 +18,6 @@ import { TopPanel } from '../../../component/panel/toppanel';
 import { SearchBar } from '../../../component/group';
 import { UserSearchList } from '../../../component/search/searchList';
 import { UserData } from '../../../api/validators/entity';
-import { trimGroupName } from '../../../util/trimName';
-import { StoreContext } from '../../../store';
 
 interface TopAvatarPanelProps {
   username: string;
@@ -27,13 +25,12 @@ interface TopAvatarPanelProps {
   onInfoClick: React.MouseEventHandler<HTMLButtonElement>;
 }
 export const TopAvatarPanel: React.FC<TopAvatarPanelProps> = ({username, avatarSrc, onInfoClick}) => {
-  const {storeState} = React.useContext(StoreContext);
   return(
     <TopPanel>
       <HStack padding="5px">
         <Avatar name={username} src={avatarSrc} size="sm"/>
         <Heading size="sm">
-          {trimGroupName(username, storeState.name)}
+          {username}
         </Heading>
       </HStack>
       <HStack padding="5px">
