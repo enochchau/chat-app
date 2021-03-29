@@ -19,12 +19,12 @@ export const StoreContext = React.createContext<{
 }>({storeState: initialState, storeDispatch: () => null})
 
 // reducer
-function reducer(state:typeof initialState, action:ACTIONTYPE){
+function reducer(state:typeof initialState, action:ACTIONTYPE): typeof initialState{
   switch(action.type){
-    case 'store current user':
-      return {...state, email: action.payload.email, id: action.payload.id, name: action.payload.name};
-    default: 
-      return state;
+  case 'store current user':
+    return {...state, email: action.payload.email, id: action.payload.id, name: action.payload.name};
+  default: 
+    return state;
   }
 }
 
@@ -32,7 +32,7 @@ function reducer(state:typeof initialState, action:ACTIONTYPE){
 interface StoreProviderProps {
   children: React.ReactNode,
 }
-export const StoreProvider = ({children}:StoreProviderProps) => {
+export const StoreProvider: React.FC<StoreProviderProps> = ({children}) => {
   const [storeState, storeDispatch] = React.useReducer(reducer, initialState);
 
   // look for a stored token to reinstate the session

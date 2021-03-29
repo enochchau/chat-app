@@ -206,10 +206,24 @@ export class GroupRouter {
       }
 
       const onRight = async (query: Query) => {
+
+        const replaceGroupName = (group: GroupEntity, currentUserId: number): void => {
+          for(let user of group.users){
+            if(user.id !== currentUserId){
+              group.name = user.name;
+              return; 
+            }
+          }
+        }
+
         try{
           const group = await GroupEntity.findOne({where: {id: query.groupId}, relations: ['users']});
           
           if(!group) return res.sendStatus(400);
+
+          if(group.users.length === 2 && req.user){
+            replaceGroupName(group, req.user.id);
+          }
 
           res.json(group);
         } catch(error) {
