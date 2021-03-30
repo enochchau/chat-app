@@ -21,20 +21,18 @@ interface InfoPanelProps {
   members: UserData[];
   onChangeName: (_newName: string) => void;
   onLeaveGroup: () => void;
-  currentName: string;
 }
 export const InfoPanel: React.FC<InfoPanelProps> = ({
   group, 
   members,
   onLeaveGroup,
   onChangeName,
-  currentName,
 }) => {
   const [openChangeName, setOpenChangeName] = React.useState<boolean>(false);
   const [openLeaveGroup, setOpenLeaveGroup] = React.useState<boolean>(false);
   const [openAddUsers, setOpenAddUsers] = React.useState<boolean>(false);
 
-  const [newName, setNewName] = React.useState<string>(currentName);
+  const [newName, setNewName] = React.useState<string>(group.name);
   return(
     <SidePanel variant="rightPanel">
       <Flex flexDir="column" ml="8px" mr="8x">
@@ -60,8 +58,8 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
           onOkayClick={(_e): void => onChangeName(newName)}
           header="Change chat name"
           isOpen={openChangeName}
-          onClose={():void => setOpenChangeName(false)}
-          disableOkayButton={newName === currentName}
+          onClose={():void => {setOpenChangeName(false); setNewName(group.name);}}
+          disableOkayButton={newName === group.name}
         >
           <Text fontSize="sm">
             Changing the name of a group chat changes it for everyone.
@@ -77,6 +75,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
           title="Leave group"
           variant="groupOptions"
           icon={<SignOutIcon/>}
+          onClick={(): void => setOpenLeaveGroup(true)}
         />
         <MyAlertDialog
           cancelButtonText="Cancel"

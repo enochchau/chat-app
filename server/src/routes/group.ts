@@ -17,6 +17,7 @@ export class GroupRouter {
     this.patchLeaveGroup();
     this.patchAddToGroup();
     this.getGroupWithUsers();
+    this.patchChangeName();
   }
 
   private postNewGroup(){
@@ -233,6 +234,43 @@ export class GroupRouter {
 
       pipe(Query.decode(req.query), fold(onLeft, onRight));
     })
+  }
+
+  private patchChangeName(){
+    const Validator = t.type({
+      groupId: t.number,
+      newName: t.string,
+    });
+    type ValidBody = t.TypeOf<typeof Validator>;
+    this.router.patch("/name", (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors): Promise<void> => {res.sendStatus(400)}
+      const onRight = async (body: ValidBody): Promise<void> => {
+        try{
+          const group = await GroupEntity.findOne({where: {id: body.groupId}, relations:["users"]});
+          if(group && req.user){
+            // don't allow users who are not in the group to change it
+            if(!GroupEntity.isUserInGroup(req.user.id, group)){
+              res.sendStatus(400);
+              return;
+            }
+
+            group.name = body.newName;
+
+            const updatedGroup = await GroupEntity.save(group);
+
+            res.status(200).json(updatedGroup);
+          } else {
+            res.sendStatus(400);
+          }
+        } catch(error) {
+          next(error);
+        }
+      }
+
+      pipe(Validator.decode(req.body), fold(onLeft, onRight));
+    })
+
   }
 
 }

@@ -339,6 +339,21 @@ export const ChatPage: React.FC = () => {
     deleteToken();
     setIsLogout(true);
   }
+
+  const changeGroupName = (newName: string) => {
+    GroupRequest.patchChangeName({groupId: currentGroupId, newName: newName})
+      .then(res => res.data)
+      .then(data => {
+        const onLeft = (errors: t.Errors): void => {console.error(errors)}
+
+        const onRight = (validData: GroupData):void => {
+          setCurrentGroupData({...currentGroupData, name: validData.name});
+        }
+
+        pipe(GroupValidator.decode(data), fold(onLeft, onRight));
+      })
+      .catch(err => console.error(err));
+  }
   
   const trimSearchResults = ():UserData[]  => {
     const userMap = new Map();
@@ -427,6 +442,8 @@ export const ChatPage: React.FC = () => {
           <InfoPanel
             group={currentGroupData}
             members={currentGroupData.users}
+            onChangeName={changeGroupName}
+            onLeaveGroup={() => null}
           />
         </PanelFrame>
       }
