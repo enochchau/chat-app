@@ -164,8 +164,10 @@ export const ChatPage: React.FC = () => {
         })
         .catch(error => console.error(error));
     }
-    fetchGroups();
-  }, [storeState]); 
+    if(currentGroupId === -1){
+      fetchGroups();
+    }
+  }, [storeState, currentGroupId]); 
   // handle errors
   // type ResponseError = {
   //   error: boolean,
@@ -238,12 +240,20 @@ export const ChatPage: React.FC = () => {
 
               const handleNewMessage = (message: RxChatMessage): void => {
 
-                const reorderGroups = (): void => {
+                const reorderGroups = (message: RxChatMessage): void => {
                   for(let i=0; i<groups.length; i++){
                     if(groups[i].groupId === currentGroupId){
                       const copy = [...groups];
-                      const insertGroup = copy.splice(i, 1);
-                      copy.unshift(insertGroup[0]);
+                      const insertGroup = copy.splice(i, 1)[0];
+                      copy.unshift({
+                        userId: insertGroup.userId,
+                        groupName: insertGroup.groupName,
+                        groupId: insertGroup.groupId,
+                        groupAvatar: insertGroup.groupAvatar,
+                        lastTimestamp: message.payload.timestamp,
+                        lastMessage: message.payload.message,
+                        lastUserId: message.payload.userId,
+                      });
                       setGroups(_groups => copy);
                       break;
                     }
@@ -255,7 +265,7 @@ export const ChatPage: React.FC = () => {
                   const displayMsg = createDisplayableMessage(message.payload, sender);
                   // array is displayed backwards, later messages should come first
                   setMessages(messages => [displayMsg, ...messages]);
-                  reorderGroups();
+                  reorderGroups(message);
                 } else {
                   // do a fetch request to get the data since we've evidently lost it
                 }
@@ -310,7 +320,20 @@ export const ChatPage: React.FC = () => {
       .then(data => {
         const onLeft = (errors: t.Errors):void => {console.error(errors);}
 
-        const onRight = (data: GroupData):void => {setCurrentGroupId(data.id);}
+        const onRight = (data: GroupData):void => {
+          // add new group to group array
+          setGroups([{
+            userId: storeState.id,
+            groupId: data.id,
+            groupName: trimGroupName(data.name, storeState.name),
+            groupAvatar: data.avatar,
+            lastTimestamp: null,
+            lastMessage: null,
+            lastUserId: null
+          } , ...groups]);
+
+          setCurrentGroupId(data.id);
+        }
         
         console.log(data);
         pipe(GroupValidator.decode(data), fold(onLeft, onRight));
@@ -354,6 +377,19 @@ export const ChatPage: React.FC = () => {
       })
       .catch(err => console.error(err));
   }
+
+  const leaveGroup = (): void => {
+    GroupRequest.patchLeaveGroup({groupId: currentGroupId})
+      .then(_res => {
+        for(let group of groups){
+          if(group.groupId !== currentGroupId){
+            setCurrentGroupId(group.groupId)
+            break;
+          }
+        }
+      })
+      .catch(err => console.error(err));
+  }
   
   const trimSearchResults = ():UserData[]  => {
     const userMap = new Map();
@@ -368,7 +404,7 @@ export const ChatPage: React.FC = () => {
 
   return(
     <PanelFrame variant="screen">
-      {(currentGroupId !== -1) && <Redirect to={`/chat/${currentGroupId}`}/>}
+      <Redirect to={`/chat/${currentGroupId}`}/>
       {isLogout && <Redirect to="/"/>}
       <PanelFrame variant="sidePanel">
         <GroupPanel
@@ -443,7 +479,7 @@ export const ChatPage: React.FC = () => {
             group={currentGroupData}
             members={currentGroupData.users}
             onChangeName={changeGroupName}
-            onLeaveGroup={() => null}
+            onLeaveGroup={leaveGroup}
           />
         </PanelFrame>
       }
