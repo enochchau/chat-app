@@ -158,8 +158,8 @@ export const ChatPage: React.FC = () => {
             data.forEach(group => group.groupName = trimGroupName(group.groupName, storeState.name));
             setGroups(data);
             // set the group Id here!
-            // we want to auto redirect the user if they aren't going to a specific groupId page
-            if(groupId && parseInt(groupId) === -1){
+            // we want to auto redirect the user if they are going to the default groupId page
+            if(groupId && parseInt(groupId) === -1 && data.length > 0){
               setCurrentGroupId(data[0].groupId);
             }
           }

@@ -21,16 +21,19 @@ interface InfoPanelProps {
   members: UserData[];
   onChangeName: (_newName: string) => void;
   onLeaveGroup: () => void;
+  onAddPeople: (_e: React.MouseEvent<HTMLButtonElement>, _users: UserData[]) => void;
 }
 export const InfoPanel: React.FC<InfoPanelProps> = ({
   group, 
   members,
   onLeaveGroup,
   onChangeName,
+  onAddPeople,
 }) => {
   const [openChangeName, setOpenChangeName] = React.useState<boolean>(false);
   const [openLeaveGroup, setOpenLeaveGroup] = React.useState<boolean>(false);
   const [openAddUsers, setOpenAddUsers] = React.useState<boolean>(false);
+  const [newUsers, setNewUsers] = React.useState<UserData[]>([]);
 
   const [newName, setNewName] = React.useState<string>(group.name);
   return(
@@ -116,7 +119,29 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
             />
           }
         />
+        <MyAlertDialog
+          cancelButtonText="Cancel"
+          okayButtonText="Add people"
+          onOkayClick={(e) => onAddPeople(e, newUsers)}
+          header="Add people"
+          isOpen={openAddUsers}
+          onClose={(): void => setOpenAddUsers(false)}
+        >
+          <Text fontSize="sm">
+            You will stop receiving messages from this conversation.
+          </Text>
+        </MyAlertDialog>
       </Flex>
     </SidePanel>
   );
 }
+
+// interface UserChecklistProps {
+
+// }
+// const UserChecklist: React.FC<UserChecklistProps> = ({}) => {
+
+//   return(
+
+//   );
+// }
