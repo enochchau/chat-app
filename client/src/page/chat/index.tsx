@@ -391,15 +391,9 @@ export const ChatPage: React.FC = () => {
       .catch(err => console.error(err));
   }
   
-  const trimSearchResults = ():UserData[]  => {
-    const userMap = new Map();
-    for(let user of newGroup){
-      userMap.set(user.id, user);
-    }
-    return userResult.data.reduce((acc, user) => {
-      if(!userMap.has(user.id)) acc.push(user);
-      return acc;
-    }, [] as UserData[]);
+  const trimSearchResults = (newGroup: UserData[]):UserData[]  => {
+    const userIdSet = newGroup.reduce((acc, user) => acc.add(user.id), new Set());
+    return userResult.data.filter(user => !userIdSet.has(user.id));
   }
 
   return(
@@ -430,7 +424,7 @@ export const ChatPage: React.FC = () => {
             <UserSearchPanel
               searchValue={userSearch.inputValue}
               onInputChange={(e):void => {userSearch.setInputValue(e.currentTarget.value); }}
-              searchResults={trimSearchResults()}
+              searchResults={trimSearchResults(newGroup)}
               onResultClick={(_e, user):void => {
                 // reset search results
                 userSearch.setInputValue('');
