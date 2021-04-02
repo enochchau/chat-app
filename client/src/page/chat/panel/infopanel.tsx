@@ -2,19 +2,22 @@ import * as React from 'react';
 import { SidePanel } from '../../../component/panel/sidepanel';
 import {
   Avatar,
-  Box, 
-  Center,
   Flex,
   Heading,
   IconButton,
-  useMultiStyleConfig,
   Text,
   Input,
 } from '@chakra-ui/react';
-import { ListItem, ListItemIcon } from '../../../component/listItem';
-import { GroupData, UserData } from '../../../api/validators/entity';
-import { ImageIcon, PlusIcon, SignOutIcon, UsersIcon } from '../../../component/icon';
+import { ImageIcon, PlusIcon, SignOutIcon, UsersIcon, SearchIcon } from '../../../component/icon';
 import { MyAlertDialog } from '../../../component/alertdialog';
+
+import { GroupData, UserArrValidator, UserData } from '../../../api/validators/entity';
+import { useSearch, useValidator } from '../../../util/hook';
+import { axiosAuth } from '../../../api/index';
+
+import { UserCheckList } from '../../../component/search/userchecklist';
+import { SearchBar } from '../../../component/search/searchbar';
+import { ListItem, ListItemIcon } from '../../../component/listItem';
 
 interface InfoPanelProps {
   group: GroupData;
@@ -33,9 +36,13 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
   const [openChangeName, setOpenChangeName] = React.useState<boolean>(false);
   const [openLeaveGroup, setOpenLeaveGroup] = React.useState<boolean>(false);
   const [openAddUsers, setOpenAddUsers] = React.useState<boolean>(false);
-  const [newUsers, setNewUsers] = React.useState<UserData[]>([]);
 
+  const [newUsers, setNewUsers] = React.useState<UserData[]>([]);
   const [newName, setNewName] = React.useState<string>(group.name);
+
+  const search = useSearch(500, axiosAuth, '/api/search/user', 15);
+  const searchResults= useValidator(UserArrValidator, search.data, []); 
+
   return(
     <SidePanel variant="rightPanel">
       <Flex flexDir="column" ml="8px" mr="8x">
@@ -122,26 +129,25 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
         <MyAlertDialog
           cancelButtonText="Cancel"
           okayButtonText="Add people"
-          onOkayClick={(e) => onAddPeople(e, newUsers)}
+          onOkayClick={(e):void => onAddPeople(e, newUsers)}
           header="Add people"
           isOpen={openAddUsers}
           onClose={(): void => setOpenAddUsers(false)}
+          disableOkayButton={newUsers.length < 1}
         >
-          <Text fontSize="sm">
-            You will stop receiving messages from this conversation.
-          </Text>
+          <SearchBar
+            value={search.inputValue}
+            onChange={(e):void => search.setInputValue(e.currentTarget.value)}
+            icon={<SearchIcon/>}
+            variant="groupSearch"
+          />
+          {/* TODO: selected users*/}
+          <UserCheckList
+            userData={searchResults.data}
+            onChooseUser={(user):void => setNewUsers([...newUsers, user])}
+          />
         </MyAlertDialog>
       </Flex>
     </SidePanel>
   );
 }
-
-// interface UserChecklistProps {
-
-// }
-// const UserChecklist: React.FC<UserChecklistProps> = ({}) => {
-
-//   return(
-
-//   );
-// }

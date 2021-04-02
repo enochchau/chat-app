@@ -9,9 +9,10 @@ type SearchItem = {
 }
 interface SearchListProps<T extends SearchItem>{
   searchResults: T[];
-  onClick: (_e: React.MouseEvent<HTMLDivElement>, _item: T) => void;
+  variant: string;
+  onClick?: (_e: React.MouseEvent<HTMLDivElement>, _item: T) => void;
 }
-const SearchList = <T extends SearchItem> ({searchResults, onClick}: SearchListProps<T>) => {
+const SearchList = <T extends SearchItem> ({searchResults, onClick, variant}: SearchListProps<T>): JSX.Element => {
   return(
     <Flex
       flexDir="column"
@@ -22,9 +23,9 @@ const SearchList = <T extends SearchItem> ({searchResults, onClick}: SearchListP
             key={i}
             title={item.name}
             avatarSrc={item.avatar}
-            onClick={(e):void => {onClick(e, item)}}
+            onClick={(e):void => {if(onClick) onClick(e, item)}}
             avatarSize="sm"
-            variant="userSearch"
+            variant={variant}
           />
         )
       }
@@ -36,10 +37,51 @@ interface UserSearchListProps{
   searchResults: Array<UserData>,
   onClick: (_e: React.MouseEvent<HTMLDivElement>, _item: UserData) => void,
 }
-export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) => SearchList<UserData>({searchResults, onClick});
+export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) => SearchList<UserData>({searchResults: searchResults, onClick:onClick, variant:'userSearch'});
 
 interface GroupSearchListProps{
   searchResults: Array<GroupData>,
   onClick: (_e: React.MouseEvent<HTMLDivElement>, _item: GroupData) => void,
 }
-export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) => SearchList<GroupData>({searchResults, onClick});
+export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) => SearchList<GroupData>({searchResults: searchResults, onClick:onClick, variant:'groupSearch'});
+// export const UserSearchList = ({searchResults, onClick}: UserSearchListProps) => {
+//   return(
+//     <Flex
+//       flexDir="column"
+//     >
+//       {
+//         searchResults.map((item: UserData, i: number) => 
+//           <ListItem
+//             key={i}
+//             title={item.name}
+//             avatarSrc={item.avatar}
+//             onClick={(e) => {onClick(e, item)}}
+//             avatarSize="sm"
+//             variant="userSearch"
+//           />
+//         )
+//       }
+//     </Flex>
+
+//   );
+// }
+
+// export const GroupSearchList = ({searchResults, onClick}: GroupSearchListProps) => {
+//   return(
+//     <Flex
+//       flexDir="column"
+//     >
+//       {
+//         searchResults.map((item: GroupData, i: number) => 
+//           <ListItem
+//             key={i}
+//             title={item.name} 
+//             onClick={(e): void => {onClick(e, item)}}
+//             variant="groupList"
+//           />
+//         )
+//       }
+//     </Flex>
+
+//   );
+// }
