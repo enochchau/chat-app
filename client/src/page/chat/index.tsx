@@ -45,7 +45,8 @@ import {
   MessageData,
 } from '../../api/validators/entity';
 import { pipe } from 'fp-ts/lib/function';
-import { fold } from 'fp-ts/Either';
+import { fold, left } from 'fp-ts/Either';
+import { PathReporter } from 'io-ts/PathReporter'
 import * as t from 'io-ts';
 import { trimGroupName } from '../../util/trimName';
 
@@ -150,7 +151,7 @@ export const ChatPage: React.FC = () => {
         .then(res => res.data)
         .then(data => {
           const onLeft = (errors: t.Errors): void => {
-            console.error('Error validating getting groups for user: ', errors);
+            throw Error(PathReporter.report(left(errors)).join('\n'));
           }
 
           const onRight = (data: Array<GroupMessageData>): void => {
@@ -158,16 +159,16 @@ export const ChatPage: React.FC = () => {
             setGroups(data);
             // set the group Id here!
             // we want to auto redirect the user if they aren't going to a specific groupId page
-            setCurrentGroupId((groupId !== '-1' && groupId) ? parseInt(groupId) : data[0].groupId);
+            if(groupId && parseInt(groupId) === -1){
+              setCurrentGroupId(data[0].groupId);
+            }
           }
           pipe(GroupMessageArrValidator.decode(data), fold(onLeft, onRight));
         })
         .catch(error => console.error(error));
     }
-    if(currentGroupId === -1){
-      fetchGroups();
-    }
-  }, [storeState, currentGroupId]); 
+    fetchGroups();
+  }, [storeState, currentGroupData, currentGroupId]); 
   // handle errors
   // type ResponseError = {
   //   error: boolean,
@@ -194,104 +195,112 @@ export const ChatPage: React.FC = () => {
     const disconnect = (): void => {
       if(handler.current !== null) handler.current.ws.close();
     }
-    // populate the group meta data
-    GroupRequest.getGroupWithUsers({groupId: currentGroupId})
-      .then(res => res.data)
-      .then(data => {
 
-        const onLeft = (errors: t.Errors):void => {
-          console.error("Validation error getting group data with users: ", errors);
-        }
+    const createWsHandler = (userData: UserData[]):void => {
 
-        const onRight = (data: GroupDataWithUsers): void => {
-          data.name = trimGroupName(data.name, storeState.name);
-          setCurrentGroupData(data);
+      // create the websocket after getting the group's users meta data
+      handler.current = new ChatHandler(userData);
+      
+      const token = getToken();
+      if(!token) {
+        console.log('No token found. Unable to open websocket.');
+        disconnect();
+      } else {
 
-          // create the websocket after getting the group's users meta data
-          handler.current = new ChatHandler(data.users);
-          
-          const token = getToken();
-          if(!token) {
-            console.log('No token found. Unable to open websocket.');
-            disconnect();
-          } else {
-
-            // setup the message handler
-            handler.current.ws.onmessage = (event): void => {
-
-              const message = JSON.parse(event.data);
-
-              const handleHistMessage = (message: ChatHistory): void => {
-                const displayMsg: Array<DisplayableMessage> = [];
-                message.payload.forEach((msg) => {
-                  const sender = handler.current?.groupMap.get(msg.userId);
-                  if(sender){
-                    displayMsg.push(createDisplayableMessage(msg, sender));
-                  }
-                });
-
-                setMessages(_messages => displayMsg);
+        // setup the message handler
+        handler.current.ws.onmessage = (event): void => {
+          const handleHistMessage = (message: ChatHistory): void => {
+            const displayMsg: Array<DisplayableMessage> = [];
+            message.payload.forEach((msg) => {
+              const sender = handler.current?.groupMap.get(msg.userId);
+              if(sender){
+                displayMsg.push(createDisplayableMessage(msg, sender));
               }
+            });
 
-              const handleServerMessage = (message: ServerMessage): void => {
-                // probably parse this for errors...
-                console.log(message);
-              }
+            setMessages(_messages => displayMsg);
+          }
 
-              const handleNewMessage = (message: RxChatMessage): void => {
+          const handleServerMessage = (message: ServerMessage): void => {
+            // probably parse this for errors...
+            console.log(message);
+          }
 
-                const reorderGroups = (message: RxChatMessage): void => {
-                  for(let i=0; i<groups.length; i++){
-                    if(groups[i].groupId === currentGroupId){
-                      const copy = [...groups];
-                      const insertGroup = copy.splice(i, 1)[0];
-                      copy.unshift({
-                        userId: insertGroup.userId,
-                        groupName: insertGroup.groupName,
-                        groupId: insertGroup.groupId,
-                        groupAvatar: insertGroup.groupAvatar,
-                        lastTimestamp: message.payload.timestamp,
-                        lastMessage: message.payload.message,
-                        lastUserId: message.payload.userId,
-                      });
-                      setGroups(_groups => copy);
-                      break;
-                    }
-                  }
-                }
+          const handleNewMessage = (message: RxChatMessage): void => {
 
-                const sender = handler.current?.groupMap.get(message.payload.userId);
-                if(sender){
-                  const displayMsg = createDisplayableMessage(message.payload, sender);
-                  // array is displayed backwards, later messages should come first
-                  setMessages(messages => [displayMsg, ...messages]);
-                  reorderGroups(message);
-                } else {
-                  // do a fetch request to get the data since we've evidently lost it
+            const reorderGroups = (message: RxChatMessage): void => {
+              for(let i=0; i<groups.length; i++){
+                if(groups[i].groupId === currentGroupId){
+                  const copy = [...groups];
+                  const insertGroup = copy.splice(i, 1)[0];
+                  copy.unshift({
+                    userId: insertGroup.userId,
+                    groupName: insertGroup.groupName,
+                    groupId: insertGroup.groupId,
+                    groupAvatar: insertGroup.groupAvatar,
+                    lastTimestamp: message.payload.timestamp,
+                    lastMessage: message.payload.message,
+                    lastUserId: message.payload.userId,
+                  });
+                  setGroups(_groups => copy);
+                  break;
                 }
               }
-
-              handler.current?.validateMessage(message, handleNewMessage, handleServerMessage, handleHistMessage)
             }
 
-            handler.current.ws.onopen = (_event): void => {
-              // send the first message to get authenticated
-              const authMessage: AuthMessage = {
-                topic: "auth",
-                payload: {
-                  timestamp: new Date(),
-                  groupId: currentGroupId,
-                  token: token,
-                }
-              }
-              if(handler.current) handler.current.ws.send(JSON.stringify(authMessage));
-            };
+            const sender = handler.current?.groupMap.get(message.payload.userId);
+            if(sender){
+              const displayMsg = createDisplayableMessage(message.payload, sender);
+              // array is displayed backwards, later messages should come first
+              setMessages(messages => [displayMsg, ...messages]);
+              reorderGroups(message);
+            } else {
+              // do a fetch request to get the data since we've evidently lost it
+            }
           }
+
+          const message = JSON.parse(event.data);
+          handler.current?.validateMessage(message, handleNewMessage, handleServerMessage, handleHistMessage)
         }
 
-        pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
-      })
+        handler.current.ws.onopen = (_event): void => {
+          // send the first message to get authenticated
+          const authMessage: AuthMessage = {
+            topic: "auth",
+            payload: {
+              timestamp: new Date(),
+              groupId: currentGroupId,
+              token: token,
+            }
+          }
+          if(handler.current) handler.current.ws.send(JSON.stringify(authMessage));
+        };
+      }
+    }
+
+    const fetchGroupData = async (): Promise<void | GroupDataWithUsers> => {
+      // populate the group meta data
+      return GroupRequest.getGroupWithUsers({groupId: currentGroupId})
+        .then(res => res.data)
+        .then(data => {
+
+          const onLeft = (errors: t.Errors): GroupDataWithUsers=> {
+            throw Error(PathReporter.report(left(errors)).join('\n'));
+          }
+
+          const onRight = (data: GroupDataWithUsers): GroupDataWithUsers=> {
+            data.name = trimGroupName(data.name, storeState.name);
+            setCurrentGroupData(data);
+            return data;
+          }
+          return pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
+        })
+    }
+
+    fetchGroupData()
+      .then(data => {if(data) createWsHandler(data.users);})
       .catch(error => console.error(error));
+
 
     // disconnect from WS on unmount
     return ():void => {disconnect()};

@@ -64,7 +64,7 @@ interface MessageProps {
   size?: string;
   showName?: boolean;
   messageId: number;
-  onRemoveClick: (e: React.MouseEvent<HTMLButtonElement>, id: number) => void;
+  onRemoveClick: (_e: React.MouseEvent<HTMLButtonElement>, _id: number) => void;
 }
 export const Message: React.FC<MessageProps> = ({
   personName, 

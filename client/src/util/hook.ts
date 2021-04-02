@@ -1,7 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { useState, useEffect, useRef } from 'react';
 import * as React from 'react';
-import { fold } from 'fp-ts/lib/Either';
+import { fold, left } from 'fp-ts/lib/Either';
 import { pipe } from 'fp-ts/lib/pipeable';
 import * as t from 'io-ts';
 import { PathReporter } from 'io-ts/lib/PathReporter';
@@ -95,17 +95,16 @@ export function useValidator<T, O = T, I = unknown>(validator: t.Type<T, O, I>, 
 
   useEffect(() => {
     const validate = (): void => {
-      const onLeft = (_err: t.Errors):void => {
+      const onLeft = (err: t.Errors):void => {
         setError(true);
-        setErrMsg(PathReporter.report(decoded));
+        setErrMsg( PathReporter.report(left(err)) );
       }
       const onRight = (validData: T): void => {
         setData(validData);
       }
 
       resetError();
-      let decoded: t.Validation<T>;
-      pipe(decoded = validator.decode(dataToValidate), fold(onLeft, onRight));
+      pipe(validator.decode(dataToValidate), fold(onLeft, onRight));
     }
 
     validate();
