@@ -8,10 +8,14 @@ import { ListItem } from '../listItem';
 
 interface UserCheckListProps {
   userData: UserData[];
+  chosenUsers: UserData[];
   onChooseUser: (_user: UserData) => void;
 }
-export const UserCheckList: React.FC<UserCheckListProps> = ({userData, onChooseUser}: UserCheckListProps) => {
-  const [checked, setChecked] = React.useState<boolean[]>(new Array(userData.length).fill(false));
+export const UserCheckList: React.FC<UserCheckListProps> = ({userData, chosenUsers, onChooseUser}: UserCheckListProps) => {
+  const chosenUserIds = chosenUsers.reduce((acc, user) => {
+    acc.add(user.id);
+    return acc;
+  }, new Set() as Set<number>)
 
   return(
     <Flex
@@ -28,13 +32,8 @@ export const UserCheckList: React.FC<UserCheckListProps> = ({userData, onChooseU
                 variant="userSearch"
               />
               <Checkbox 
-                isChecked={checked[i]} 
-                onChange={(e): void => {
-                  const copy = [...checked];
-                  copy[i] = !copy[i];
-                  setChecked(copy);
-                  onChooseUser(user);
-                }}
+                isChecked={chosenUserIds.has(user.id)} 
+                onChange={(_e): void => {onChooseUser(user);}}
               />
             </Flex>
           );

@@ -18,6 +18,7 @@ import { axiosAuth } from '../../../api/index';
 import { UserCheckList } from '../../../component/search/userchecklist';
 import { SearchBar } from '../../../component/search/searchbar';
 import { ListItem, ListItemIcon } from '../../../component/listItem';
+import { UserTags } from '../../../component/usertag';
 
 interface InfoPanelProps {
   group: GroupData;
@@ -42,6 +43,16 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
 
   const search = useSearch(500, axiosAuth, '/api/search/user', 15);
   const searchResults= useValidator(UserArrValidator, search.data, []); 
+
+  const handleRemoveClick = (_e: React.MouseEvent<HTMLButtonElement>, user: UserData) => {
+    for(let i=0; i<newUsers.length; i++){
+      if(newUsers[i] === user){
+        const updateArr = [...newUsers];
+        updateArr.splice(i, 1);
+        setNewUsers(updateArr);
+      }
+    }
+  }
 
   return(
     <SidePanel variant="rightPanel">
@@ -125,6 +136,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
               icon={<PlusIcon/>}
             />
           }
+          onClick={(): void => setOpenAddUsers(true)}
         />
         <MyAlertDialog
           cancelButtonText="Cancel"
@@ -132,7 +144,10 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
           onOkayClick={(e):void => onAddPeople(e, newUsers)}
           header="Add people"
           isOpen={openAddUsers}
-          onClose={(): void => setOpenAddUsers(false)}
+          onClose={(): void => {
+            setOpenAddUsers(false);
+            search.setInputValue(""); // reset search value on dialog close
+          }}
           disableOkayButton={newUsers.length < 1}
         >
           <SearchBar
@@ -141,9 +156,13 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
             icon={<SearchIcon/>}
             variant="groupSearch"
           />
-          {/* TODO: selected users*/}
+          <UserTags
+            users={newUsers}
+            onRemoveClick={handleRemoveClick}
+          />
           <UserCheckList
             userData={searchResults.data}
+            chosenUsers={newUsers}
             onChooseUser={(user):void => setNewUsers([...newUsers, user])}
           />
         </MyAlertDialog>
