@@ -168,9 +168,9 @@ export class GroupRouter {
           if(!group) return res.sendStatus(400);
           
           // is the user already in the group?
-          if (GroupEntity.isUserInGroup(req.user.id, group)) return res.sendStatus(400);
+          if (GroupEntity.isUserInGroup(body.userId, group)) return res.sendStatus(400);
           // does the user exist? 
-          const user = await UserEntity.findOne({where: {id: req.user.id}});
+          const user = await UserEntity.findOne({where: {id: body.userId}});
           if(!user) return res.sendStatus(400);
           
           // check if we added this user, then would it create a group that already exists
@@ -189,7 +189,6 @@ export class GroupRouter {
           next(error);
         }
       }
-
       pipe(PatchAddReq.decode(req.body), fold(onLeft, onRight));
     });
   }

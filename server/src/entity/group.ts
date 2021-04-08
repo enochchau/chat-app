@@ -47,38 +47,40 @@ export class GroupEntity extends BaseEntity{
   @OneToMany(() => MessageEntity , message => message.group)
   messages: MessageEntity[];
 
+  private tempName?: string;
+
+  private createName(): string{
+    return this.users.reduce((acc, user, i) => {
+      acc += user.name;
+      if(i !== this.users.length-1) acc += ', '
+      return acc;
+    }, "");
+  }
+
+  @AfterLoad()
+  private loadTempUsers(): void {
+    if(this.users) {
+      this.tempName = this.createName();
+    }
+  }
+
+  @BeforeInsert()
+  private addName(){
+    if(!this.name) this.name = this.createName();
+  }
+
+  @BeforeUpdate()
+  private async updateName(){
+    if(!this.name || this.name === this.tempName){
+      this.name = this.createName();
+    }
+  }
+
   public static createGroupWithUsers(users: Array<UserEntity>, name: string){
     const newGroup = new GroupEntity();
     if (name) newGroup.name = name;
     newGroup.users = users;
     return this.save(newGroup);
-  }
-
-  @BeforeInsert()
-  private async createName(){
-    if(!this.name){
-      this.name = this.users.reduce((acc, user, i) => {
-        acc += user.name;
-        if(i !== this.users.length-1) acc += ', '
-        return acc;
-      }, "");
-    }
-  }
-
-  @BeforeUpdate()
-  private async updateName(){
-    try{
-      let split = this.name.split(', ')
-      if(split[0] === this.users[0].name && split[1] === this.users[1].name){
-        this.name = this.users.reduce((acc, user, i) => {
-          acc += user.name;
-          if(i !== this.users.length-1) acc += ', '
-          return acc;
-        }, "");
-      } else this.createName();
-    } catch(error) {
-      console.error(error);
-    }
   }
 
   // returns -1 if group not found
