@@ -40,11 +40,15 @@ export class GroupRequest {
   }
 
   static patchAddToGroup(data: {groupId: number, userId: number}): Promise<AxiosResponse<any>>{
-    return axiosAuth.patch(this.API + '/add', data)
+    return axiosAuth.patch(this.API + '/add', data);
   }
 
   static getGroupWithUsers(params: {groupId: number}): Promise<AxiosResponse<any>>{
     return axiosAuth.get(this.API + "/single", {params: params});
+  }
+
+  static patchChangeName(data: {groupId: number, newName: string}): Promise<AxiosResponse<any>>{
+    return axiosAuth.patch(this.API + "/name", data);
   }
 }
 

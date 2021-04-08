@@ -5,11 +5,10 @@ import { ClickOutside } from '../../../component/clickoutside';
 import { Picker } from '../../../component/chat/emojipicker';
 import { SmileIcon } from '../../../component/icon';
 import { BaseEmoji } from 'emoji-mart';
-import { Icon } from 'theme';
 
 interface BottomPanelProps {
   rightPanelStatus: boolean;
-  onMessageSubmit: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  onMessageSubmit: (_e: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProps) => {
   const [toggleEmojiPicker, setToggleEmojiPicker] = React.useState<boolean>(false);
@@ -44,8 +43,8 @@ export const BottomPanel = ({rightPanelStatus, onMessageSubmit}: BottomPanelProp
           rightPanelStatus
             ? 
             {
-              sm:"calc(100vw - 458px)", // these are calculated based on the right and left panel
-              md:"calc(100vw - 734px)"
+              sm:"calc(100vw - 394px)", // these are calculated based on the right and left panel
+              md:"calc(100vw - 670px)"
             }
             : 
             {

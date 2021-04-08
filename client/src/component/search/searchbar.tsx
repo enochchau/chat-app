@@ -4,7 +4,6 @@ import {
   InputGroup, 
   InputLeftElement, 
   useMultiStyleConfig, 
-  useStyleConfig
 } from '@chakra-ui/react';
 
 interface SearchBarProps {

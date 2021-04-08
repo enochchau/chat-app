@@ -32,22 +32,22 @@ export class ChatHandler {
 
   public validateMessage(
     message: any, 
-    handleNewMessage: (message: RxChatMessage) => void, 
-    handleServerMessage: (message: ServerMessage) => void, 
-    handleHist: (message:ChatHistory) => void
+    handleNewMessage: (_message: RxChatMessage) => void, 
+    handleServerMessage: (_message: ServerMessage) => void, 
+    handleHist: (_message:ChatHistory) => void
   ): void{
     const onHistLeft = (_errors: t.Errors): void => {
-      console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
-      console.log("Unable to validate recieved message at websocket.");
+      // console.log('Unable to validate chat history message', PathReporter.report(ChatHistoryValidator.decode(message)));
+      // console.log("Unable to validate recieved message at websocket.");
     }
     // if Server message decode fails pipe into historical message
     const onBadServerMessage = (_errors: t.Errors): void => {
-      console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
+      // console.log('Server message validation error: ', PathReporter.report(ServerMessageValidator.decode(message)));
       pipe(ChatHistoryValidator.decode(message), fold(onHistLeft, handleHist));
     }
     // if ChatMessage decode fails, pipe into ServerMessage
     const tryServerMessage = (_errors: t.Errors): void => {
-      console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
+      // console.log('Chat message validation error: ', PathReporter.report(RxChatMessageValidator.decode(message)));
       pipe(ServerMessageValidator.decode(message), fold(onBadServerMessage, handleServerMessage));
     }
     pipe(RxChatMessageValidator.decode(message), fold(tryServerMessage, handleNewMessage));

@@ -6,8 +6,8 @@ export const parseStringToHtml = (str: string): React.ReactFragment => {
     <>
       {
         strArr.map((peice, i) => {
-          if(i !== strArr.length - 1) return <>{peice}<br/></>;
-          return <>{peice}</>;
+          if(i !== strArr.length - 1) return <React.Fragment key={i}>{peice}<br/></React.Fragment>;
+          return <React.Fragment key={i}>{peice}</React.Fragment>;
         })
       }
     </>

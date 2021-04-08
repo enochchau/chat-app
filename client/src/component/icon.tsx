@@ -17,6 +17,9 @@ import {
   faArrowLeft,
   faTimes,
   faSignOutAlt,
+  faPlus,
+  faUsers,
+  faImage
 } from '@fortawesome/free-solid-svg-icons';
 import { faSmile as farSmile } from '@fortawesome/free-regular-svg-icons';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
@@ -39,6 +42,9 @@ export const EditIcon = ({...rest}) => <FAIcon {...rest} icon={ faEdit }/>
 export const ArrowLeftIcon = ({...rest}) => <FAIcon {...rest} icon={ faArrowLeft }/>
 export const XIcon = ({...rest}) => <FAIcon {...rest} icon={ faTimes }/>
 export const SignOutIcon = ({...rest}) => <FAIcon {...rest} icon={ faSignOutAlt }/>
+export const PlusIcon = ({...rest}) => <FAIcon {...rest} icon={ faPlus }/>
+export const UsersIcon = ({...rest}) => <FAIcon {...rest} icon={faUsers}/>
+export const ImageIcon = ({...rest}) => <FAIcon {...rest} icon={faImage}/>
 
 interface StackedIconProps {
   top: React.ReactNode,

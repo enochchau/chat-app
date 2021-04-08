@@ -17,6 +17,7 @@ export class GroupRouter {
     this.patchLeaveGroup();
     this.patchAddToGroup();
     this.getGroupWithUsers();
+    this.patchChangeName();
   }
 
   private postNewGroup(){
@@ -167,9 +168,9 @@ export class GroupRouter {
           if(!group) return res.sendStatus(400);
           
           // is the user already in the group?
-          if (GroupEntity.isUserInGroup(req.user.id, group)) return res.sendStatus(400);
+          if (GroupEntity.isUserInGroup(body.userId, group)) return res.sendStatus(400);
           // does the user exist? 
-          const user = await UserEntity.findOne({where: {id: req.user.id}});
+          const user = await UserEntity.findOne({where: {id: body.userId}});
           if(!user) return res.sendStatus(400);
           
           // check if we added this user, then would it create a group that already exists
@@ -188,7 +189,6 @@ export class GroupRouter {
           next(error);
         }
       }
-
       pipe(PatchAddReq.decode(req.body), fold(onLeft, onRight));
     });
   }
@@ -207,23 +207,10 @@ export class GroupRouter {
 
       const onRight = async (query: Query) => {
 
-        const replaceGroupName = (group: GroupEntity, currentUserId: number): void => {
-          for(let user of group.users){
-            if(user.id !== currentUserId){
-              group.name = user.name;
-              return; 
-            }
-          }
-        }
-
         try{
           const group = await GroupEntity.findOne({where: {id: query.groupId}, relations: ['users']});
           
           if(!group) return res.sendStatus(400);
-
-          if(group.users.length === 2 && req.user){
-            replaceGroupName(group, req.user.id);
-          }
 
           res.json(group);
         } catch(error) {
@@ -233,6 +220,43 @@ export class GroupRouter {
 
       pipe(Query.decode(req.query), fold(onLeft, onRight));
     })
+  }
+
+  private patchChangeName(){
+    const Validator = t.type({
+      groupId: t.number,
+      newName: t.string,
+    });
+    type ValidBody = t.TypeOf<typeof Validator>;
+    this.router.patch("/name", (req, res, next) => {
+
+      const onLeft = async (errors: t.Errors): Promise<void> => {res.sendStatus(400)}
+      const onRight = async (body: ValidBody): Promise<void> => {
+        try{
+          const group = await GroupEntity.findOne({where: {id: body.groupId}, relations:["users"]});
+          if(group && req.user){
+            // don't allow users who are not in the group to change it
+            if(!GroupEntity.isUserInGroup(req.user.id, group)){
+              res.sendStatus(400);
+              return;
+            }
+
+            group.name = body.newName;
+
+            const updatedGroup = await GroupEntity.save(group);
+
+            res.status(200).json(updatedGroup);
+          } else {
+            res.sendStatus(400);
+          }
+        } catch(error) {
+          next(error);
+        }
+      }
+
+      pipe(Validator.decode(req.body), fold(onLeft, onRight));
+    })
+
   }
 
 }

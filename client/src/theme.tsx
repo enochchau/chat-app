@@ -47,7 +47,7 @@ export const Message: ComponentStyleConfig = {
       pb:"4px",
       pr:"10px",
       pl:"10px",
-      borderRadius: '3xl',
+      borderRadius: '2xl',
     },
     sideButtons:{
       display: "flex",
@@ -225,7 +225,7 @@ export const SidePanel: ComponentStyleConfig = {
       paddingRight: '8px',
     },
     rightPanel: {
-      width: "320px",
+      width: "248px",
     }
   }
 }
@@ -300,14 +300,12 @@ export const ListItem: ComponentStyleConfig = {
     avatar: {
     },
     title:{
-      width: '236px',
       fontSize: 'md',
       textOverflow: 'ellipsis',
       overflow: 'hidden',
       whiteSpace: 'nowrap'
     },
     subtitle:{
-      width: '236px',
       textOverflow: 'ellipsis',
       fontSize: 'sm',
       color: 'gray.500',
@@ -318,17 +316,45 @@ export const ListItem: ComponentStyleConfig = {
   variants: {
     groupList: {
       title:{
-        display: {sm: 'none', md: 'block'}
+        display: {sm: 'none', md: 'block'},
+        width: '236px',
       },
       subtitle: {
-        display: {sm: 'none', md: 'block'}
+        display: {sm: 'none', md: 'block'},
+        width: '236px',
       },
     },
     userSearch:{
       container: {
-        height: '52px'
+        height: '52px',
+      },
+      title: {
+        width: '236px',
+      },
+      subtitle: {
+        width: '236px',
       }
     },
+    groupOptions: {
+      container: {
+        height: '44px',
+      },
+      title: {
+        width: '140px'
+      },
+      subtitle: {
+        width: '140px'
+      }
+    },
+    addUser: {
+      container: {
+        height: '52px',
+      },
+      title: {
+        width: '450px',
+        paddingLeft: '8px'
+      }
+    }
   }
 }
 

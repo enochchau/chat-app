@@ -18,8 +18,7 @@ import { TopPanel } from '../../../component/panel/toppanel';
 import { SearchBar } from '../../../component/group';
 import { UserSearchList } from '../../../component/search/searchList';
 import { UserData } from '../../../api/validators/entity';
-import { trimGroupName } from '../../../util/trimName';
-import { StoreContext } from '../../../store';
+import { UserTags } from '../../../component/usertag';
 
 interface TopAvatarPanelProps {
   username: string;
@@ -27,13 +26,12 @@ interface TopAvatarPanelProps {
   onInfoClick: React.MouseEventHandler<HTMLButtonElement>;
 }
 export const TopAvatarPanel: React.FC<TopAvatarPanelProps> = ({username, avatarSrc, onInfoClick}) => {
-  const {storeState} = React.useContext(StoreContext);
   return(
     <TopPanel>
       <HStack padding="5px">
         <Avatar name={username} src={avatarSrc} size="sm"/>
         <Heading size="sm">
-          {trimGroupName(username, storeState.name)}
+          {username}
         </Heading>
       </HStack>
       <HStack padding="5px">
@@ -80,21 +78,10 @@ export const UserSearchPanel: React.FC<UserSearchPanelProps> = ({
   return(
     <TopPanel variant='userSearch'>
       <Text>To:</Text>
-      {
-        newUserGroup.map((user, i) => (
-          <Tag 
-            size="md" 
-            key={i} 
-            variant="subtle" 
-            colorScheme="facebook"
-            ml="4px"
-            mr="4px"
-          >
-            <TagLabel><span title={user.name}>{user.name}</span></TagLabel>
-            <TagCloseButton onClick={(e): void => onClickRemoveUser(e, user)}/>
-          </Tag>
-        ))
-      }
+      <UserTags
+        users={newUserGroup}
+        onRemoveClick={onClickRemoveUser}
+      />
       <SearchBar
         value={searchValue}
         onChange={onInputChange}
