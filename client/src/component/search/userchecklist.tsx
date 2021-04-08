@@ -29,7 +29,7 @@ export const UserCheckList: React.FC<UserCheckListProps> = ({userData, chosenUse
                 title={user.name}
                 avatarSrc={user.avatar}
                 avatarSize="sm"
-                variant="userSearch"
+                variant="addUser"
               />
               <Checkbox 
                 isChecked={chosenUserIds.has(user.id)} 

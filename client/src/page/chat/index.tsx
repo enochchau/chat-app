@@ -399,6 +399,25 @@ export const ChatPage: React.FC = () => {
       })
       .catch(err => console.error(err));
   }
+
+  const addGroupMember = (_e: React.MouseEvent<HTMLButtonElement>, newUsers: UserData[]): void => {
+    const newUserIds = newUsers.reduce((acc, user) => {
+      acc.push(user.id);
+      return acc;
+    }, [] as number[]);
+
+    newUserIds.forEach(id => {
+      GroupRequest.patchAddToGroup({groupId: currentGroupId, userId: id})
+        .then((res) => res.data)
+        .then(data => {
+          const onLeft = (errors: t.Errors):void => console.error(PathReporter.report(left(errors)));
+          const onRight = (group: GroupDataWithUsers): void => setCurrentGroupData(group);
+          console.log(data);
+          pipe(GroupWithUsersValidator.decode(data), fold(onLeft, onRight));
+        })
+        .catch(error => console.error(error));
+    });
+  }
   
   const trimSearchResults = (newGroup: UserData[]):UserData[]  => {
     const userIdSet = newGroup.reduce((acc, user) => acc.add(user.id), new Set());
@@ -483,6 +502,7 @@ export const ChatPage: React.FC = () => {
             members={currentGroupData.users}
             onChangeName={changeGroupName}
             onLeaveGroup={leaveGroup}
+            onAddPeople={addGroupMember}
           />
         </PanelFrame>
       }

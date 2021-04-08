@@ -345,6 +345,15 @@ export const ListItem: ComponentStyleConfig = {
       subtitle: {
         width: '140px'
       }
+    },
+    addUser: {
+      container: {
+        height: '52px',
+      },
+      title: {
+        width: '450px',
+        paddingLeft: '8px'
+      }
     }
   }
 }

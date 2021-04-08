@@ -42,9 +42,11 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
   const [newName, setNewName] = React.useState<string>(group.name);
 
   const search = useSearch(500, axiosAuth, '/api/search/user', 15);
-  const searchResults= useValidator(UserArrValidator, search.data, []); 
+  const searchResults = useValidator(UserArrValidator, search.data, []); 
 
-  const handleRemoveClick = (_e: React.MouseEvent<HTMLButtonElement>, user: UserData) => {
+  const memberIdSet = members.reduce((acc, user) => acc.add(user.id), new Set as Set<number>);
+
+  const handleRemoveClick = (_e: React.MouseEvent<HTMLButtonElement>, user: UserData): void => {
     for(let i=0; i<newUsers.length; i++){
       if(newUsers[i] === user){
         const updateArr = [...newUsers];
@@ -161,7 +163,7 @@ export const InfoPanel: React.FC<InfoPanelProps> = ({
             onRemoveClick={handleRemoveClick}
           />
           <UserCheckList
-            userData={searchResults.data}
+            userData={searchResults.data.filter(user => !memberIdSet.has(user.id))}
             chosenUsers={newUsers}
             onChooseUser={(user):void => setNewUsers([...newUsers, user])}
           />
